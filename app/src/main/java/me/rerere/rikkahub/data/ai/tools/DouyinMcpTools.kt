@@ -88,6 +88,7 @@ fun buildDouyinMcpTools(getCookie: () -> String, workspaceRepository: me.rerere.
                 } catch(e: Exception) {}
 
                 if (qrUrl != null) {
+                    val qrImage = qrUrl
                     // 抖音返回 qrcode 通常是 base64 的 data URI，直接作为图片展示
                     parts.add(UIMessagePart.Text(buildJsonObject{
                         put("action","👉 请用手机抖音APP扫描下方二维码登录")
@@ -96,7 +97,7 @@ fun buildDouyinMcpTools(getCookie: () -> String, workspaceRepository: me.rerere.
                         put("step3","扫描下方二维码，手机确认后自动完成登录")
                         put("qr_token", token ?: "")
                     }.toString()))
-                    parts.add(UIMessagePart.Image(url = qrUrl))
+                    parts.add(UIMessagePart.Image(url = qrImage))
                     // 保存 token 到沙箱供 douyin_check_login 轮询确认
                     val saveCmd = "mkdir -p ~/.config/douyinmcp && echo '${token ?: ""}' > ~/.config/douyinmcp/qr_token.txt 2>/dev/null || true"
                     try { workspaceRepository.executeCommand("default", saveCmd, timeoutMillis = 3000) } catch(e: Exception) {}
