@@ -48,66 +48,87 @@ fun buildDouyinMcpTools(getCookie: () -> String, workspaceRepository: me.rerere.
 
     // ===== 登录 =====
         add(Tool(name="douyin_login",
-            description="获取抖音扫码登录二维码。AI会直接展示二维码图片给用户扫描登录。无需手动获取Cookie。",
+            description="获取抖音扫码登录二维码。AI会直接在对话中展示二维码图片，用户用手机抖音扫码即可自动登录，无需手动复制Cookie。",
             needsApproval=false,
-            parameters={ InputSchema.Obj(properties=buildJsonObject{} ) },
+            parameters={ InputSchema.Obj(properties=buildJsonObject{}) },
             execute={
-                // 通过抖音登录 API 获取二维码数据
-                // 方案1: 使用 passort API
-                val qrApi = "$DY/passport/web/get_qr_code/"
+                // 模拟浏览器完整参数请求抖音 passport 二维码接口
+                val qrApi = "$DY/passport/web/get_qr_code/?" +
+                    "device_platform=webapp&aid=6383&channel=channel_pc_web&" +
+                    "version_code=170400&version_name=17.4.0&platform=PC"
+                val body = buildJsonObject {
+                    put("service", "$DY/")
+                    put("webUid", "")
+                    put("aid", "6383")
+                    put("device_platform", "webapp")
+                    put("channel", "channel_pc_web")
+                    put("version_code", "170400")
+                    put("version_name", "17.4.0")
+                    put("platform", "PC")
+                    put("app_name", "aweme_pc")
+                    put("app_version", "17.4.0")
+                }.toString()
                 val resp = try {
                     http.newCall(Request.Builder().url(qrApi)
                         .headers(hdrs("", "$DY/"))
-                        .post("".toRequestBody("application/x-www-form-urlencoded".toMediaType()))
+                        .post(body.toRequestBody("application/x-www-form-urlencoded".toMediaType()))
                         .build())
                         .execute().use { it.body?.string()?.take(12000) ?: "{}" }
                 } catch(e: Exception) { "{}" }
 
                 val parts = mutableListOf<UIMessagePart>()
-                // 尝试解析二维码 URL
                 var qrUrl: String? = null
                 var token: String? = null
                 try {
                     val apiJson = Json.parseToJsonElement(resp).jsonObject
+                    // 如果 API 失败，data 里会有错误码
                     val data = apiJson["data"]?.jsonObject
-                    val qrcode = data?.get("qrcode")?.jsonPrimitive?.contentOrNull
                     token = data?.get("token")?.jsonPrimitive?.contentOrNull
-                    if (!qrcode.isNullOrBlank()) qrUrl = qrcode
+                    data?.get("qrcode")?.jsonPrimitive?.contentOrNull?.let { qrUrl = it }
                 } catch(e: Exception) {}
 
                 if (qrUrl != null) {
-                    // 直接展示二维码图片给用户
+                    // 抖音返回 qrcode 通常是 base64 的 data URI，直接作为图片展示
                     parts.add(UIMessagePart.Text(buildJsonObject{
-                        put("action","请使用手机抖音APP扫描下方二维码登录")
+                        put("action","👉 请用手机抖音APP扫描下方二维码登录")
                         put("step1","打开手机抖音")
-                        put("step2","点击右上角放大镜旁边的扫一扫图标")
-                        put("step3","扫描下方二维码即可自动登录")
+                        put("step2","点击右上角『扫一扫』图标")
+                        put("step3","扫描下方二维码，手机确认后自动完成登录")
                         put("qr_token", token ?: "")
                     }.toString()))
                     parts.add(UIMessagePart.Image(url = qrUrl))
-                    // 同时保存登录token到沙箱，供轮询查状态
-                    val saveCmd = "echo '${token ?: ""}' > ~/.config/douyinmcp/qr_token.txt 2>/dev/null || true"
+                    // 保存 token 到沙箱供 douyin_check_login 轮询确认
+                    val saveCmd = "mkdir -p ~/.config/douyinmcp && echo '${token ?: ""}' > ~/.config/douyinmcp/qr_token.txt 2>/dev/null || true"
                     try { workspaceRepository.executeCommand("default", saveCmd, timeoutMillis = 3000) } catch(e: Exception) {}
                     parts.add(UIMessagePart.Text(buildJsonObject{
-                        put("qr_code_url", qrUrl)
-                        put("status","请让用户扫码，扫码后调用 douyin_check_login 确认登录状态")
+                        put("status","二维码已生成，等待用户扫码")
+                        put("next","用户扫码后调用 douyin_check_login 确认登录，登录成功后 Cookie 会自动保存到沙箱")
                     }.toString()))
                 } else {
-                    // 方案2: 如果API失败，尝试从登录页提取
-                    val html = fetch("$DY/login")
-                    val qrMatch = Regex("(https?://[^\"']*qrcode[^\"']*\\.(?:png|jpg|gif)[^\"']*)").find(html)
-                    qrUrl = qrMatch?.groupValues?.get(1)
-                    if (qrUrl != null) {
-                        parts.add(UIMessagePart.Text(buildJsonObject{
-                            put("action","请用手机抖音APP扫描下方二维码登录")
-                            put("note","二维码会定期刷新，若失效请重新调用 douyin_login")
-                        }.toString()))
-                        parts.add(UIMessagePart.Image(url = qrUrl))
-                    } else {
-                        parts.add(UIMessagePart.Text("{\"error\":\"无法获取登录二维码\",\"tip\":\"抖音登录接口可能已变更，请用浏览器打开 https://www.douyin.com/login 扫码，然后参考 douyin_set_cookie 手动设置Cookie\"}"))
-                    }
+                    // API 被风控时降级：引导在 App 内打开登录页
+                    val errorDesc = try {
+                        Json.parseToJsonElement(resp).jsonObject["data"]?.jsonObject?.
+                            get("description")?.jsonPrimitive?.contentOrNull ?: ""
+                    } catch(e: Exception) { "" }
+                    parts.add(UIMessagePart.Text(buildJsonObject{
+                        put("error","抖音扫码API暂不可用(${errorDesc.take(50)})")
+                        put("action","改用内置浏览器打开抖音登录页扫码，登录后自动检测Cookie。调用 douyin_open_login 即可")
+                    }.toString()))
                 }
                 parts
+            },
+        ))
+
+        add(Tool(name="douyin_open_login",
+            description="在 App 内置浏览器打开抖音登录页，用户扫码确认后调用 douyin_check_login 自动检测登录。",
+            needsApproval=true,
+            parameters={ InputSchema.Obj(properties=buildJsonObject{}) },
+            execute={
+                listOf(UIMessagePart.Text(buildJsonObject{
+                    put("action","open_url")
+                    put("url","$DY/login")
+                    put("message","即将打开抖音登录页。请在App内浏览器完成扫码，确认后回到对话，调用 douyin_check_login 检查登录状态")
+                }.toString()))
             },
         ))
 
