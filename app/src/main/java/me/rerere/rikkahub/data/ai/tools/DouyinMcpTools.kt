@@ -88,7 +88,7 @@ fun buildDouyinMcpTools(getCookie: () -> String, workspaceRepository: me.rerere.
                 } catch(e: Exception) {}
 
                 if (qrUrl != null) {
-                    val qrImage = qrUrl
+                    val qrImage: String = qrUrl ?: ""
                     // 抖音返回 qrcode 通常是 base64 的 data URI，直接作为图片展示
                     parts.add(UIMessagePart.Text(buildJsonObject{
                         put("action","👉 请用手机抖音APP扫描下方二维码登录")
