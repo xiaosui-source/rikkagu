@@ -214,6 +214,7 @@ class McpManager(
                     ).stdout.trim()
                 } catch (e: Exception) { "" } }
             },
+            workspaceRepository = workspaceRepository,
         )
         list += me.rerere.rikkahub.data.ai.tools.buildTicket12306McpTools()
         list += me.rerere.rikkahub.data.ai.tools.buildApkReverseMcpTools(workspaceRepository)
