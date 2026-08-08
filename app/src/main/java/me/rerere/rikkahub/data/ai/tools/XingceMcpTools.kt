@@ -66,14 +66,16 @@ fun buildXingceMcpTools(context: Context): List<Tool> = buildList {
         name = "xingce_search_methods",
         description = "搜索花生十三行测解题方法卡片。442张卡片覆盖资料分析/数量关系/判断推理/言语理解。Params: keyword(关键词如'增长率'、'图形推理'、'工程问题'), module(模块名可选), limit(返回数量默认5)。",
         needsApproval = false,
-        parameters = InputSchema.Obj(
-            properties = buildJsonObject {
-                put("keyword", buildJsonObject { put("type","string"); put("description","搜索关键词") })
-                put("module", buildJsonObject { put("type","string"); put("description","模块: 资料分析/数量关系/判断推理/言语理解") })
-                put("limit", buildJsonObject { put("type","integer"); put("description","返回数量默认5") })
-            },
-            required = listOf("keyword")
-        ),
+        parameters = {
+            InputSchema.Obj(
+                properties = buildJsonObject {
+                    put("keyword", buildJsonObject { put("type","string"); put("description","搜索关键词") })
+                    put("module", buildJsonObject { put("type","string"); put("description","模块: 资料分析/数量关系/判断推理/言语理解") })
+                    put("limit", buildJsonObject { put("type","integer"); put("description","返回数量默认5") })
+                },
+                required = listOf("keyword")
+            )
+        },
         execute = { args ->
             val o = args.jsonObject
             val kw = o["keyword"]?.jsonPrimitive?.contentOrNull?.lowercase() ?: ""
@@ -106,12 +108,14 @@ fun buildXingceMcpTools(context: Context): List<Tool> = buildList {
         name = "xingce_get_method",
         description = "获取方法卡片的完整详情。Params: method_id(卡片ID如'da_growth_rate_general_001')。",
         needsApproval = false,
-        parameters = InputSchema.Obj(
-            properties = buildJsonObject {
-                put("method_id", buildJsonObject { put("type","string"); put("description","卡片ID") })
-            },
-            required = listOf("method_id")
-        ),
+        parameters = {
+            InputSchema.Obj(
+                properties = buildJsonObject {
+                    put("method_id", buildJsonObject { put("type","string"); put("description","卡片ID") })
+                },
+                required = listOf("method_id")
+            )
+        },
         execute = { args ->
             val id = args.jsonObject["method_id"]?.jsonPrimitive?.contentOrNull ?: error("method_id required")
             val cards = loadCards(context)
@@ -124,12 +128,14 @@ fun buildXingceMcpTools(context: Context): List<Tool> = buildList {
         name = "xingce_classify",
         description = "识别行测题目属于哪个模块和题型。Params: question(题目文本)。",
         needsApproval = false,
-        parameters = InputSchema.Obj(
-            properties = buildJsonObject {
-                put("question", buildJsonObject { put("type","string"); put("description","题目文本") })
-            },
-            required = listOf("question")
-        ),
+        parameters = {
+            InputSchema.Obj(
+                properties = buildJsonObject {
+                    put("question", buildJsonObject { put("type","string"); put("description","题目文本") })
+                },
+                required = listOf("question")
+            )
+        },
         execute = { args ->
             val q = args.jsonObject["question"]?.jsonPrimitive?.contentOrNull?.lowercase() ?: error("question required")
             val cards = loadCards(context)
@@ -163,7 +169,7 @@ fun buildXingceMcpTools(context: Context): List<Tool> = buildList {
         name = "xingce_list_modules",
         description = "列出花生十三行测知识库的所有模块和方法数量。",
         needsApproval = false,
-        parameters = InputSchema.Obj(properties = buildJsonObject {}),
+        parameters = { InputSchema.Obj(properties = buildJsonObject {}) },
         execute = {
             val cards = loadCards(context)
             val modules = cards.groupBy { it["module"]?.jsonPrimitive?.contentOrNull ?: "其他" }
@@ -185,13 +191,15 @@ fun buildXingceMcpTools(context: Context): List<Tool> = buildList {
         name = "xingce_solve",
         description = "行测解题引导：根据题目自动匹配方法卡片，返回解题步骤和公式。Params: question(题目), module(模块提示,可选)。",
         needsApproval = false,
-        parameters = InputSchema.Obj(
-            properties = buildJsonObject {
-                put("question", buildJsonObject { put("type","string"); put("description","题目文本") })
-                put("module", buildJsonObject { put("type","string"); put("description","模块提示(可选)") })
-            },
-            required = listOf("question")
-        ),
+        parameters = {
+            InputSchema.Obj(
+                properties = buildJsonObject {
+                    put("question", buildJsonObject { put("type","string"); put("description","题目文本") })
+                    put("module", buildJsonObject { put("type","string"); put("description","模块提示(可选)") })
+                },
+                required = listOf("question")
+            )
+        },
         execute = { args ->
             val o = args.jsonObject
             val q = o["question"]?.jsonPrimitive?.contentOrNull?.lowercase() ?: error("question required")
