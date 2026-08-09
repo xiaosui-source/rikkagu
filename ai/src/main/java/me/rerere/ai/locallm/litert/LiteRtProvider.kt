@@ -1,25 +1,25 @@
-package me.rerere.locallm.litert
+package me.rerere.ai.locallm.litert
 
 import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-import me.rerere.locallm.core.MessageRole
-import me.rerere.locallm.provider.ImageGenerationParams
-import me.rerere.locallm.provider.Model
-import me.rerere.locallm.provider.Provider
-import me.rerere.locallm.provider.ProviderSetting
-import me.rerere.locallm.provider.TextGenerationParams
-import me.rerere.locallm.ui.ImageGenerationItem
-import me.rerere.locallm.ui.MessageChunk
-import me.rerere.locallm.ui.UIMessage
-import me.rerere.locallm.ui.UIMessageChoice
-import me.rerere.locallm.ui.UIMessagePart
+import me.rerere.ai.core.MessageRole
+import me.rerere.ai.provider.ImageGenerationParams
+import me.rerere.ai.provider.Model
+import me.rerere.ai.provider.Provider
+import me.rerere.ai.provider.ProviderSetting
+import me.rerere.ai.provider.TextGenerationParams
+import me.rerere.ai.ui.ImageGenerationItem
+import me.rerere.ai.ui.MessageChunk
+import me.rerere.ai.ui.UIMessage
+import me.rerere.ai.ui.UIMessageChoice
+import me.rerere.ai.ui.UIMessagePart
 import android.content.Context
-import me.rerere.locallm.util.audioBytes
-import me.rerere.locallm.util.toBitmap
-import me.rerere.locallm.LocalRuntime
-import me.rerere.locallm.LocalRuntimePreferences
+import me.rerere.ai.util.audioBytes
+import me.rerere.ai.util.toBitmap
+import me.rerere.ai.locallm.LocalRuntime
+import me.rerere.ai.locallm.LocalRuntimePreferences
 import com.google.ai.edge.litertlm.tool as litertTool
 import com.google.ai.edge.litertlm.ToolProvider
 
