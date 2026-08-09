@@ -1,4 +1,4 @@
-package me.rerere.ai.locallm.litert
+package me.rerere.locallm.litert
 
 import android.content.Context
 import android.graphics.Bitmap

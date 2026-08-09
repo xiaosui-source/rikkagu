@@ -1,4 +1,4 @@
-package me.rerere.ai.locallm.litert
+package me.rerere.locallm.litert
 
 import android.util.Log
 import kotlinx.coroutines.flow.Flow
@@ -18,8 +18,8 @@ import me.rerere.ai.ui.UIMessagePart
 import android.content.Context
 import me.rerere.ai.util.audioBytes
 import me.rerere.ai.util.toBitmap
-import me.rerere.ai.locallm.LocalRuntime
-import me.rerere.ai.locallm.LocalRuntimePreferences
+import me.rerere.locallm.LocalRuntime
+import me.rerere.locallm.LocalRuntimePreferences
 import com.google.ai.edge.litertlm.tool as litertTool
 import com.google.ai.edge.litertlm.ToolProvider
 
