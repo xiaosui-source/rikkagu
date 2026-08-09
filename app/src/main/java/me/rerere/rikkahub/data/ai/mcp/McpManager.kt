@@ -195,11 +195,25 @@ class McpManager(
             workspaceRepository = workspaceRepository,
             getApiKey = {
                 val model = settings.getCurrentChatModel()
-                model?.findProvider(settings.providers)?.apiKey
+                model?.findProvider(settings.providers)?.let { provider ->
+                    when (provider) {
+                        is me.rerere.ai.provider.ProviderSetting.OpenAI -> provider.apiKey
+                        is me.rerere.ai.provider.ProviderSetting.Google -> provider.apiKey
+                        is me.rerere.ai.provider.ProviderSetting.Claude -> provider.apiKey
+                        else -> null
+                    }
+                }
             },
             getBaseUrl = {
                 val model = settings.getCurrentChatModel()
-                model?.findProvider(settings.providers)?.baseUrl
+                model?.findProvider(settings.providers)?.let { provider ->
+                    when (provider) {
+                        is me.rerere.ai.provider.ProviderSetting.OpenAI -> provider.baseUrl
+                        is me.rerere.ai.provider.ProviderSetting.Google -> provider.baseUrl
+                        is me.rerere.ai.provider.ProviderSetting.Claude -> provider.baseUrl
+                        else -> null
+                    }
+                }
             },
         )
         list += me.rerere.rikkahub.data.ai.tools.buildDouyinMcpTools(
