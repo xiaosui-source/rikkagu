@@ -23,6 +23,12 @@ enum class ClaudePromptCacheTtl(val apiValue: String?) {
 }
 
 @Serializable
+data class OpenRouterRouting(
+    val provider: String = "",
+    val location: String = "",
+)
+
+@Serializable
 sealed class ProviderSetting {
     abstract val id: Uuid
     abstract val enabled: Boolean
