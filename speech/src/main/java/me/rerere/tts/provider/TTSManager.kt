@@ -1,4 +1,4 @@
-﻿/*
+/*
  * 灵犀 Lingxi
  * 衍生自 Lingxi (https://github.com/scottwilliamavery26071994-bot/rikkahub)，原作者 RE
  * 本项目基于 GNU AGPL v3 开源，详见根目录 LICENSE 文件
@@ -10,29 +10,15 @@ import android.content.Context
 import kotlinx.coroutines.flow.Flow
 import me.rerere.tts.model.AudioChunk
 import me.rerere.tts.model.TTSRequest
-import me.rerere.tts.provider.providers.GeminiTTSProvider
-import me.rerere.tts.provider.providers.GroqTTSProvider
-import me.rerere.tts.provider.providers.MiMoTTSProvider
-import me.rerere.tts.provider.providers.MiniMaxTTSProvider
-import me.rerere.tts.provider.providers.OpenAITTSProvider
-import me.rerere.tts.provider.providers.QwenTTSProvider
 import me.rerere.tts.provider.providers.SystemTTSProvider
 import me.rerere.tts.provider.providers.EdgeTTSProvider
 import me.rerere.tts.provider.providers.BaiduTTSProvider
 import me.rerere.tts.provider.providers.YoudaoTTSProvider
 import me.rerere.tts.provider.providers.GoogleFreeTTSProvider
 import me.rerere.tts.provider.providers.ElevenLabsTTSProvider
-import me.rerere.tts.provider.providers.XAITTSProvider
 
 class TTSManager(private val context: Context) {
-    private val openAIProvider = OpenAITTSProvider()
-    private val geminiProvider = GeminiTTSProvider()
     private val systemProvider = SystemTTSProvider()
-    private val miniMaxProvider = MiniMaxTTSProvider()
-    private val qwenProvider = QwenTTSProvider()
-    private val groqProvider = GroqTTSProvider()
-    private val xaiProvider = XAITTSProvider()
-    private val miMoProvider = MiMoTTSProvider()
     private val edgeProvider = EdgeTTSProvider()
     private val baiduProvider = BaiduTTSProvider()
     private val youdaoProvider = YoudaoTTSProvider()
@@ -44,14 +30,7 @@ class TTSManager(private val context: Context) {
         request: TTSRequest
     ): Flow<AudioChunk> {
         return when (providerSetting) {
-            is TTSProviderSetting.OpenAI -> openAIProvider.generateSpeech(context, providerSetting, request)
-            is TTSProviderSetting.Gemini -> geminiProvider.generateSpeech(context, providerSetting, request)
             is TTSProviderSetting.SystemTTS -> systemProvider.generateSpeech(context, providerSetting, request)
-            is TTSProviderSetting.MiniMax -> miniMaxProvider.generateSpeech(context, providerSetting, request)
-            is TTSProviderSetting.Qwen -> qwenProvider.generateSpeech(context, providerSetting, request)
-            is TTSProviderSetting.Groq -> groqProvider.generateSpeech(context, providerSetting, request)
-            is TTSProviderSetting.XAI -> xaiProvider.generateSpeech(context, providerSetting, request)
-            is TTSProviderSetting.MiMo -> miMoProvider.generateSpeech(context, providerSetting, request)
             is TTSProviderSetting.EdgeTTS -> edgeProvider.generateSpeech(context, providerSetting, request)
             is TTSProviderSetting.BaiduTTS -> baiduProvider.generateSpeech(context, providerSetting, request)
             is TTSProviderSetting.YoudaoTTS -> youdaoProvider.generateSpeech(context, providerSetting, request)
