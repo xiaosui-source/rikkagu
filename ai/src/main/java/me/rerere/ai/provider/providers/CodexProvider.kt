@@ -136,7 +136,7 @@ class CodexProvider(
         params: TextGenerationParams,
     ): MessageChunk {
         var collected = listOf(UIMessage.assistant(""))
-        var usage: me.rerere.locallm.core.TokenUsage? = null
+        var usage: me.rerere.ai.provider.providers.TokenUsage? = null
         streamText(providerSetting, messages, params).collect { chunk ->
             collected = collected.handleMessageChunk(chunk, params.model)
             usage = chunk.usage ?: usage
