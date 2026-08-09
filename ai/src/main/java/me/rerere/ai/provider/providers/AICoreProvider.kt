@@ -1,4 +1,4 @@
-package me.rerere.ai.provider.providers
+package me.rerere.locallm.provider.providers
 
 import android.app.ActivityManager
 import android.content.Context
@@ -23,23 +23,23 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
-import me.rerere.ai.core.InputSchema
-import me.rerere.ai.core.Tool
-import me.rerere.ai.core.MessageRole
-import me.rerere.ai.provider.AICoreReleaseStage
-import me.rerere.ai.provider.AICORE_DEFAULT_MODELS
-import me.rerere.ai.provider.AICORE_NANO_FAST_MODEL
-import me.rerere.ai.provider.AICORE_NANO_FULL_MODEL
-import me.rerere.ai.provider.ImageGenerationParams
-import me.rerere.ai.provider.Model
-import me.rerere.ai.provider.Provider
-import me.rerere.ai.provider.ProviderSetting
-import me.rerere.ai.provider.TextGenerationParams
-import me.rerere.ai.ui.ImageGenerationItem
-import me.rerere.ai.ui.MessageChunk
-import me.rerere.ai.ui.UIMessage
-import me.rerere.ai.ui.UIMessageChoice
-import me.rerere.ai.ui.UIMessagePart
+import me.rerere.locallm.core.InputSchema
+import me.rerere.locallm.core.Tool
+import me.rerere.locallm.core.MessageRole
+import me.rerere.locallm.provider.AICoreReleaseStage
+import me.rerere.locallm.provider.AICORE_DEFAULT_MODELS
+import me.rerere.locallm.provider.AICORE_NANO_FAST_MODEL
+import me.rerere.locallm.provider.AICORE_NANO_FULL_MODEL
+import me.rerere.locallm.provider.ImageGenerationParams
+import me.rerere.locallm.provider.Model
+import me.rerere.locallm.provider.Provider
+import me.rerere.locallm.provider.ProviderSetting
+import me.rerere.locallm.provider.TextGenerationParams
+import me.rerere.locallm.ui.ImageGenerationItem
+import me.rerere.locallm.ui.MessageChunk
+import me.rerere.locallm.ui.UIMessage
+import me.rerere.locallm.ui.UIMessageChoice
+import me.rerere.locallm.ui.UIMessagePart
 
 private const val TAG = "AICoreProvider"
 

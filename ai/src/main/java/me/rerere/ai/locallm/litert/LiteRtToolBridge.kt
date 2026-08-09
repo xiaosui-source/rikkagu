@@ -1,4 +1,4 @@
-package me.rerere.ai.locallm.litert
+package me.rerere.locallm.litert
 
 import android.util.Log
 import com.google.ai.edge.litertlm.Tool
@@ -10,8 +10,8 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.put
-import me.rerere.ai.core.Tool as RikkaTool
-import me.rerere.ai.ui.UIMessagePart
+import me.rerere.locallm.core.Tool as RikkaTool
+import me.rerere.locallm.ui.UIMessagePart
 
 private const val TAG = "LiteRtToolBridge"
 
