@@ -114,8 +114,20 @@ fun ProviderConfigure(
                 ProviderConfigureClaude(provider, onEdit)
             }
 
+            is ProviderSetting.AICore -> {
+                // AICore 已被删除，不显示配置界面
+            }
+
+            is ProviderSetting.Codex -> {
+                // Codex 已被删除，不显示配置界面
+            }
+
+            is ProviderSetting.LiteRtLocal -> {
+                // LiteRtLocal 已被删除，不显示配置界面
+            }
+
             else -> {
-                // 其他类型（如已删除的 AICore、Codex、LiteRtLocal）不做任何操作
+                // 其他未知类型
             }
         }
     }
