@@ -19,7 +19,7 @@ rootProject.name = "lingxi"
 include(":app")
 include(":common")
 include(":ai")
-include(":local-llm")
+include(":ai/local-llm")
 include(":material3")
 include(":web")
 include(":search")

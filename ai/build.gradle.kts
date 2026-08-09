@@ -1,80 +1,62 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.kotlin.compose)
 }
 
 android {
-    namespace = "me.rerere.ai"
+    namespace = "me.rerere.locallm"
     compileSdk = 37
-
     defaultConfig {
         minSdk = 26
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
-//        externalNativeBuild {
-//            cmake {
-//                cppFlags += listOf("-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON")
-//                abiFilters += listOf("arm64-v8a", "x86_64")
-//            }
-//        }
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
-    buildFeatures {
-        compose = true
+    testOptions {
+        // Return default values (null / 0 / false) for Android framework calls in JVM unit
+        // tests instead of throwing "not mocked" exceptions. Required because production
+        // code (e.g. LiteRtToolPrefix) calls android.util.Log which isn't available on JVM.
+        unitTests.isReturnDefaultValues = true
     }
-//    externalNativeBuild {
-//        cmake {
-//            path = file("src/main/cpp/CMakeLists.txt")
-//            version = "3.22.1"
-//        }
-//    }
-    tasks.withType<KotlinCompile>().configureEach {
-        compilerOptions.optIn.add("kotlin.uuid.ExperimentalUuidApi")
-        compilerOptions.optIn.add("kotlin.time.ExperimentalTime")
+    sourceSets {
+        getByName("main").jniLibs.setSrcDirs(listOf("src/main/jniLibs"))
+    }
+    packaging {
+        jniLibs {
+            // Avoid extracting native libs at install time so System.loadLibrary path stays cheap.
+            useLegacyPackaging = false
+        }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+        optIn.add("kotlin.uuid.ExperimentalUuidApi")
+        optIn.add("kotlin.time.ExperimentalTime")
     }
 }
 
 dependencies {
     implementation(project(":common"))
-    implementation(project(":local-llm"))
-
-    // Compose
-    implementation(libs.androidx.core.ktx)
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.material3)
-
-    // okhttp
-    api(libs.okhttp)
-    api(libs.okhttp.sse)
-    api(libs.okhttp.logging)
-
-    // kotlinx
-    api(libs.kotlinx.serialization.json)
-    api(libs.kotlinx.coroutines.core)
-    api(libs.kotlinx.datetime)
-
-    // datastore
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.coroutines.core)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.okhttp)
+    // LiteRT-LM runtime: loads .litertlm model files produced by the LiteRT-LM toolchain.
+    //
+    // Pinned to 0.11.0 to MATCH Google AI Edge Gallery's working configuration. Gallery
+    // ships 0.11.0 (gradle/libs.versions.toml in github.com/google-ai-edge/gallery) and
+    // successfully runs Gemma 4 multimodal on devices including Snapdragon 8 Gen 1
+    // (Nothing Phone 1 / Adreno 642L) where our prior 0.12.0 bump native-SIGSEGV'd inside
+    // liblitertlm_jni.so during vision-encoder init. Until we have an upstream signal
+    // that 0.12+ is safe on the device classes Gallery supports, we stay aligned with
+    // Gallery's reference build.
+    implementation("com.google.ai.edge.litertlm:litertlm-android:0.11.0")
 
-    // tests
     testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
 }
