@@ -106,30 +106,27 @@ fun buildDouyinMcpTools(getCookie: () -> String, workspaceRepository: me.rerere.
                         put("next","用户扫码后调用 douyin_check_login 确认登录，登录成功后 Cookie 会自动保存到沙箱")
                     }.toString()))
                 } else {
-                    // API 被风控时降级：引导在 App 内打开登录页
-                    val errorDesc = try {
-                        Json.parseToJsonElement(resp).jsonObject["data"]?.jsonObject?.
-                            get("description")?.jsonPrimitive?.contentOrNull ?: ""
-                    } catch(e: Exception) { "" }
-                    parts.add(UIMessagePart.Text(buildJsonObject{
-                        put("error","抖音扫码API暂不可用(${errorDesc.take(50)})")
-                        put("action","改用内置浏览器打开抖音登录页扫码，登录后自动检测Cookie。调用 douyin_open_login 即可")
-                    }.toString()))
+                    // API 被风控时降级：提供可点击链接，用户点击后浏览器打开登录页
+                    parts.add(UIMessagePart.Text(
+                        "⚠️ 抖音扫码API暂时不可用，已为你提供替代登录方式。\n\n" +
+                        "👉 [点击这里在浏览器打开抖音登录页](https://www.douyin.com/login)\n\n" +
+                        "用手机抖音扫码确认后，调用 **douyin_check_login** 即自动完成登录，**无需手动复制Cookie**。"
+                    ))
                 }
                 parts
             },
         ))
 
         add(Tool(name="douyin_open_login",
-            description="在 App 内置浏览器打开抖音登录页，用户扫码确认后调用 douyin_check_login 自动检测登录。",
-            needsApproval=true,
+            description="打开抖音登录页（返回可点击链接，用户点击后在浏览器打开）。扫码确认后调用 douyin_check_login 自动检测登录。",
+            needsApproval=false,
             parameters={ InputSchema.Obj(properties=buildJsonObject{}) },
             execute={
-                listOf(UIMessagePart.Text(buildJsonObject{
-                    put("action","open_url")
-                    put("url","$DY/login")
-                    put("message","即将打开抖音登录页。请在App内浏览器完成扫码，确认后回到对话，调用 douyin_check_login 检查登录状态")
-                }.toString()))
+                listOf(UIMessagePart.Text(
+                    "📱 点击下方链接在浏览器打开抖音登录页（如无法点击，请让AI调用 app_switch 工具，action=open_url, url=https://www.douyin.com/login）:\n\n" +
+                    "👉 [打开抖音登录页扫码](https://www.douyin.com/login)\n\n" +
+                    "扫码确认后回到对话，调 douyin_check_login 即自动完成任务，无需手动复制 Cookie。"
+                ))
             },
         ))
 
