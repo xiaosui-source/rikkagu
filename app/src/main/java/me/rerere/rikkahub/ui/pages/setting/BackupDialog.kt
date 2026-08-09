@@ -39,8 +39,8 @@ fun BackupDialog(onDismiss: () -> Unit) {
     AlertDialog(onDismissRequest = onDismiss, title = { Text("备份与恢复") },
         text = {
             Column {
-                Text("导出：打包工作区→zip文件", style = MaterialTheme.typography.bodySmall)
-                Text("导入：选择备份zip恢复", style = MaterialTheme.typography.bodySmall)
+                Text("导出：打包全部数据（数据库+设置+文件+工作区）→zip", style = MaterialTheme.typography.bodySmall)
+                Text("导入：选择备份zip完整恢复", style = MaterialTheme.typography.bodySmall)
                 if (msg.isNotEmpty()) Text(msg, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(top = 8.dp))
             }
         },

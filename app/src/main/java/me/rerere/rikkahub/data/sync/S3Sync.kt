@@ -174,6 +174,20 @@ class S3Sync(
                     Log.w(TAG, "prepareBackupFile: Upload folder does not exist or is not a directory")
                 }
 
+                // 备份工作区全部数据 (workspace/)
+                val workspaceFolder = File(context.filesDir, "workspace")
+                if (workspaceFolder.exists() && workspaceFolder.isDirectory) {
+                    Log.i(TAG, "prepareBackupFile: Backing up workspace from ${workspaceFolder.absolutePath}")
+                    addDirectoryToZip(
+                        zipOut = zipOut,
+                        rootDir = workspaceFolder,
+                        currentDir = workspaceFolder,
+                        entryPrefix = "workspace/"
+                    )
+                } else {
+                    Log.w(TAG, "prepareBackupFile: Workspace folder does not exist or is not a directory")
+                }
+
                 val skillsFolder = File(context.filesDir, FileFolders.SKILLS)
                 if (skillsFolder.exists() && skillsFolder.isDirectory) {
                     Log.i(TAG, "prepareBackupFile: Backing up skills from ${skillsFolder.absolutePath}")
@@ -289,6 +303,10 @@ class S3Sync(
                                 zipEntry.name.startsWith("${FileFolders.SKILLS}/")
                             ) {
                                 restoreSkillEntry(zipIn, zipEntry.name)
+                            } else if (config.items.contains(S3Config.BackupItem.FILES) &&
+                                zipEntry.name.startsWith("workspace/")
+                            ) {
+                                restoreWorkspaceEntry(zipIn, zipEntry.name)
                             } else {
                                 Log.i(TAG, "restoreFromBackupFile: Skipping entry ${zipEntry.name}")
                             }
@@ -361,6 +379,30 @@ class S3Sync(
         } catch (e: Exception) {
             Log.e(TAG, "restoreFromBackupFile: Failed to restore skill file $entryName", e)
             throw Exception("Failed to restore skill file $entryName: ${e.message}")
+        }
+    }
+
+    private fun restoreWorkspaceEntry(zipIn: ZipInputStream, entryName: String) {
+        val relativePath = entryName.substringAfter("workspace/")
+        if (relativePath.isBlank()) {
+            Log.w(TAG, "restoreFromBackupFile: Invalid workspace entry $entryName")
+            return
+        }
+        val workspaceRoot = File(context.filesDir, "workspace").apply { mkdirs() }
+        val targetFile = File(workspaceRoot, relativePath)
+        if (!targetFile.canonicalPath.startsWith(workspaceRoot.canonicalPath)) {
+            Log.w(TAG, "restoreFromBackupFile: Reject path escaping workspace: $entryName")
+            return
+        }
+        targetFile.parentFile?.mkdirs()
+        try {
+            FileOutputStream(targetFile).use { outputStream ->
+                zipIn.copyTo(outputStream)
+            }
+            Log.i(TAG, "restoreFromBackupFile: Restored workspace file $entryName (${targetFile.length()} bytes)")
+        } catch (e: Exception) {
+            Log.e(TAG, "restoreFromBackupFile: Failed to restore workspace file $entryName", e)
+            throw Exception("Failed to restore workspace file $entryName: ${e.message}")
         }
     }
 
