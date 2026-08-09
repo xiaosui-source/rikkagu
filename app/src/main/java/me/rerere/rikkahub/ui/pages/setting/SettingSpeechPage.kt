@@ -1,4 +1,4 @@
-﻿/*
+/*
  * 灵犀 Lingxi
  * 衍生自 Lingxi (https://github.com/scottwilliamavery26071994-bot/rikkahub)，原作者 RE
  * 本项目基于 GNU AGPL v3 开源，详见根目录 LICENSE 文件
@@ -654,14 +654,7 @@ private fun TTSProviderItem(
 
                     Text(
                         text = when (provider) {
-                            is TTSProviderSetting.OpenAI -> stringResource(R.string.setting_tts_page_provider_openai)
-                            is TTSProviderSetting.Gemini -> stringResource(R.string.setting_tts_page_provider_gemini)
-                            is TTSProviderSetting.MiniMax -> "MiniMax"
                             is TTSProviderSetting.SystemTTS -> stringResource(R.string.setting_tts_page_provider_system)
-                            is TTSProviderSetting.Qwen -> "Qwen"
-                            is TTSProviderSetting.Groq -> "Groq"
-                            is TTSProviderSetting.XAI -> "xAI"
-                            is TTSProviderSetting.MiMo -> "MiMo"
                             is TTSProviderSetting.EdgeTTS -> "Edge"
                     is TTSProviderSetting.BaiduTTS -> "百度"
                     is TTSProviderSetting.YoudaoTTS -> "有道"
