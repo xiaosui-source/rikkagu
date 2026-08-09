@@ -193,84 +193,12 @@ val DEFAULT_PROVIDERS = listOf(
         builtIn = true
     ),
     ProviderSetting.OpenAI(
-        id = Uuid.parse("da93779f-3956-48cc-82ef-67bb482eaaf7"),
-        name = "302.AI",
-        baseUrl = "https://api.302.ai/v1",
-        apiKey = "",
-        enabled = false,
-        builtIn = true,
-        description = {
-            Text(
-                text = buildAnnotatedString {
-                    append("企业级AI服务, 官网：")
-                    withLink(LinkAnnotation.Url("https://302.ai/")) {
-                        withStyle(SpanStyle(MaterialTheme.colorScheme.primary)) {
-                            append("https://302.ai/")
-                        }
-                    }
-                }
-            )
-        }
-    ),
-    ProviderSetting.OpenAI(
         id = Uuid.parse("ef5d149b-8e34-404b-818c-6ec242e5c3c5"),
         name = "腾讯Hunyuan",
         baseUrl = "https://api.hunyuan.cloud.tencent.com/v1",
         apiKey = "",
         enabled = false,
         builtIn = true
-    ),
-    ProviderSetting.OpenAI(
-        id = Uuid.parse("ff3cde7e-0f65-43d7-8fb2-6475c99f5990"),
-        name = "xAI",
-        baseUrl = "https://api.x.ai/v1",
-        apiKey = "",
-        enabled = false,
-        builtIn = true,
-        useResponseApi = true,
-    ),
-    ProviderSetting.OpenAI(
-        id = Uuid.parse("53027b08-1b58-43d5-90ed-29173203e3d8"),
-        name = "AckAI",
-        baseUrl = "https://ackai.fun/v1",
-        apiKey = "",
-        enabled = false,
-        builtIn = true,
-        description = {
-            Text(
-                text = buildAnnotatedString {
-                    append(
-                        "所有AI大模型全都可以用！无需翻墙！价格是官方5折！\n" +
-                            "官网："
-                    )
-                    withLink(LinkAnnotation.Url("https://ackai.fun/register?aff=jxpP")) {
-                        withStyle(SpanStyle(MaterialTheme.colorScheme.primary)) {
-                            append("https://ackai.fun")
-                        }
-                    }
-                }
-            )
-        }
-    ),
-    ProviderSetting.OpenAI(
-        id = Uuid.parse("4da09554-8844-4cc8-a4a9-fe1b2515e91b"),
-        name = "UnifyLLM",
-        baseUrl = "https://apicn.unifyllm.top/v1",
-        apiKey = "",
-        enabled = false,
-        builtIn = true,
-        description = {
-            Text(
-                text = buildAnnotatedString {
-                    append("一站式LLM API中转平台货源站\n官网：")
-                    withLink(LinkAnnotation.Url("https://www.unifyllm.com/")) {
-                        withStyle(SpanStyle(MaterialTheme.colorScheme.primary)) {
-                            append("https://www.unifyllm.com/")
-                        }
-                    }
-                }
-            )
-        }
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("7a3f1c2e-9d4b-4c8a-8f1e-0d5b3a7c92f1"),
