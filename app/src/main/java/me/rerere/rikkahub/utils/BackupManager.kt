@@ -13,26 +13,34 @@ import java.util.zip.ZipOutputStream
 object BackupManager {
 
     /**
-     * 全量备份：把 App 的「全部数据」打包成 zip。
-     * 包含：
-     *   - databases/            Room 数据库 (rikka_hub / -wal / -shm)
-     *   - files/                文件目录（含工作区 workspace、上传、媒体、DataStore 设置、技能、插件等）
-     *   - shared_prefs/         SharedPreferences（若存在）
+     * 全量备份：把 App 私有目录下的「全部数据」打包成单个 zip。
+     * dataDir 下通常包含：
+     *   - databases/   Room 数据库 (rikka_hub.db / -wal / -shm)
+     *   - files/       所有文件（工作区 workspace、上传、媒体、DataStore 设置、技能、插件、字体、图片等）
+     *   - shared_prefs/ SharedPreferences
+     *   - app_webview/ 等其它运行时数据
+     * 仅排除 cache / code_cache（可随时重建的缓存）。
      */
     suspend fun export(context: Context, dest: Uri): String = withContext(Dispatchers.IO) {
         val tmp = File(context.cacheDir, "backup_all.zip")
         ZipOutputStream(FileOutputStream(tmp)).use { zip ->
-            // 1. 数据库
-            val dbDir = context.getDatabasePath("rikka_hub").parentFile
-            addSourcedir(dbDir, "databases/", zip) { entryName ->
-                entryName.startsWith("rikka_hub")
+            val dataDir = context.dataDir
+            if (dataDir.exists() && dataDir.isDirectory) {
+                // 遍历 dataDir 下每个子目录，排除 cache / code_cache
+                dataDir.listFiles()?.sortedBy { it.name }?.forEach { dir ->
+                    val name = dir.name
+                    if (dir.isDirectory && name != "cache" && name != "code_cache") {
+                        addSourcedir(dir, "$name/", zip) { true }
+                    }
+                }
+            } else {
+                // 兜底：至少备份 database / files / shared_prefs（极端情况下 dataDir 不可用）
+                val dbDir = context.getDatabasePath("rikka_hub").parentFile
+                addSourcedir(dbDir, "databases/", zip) { true }
+                addSourcedir(context.filesDir, "files/", zip) { true }
+                val prefsDir = File(context.filesDir, "../shared_prefs").canonicalFile
+                addSourcedir(prefsDir, "shared_prefs/", zip) { true }
             }
-            // 2. files 目录（含工作区 workspace、上传、datastore、媒体、技能、插件等全部）
-            val filesDir = context.filesDir
-            addSourcedir(filesDir, "files/", zip) { true }
-            // 3. SharedPreferences
-            val prefsDir = File(context.filesDir, "../shared_prefs").canonicalFile
-            addSourcedir(prefsDir, "shared_prefs/", zip) { true }
         }
         context.contentResolver.openOutputStream(dest)?.use { out ->
             tmp.inputStream().use { it.copyTo(out) }
@@ -46,7 +54,7 @@ object BackupManager {
         context.contentResolver.openInputStream(src)?.use { input ->
             FileOutputStream(tmp).use { out -> input.copyTo(out) }
         } ?: return@withContext "无法读取备份文件"
-        val base = context.filesDir.parentFile // /data/data/pkg
+        val base = context.dataDir  // /data/data/pkg
         ZipInputStream(tmp.inputStream()).use { zip ->
             var e = zip.nextEntry
             while (e != null) {
