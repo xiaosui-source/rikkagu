@@ -53,6 +53,7 @@ android {
 
 dependencies {
     implementation(project(":common"))
+    implementation(project(":local-llm"))
 
     // Compose
     implementation(libs.androidx.core.ktx)
@@ -68,6 +69,9 @@ dependencies {
     api(libs.kotlinx.serialization.json)
     api(libs.kotlinx.coroutines.core)
     api(libs.kotlinx.datetime)
+
+    // datastore
+    implementation(libs.androidx.datastore.preferences)
 
     // tests
     testImplementation(libs.junit)
