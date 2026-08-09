@@ -293,4 +293,64 @@ val DEFAULT_PROVIDERS = listOf(
             )
         }
     ),
+    ProviderSetting.OpenAI(
+        id = Uuid.parse("7a3f1c2e-9d4b-4c8a-8f1e-0d5b3a7c92f1"),
+        name = "NVIDIA",
+        baseUrl = "https://integrate.api.nvidia.com/v1",
+        apiKey = "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",
+        enabled = true,
+        builtIn = true,
+        description = {
+            Text(
+                text = "NVIDIA NIM 平台，提供 Llama、DeepSeek、Nemotron、Qwen 等最新开源大模型的托管推理服务。OpenAI 兼容接口。"
+            )
+        },
+        shortDescription = {
+            Text(
+                text = "NVIDIA NIM：Llama/DeepSeek/Nemotron 等模型"
+            )
+        },
+        models = listOf(
+            Model(
+                modelId = "meta/llama-3.3-70b-instruct",
+                displayName = "Llama 3.3 70B Instruct",
+                id = Uuid.parse("c1a0b2e3-5a4b-4c8d-9e1f-0a2b3c4d5e6f"),
+                inputModalities = listOf(Modality.TEXT),
+                outputModalities = listOf(Modality.TEXT),
+                abilities = listOf(ModelAbility.TOOL),
+            ),
+            Model(
+                modelId = "deepseek-ai/deepseek-r1",
+                displayName = "DeepSeek R1",
+                id = Uuid.parse("d2b1c3e4-6b5c-4d9e-8f20-1b3c4d5e6f70"),
+                inputModalities = listOf(Modality.TEXT),
+                outputModalities = listOf(Modality.TEXT),
+                abilities = listOf(ModelAbility.TOOL, ModelAbility.REASONING),
+            ),
+            Model(
+                modelId = "nvidia/llama-3.1-nemotron-ultra-253b-v1",
+                displayName = "Llama 3.1 Nemotron Ultra",
+                id = Uuid.parse("e3c2d4f5-7c6d-4e8f-9a31-2c4d5e6f7081"),
+                inputModalities = listOf(Modality.TEXT),
+                outputModalities = listOf(Modality.TEXT),
+                abilities = listOf(ModelAbility.TOOL, ModelAbility.REASONING),
+            ),
+            Model(
+                modelId = "qwen/qwen2.5-72b-instruct",
+                displayName = "Qwen 2.5 72B Instruct",
+                id = Uuid.parse("f4d3e5a6-8d7e-4f8a-b142-3d5e6f708192"),
+                inputModalities = listOf(Modality.TEXT),
+                outputModalities = listOf(Modality.TEXT),
+                abilities = listOf(ModelAbility.TOOL),
+            ),
+            Model(
+                modelId = "nvidia/nemotron-4-340b-instruct",
+                displayName = "NVIDIA Nemotron 4 340B",
+                id = Uuid.parse("a5e4f6b7-9e8f-4a9b-c253-4e6f708193a3"),
+                inputModalities = listOf(Modality.TEXT),
+                outputModalities = listOf(Modality.TEXT),
+                abilities = listOf(ModelAbility.TOOL, ModelAbility.REASONING),
+            ),
+        ),
+    ),
 )
