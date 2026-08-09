@@ -142,9 +142,9 @@ fun ProviderSetting.convertTo(type: KClass<out ProviderSetting>): ProviderSettin
         is ProviderSetting.OpenAI -> this.apiKey
         is ProviderSetting.Google -> this.apiKey
         is ProviderSetting.Claude -> this.apiKey
-        is ProviderSetting.AICore -> this.apiKey
-        is ProviderSetting.Codex -> this.apiKey
-        is ProviderSetting.LiteRtLocal -> this.apiKey
+        is ProviderSetting.AICore -> ""
+        is ProviderSetting.Codex -> ""
+        is ProviderSetting.LiteRtLocal -> ""
         else -> ""
     }
 
@@ -152,9 +152,9 @@ fun ProviderSetting.convertTo(type: KClass<out ProviderSetting>): ProviderSettin
         is ProviderSetting.OpenAI -> this.baseUrl
         is ProviderSetting.Google -> this.baseUrl
         is ProviderSetting.Claude -> this.baseUrl
-        is ProviderSetting.AICore -> this.baseUrl
-        is ProviderSetting.Codex -> this.baseUrl
-        is ProviderSetting.LiteRtLocal -> this.baseUrl
+        is ProviderSetting.AICore -> ""
+        is ProviderSetting.Codex -> ""
+        is ProviderSetting.LiteRtLocal -> ""
         else -> ""
     }
     val targetDefaultBaseUrl = when (type) {
@@ -226,9 +226,9 @@ internal fun ProviderSetting.defaultBaseUrlForReset(): String {
         is ProviderSetting.OpenAI -> ProviderSetting.OpenAI().baseUrl
         is ProviderSetting.Google -> ProviderSetting.Google().baseUrl
         is ProviderSetting.Claude -> ProviderSetting.Claude().baseUrl
-        is ProviderSetting.AICore -> ProviderSetting.AICore().baseUrl
-        is ProviderSetting.Codex -> ProviderSetting.Codex().baseUrl
-        is ProviderSetting.LiteRtLocal -> ProviderSetting.LiteRtLocal().baseUrl
+        is ProviderSetting.AICore -> ""
+        is ProviderSetting.Codex -> ""
+        is ProviderSetting.LiteRtLocal -> ""
         else -> ""
     }
 }
@@ -251,9 +251,9 @@ internal fun ProviderSetting.isUsingDefaultBaseUrl(): Boolean {
         is ProviderSetting.OpenAI -> this.baseUrl
         is ProviderSetting.Google -> this.baseUrl
         is ProviderSetting.Claude -> this.baseUrl
-        is ProviderSetting.AICore -> this.baseUrl
-        is ProviderSetting.Codex -> this.baseUrl
-        is ProviderSetting.LiteRtLocal -> this.baseUrl
+        is ProviderSetting.AICore -> ""
+        is ProviderSetting.Codex -> ""
+        is ProviderSetting.LiteRtLocal -> ""
         else -> ""
     }
     return baseUrl == defaultBaseUrlForReset()
