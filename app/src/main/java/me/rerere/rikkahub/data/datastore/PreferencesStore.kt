@@ -420,6 +420,8 @@ class SettingsStore(
                         is ProviderSetting.Claude -> provider.copy(
                             models = provider.models.distinctBy { model -> model.id }
                         )
+
+                        else -> provider  // AICore, Codex, LiteRtLocal 已删除
                     }
                 },
                 assistants = settings.assistants.distinctBy { it.id }.map { assistant ->

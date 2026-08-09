@@ -227,11 +227,13 @@ class PluginLoader(
                         is ProviderSetting.OpenAI -> provider.baseUrl
                         is ProviderSetting.Google -> provider.baseUrl
                         is ProviderSetting.Claude -> provider.baseUrl
+                        else -> ""
                     }
                     val apiKey = when (provider) {
                         is ProviderSetting.OpenAI -> provider.apiKey
                         is ProviderSetting.Google -> provider.apiKey
                         is ProviderSetting.Claude -> provider.apiKey
+                        else -> ""
                     }
  
                     config[field.name] = JsonPrimitive(model.modelId)

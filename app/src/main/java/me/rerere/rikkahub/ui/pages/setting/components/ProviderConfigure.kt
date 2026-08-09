@@ -113,6 +113,10 @@ fun ProviderConfigure(
             is ProviderSetting.Claude -> {
                 ProviderConfigureClaude(provider, onEdit)
             }
+
+            else -> {
+                // AICore, Codex, LiteRtLocal 已删除，不做任何操作
+            }
         }
     }
 }
