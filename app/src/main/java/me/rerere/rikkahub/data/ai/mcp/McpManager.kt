@@ -215,6 +215,7 @@ class McpManager(
                 } catch (e: Exception) { "" } }
             },
             workspaceRepository = workspaceRepository,
+            appEventBus = appEventBus,
         )
         list += me.rerere.rikkahub.data.ai.tools.buildTicket12306McpTools()
         list += me.rerere.rikkahub.data.ai.tools.buildApkReverseMcpTools(workspaceRepository)

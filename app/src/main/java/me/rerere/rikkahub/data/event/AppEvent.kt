@@ -22,4 +22,11 @@ sealed class AppEvent {
         val code: String?,
         val error: String?,
     ) : AppEvent()
+
+    /**
+     * 请求在 App 内置 WebView 中打开指定 URL。
+     * 由 douyin_open_login 等 MCP 内置工具发出，RouteActivity 监听后导航到内置浏览器页，
+     * 避免跳转到外部浏览器。
+     */
+    data class OpenWebView(val url: String) : AppEvent()
 }

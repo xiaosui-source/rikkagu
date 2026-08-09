@@ -44,7 +44,11 @@ private suspend fun fetch(url: String, cookie: String = ""): String {
 
 private fun aid(input: String) = Regex("""(\d{15,20})""").find(input)?.groupValues?.get(1) ?: input
 
-fun buildDouyinMcpTools(getCookie: () -> String, workspaceRepository: me.rerere.rikkahub.data.repository.WorkspaceRepository): List<Tool> = buildList {
+fun buildDouyinMcpTools(
+    getCookie: () -> String,
+    workspaceRepository: me.rerere.rikkahub.data.repository.WorkspaceRepository,
+    appEventBus: me.rerere.rikkahub.data.event.AppEventBus,
+): List<Tool> = buildList {
 
     // ===== 登录 =====
         add(Tool(name="douyin_login",
@@ -118,14 +122,19 @@ fun buildDouyinMcpTools(getCookie: () -> String, workspaceRepository: me.rerere.
         ))
 
         add(Tool(name="douyin_open_login",
-            description="打开抖音登录页（返回可点击链接，用户点击后在浏览器打开）。扫码确认后调用 douyin_check_login 自动检测登录。",
+            description="在 App 内置浏览器(WebView)中打开抖音登录页，无需跳转外部浏览器。用户扫码确认后调用 douyin_check_login 自动检测登录。",
             needsApproval=false,
             parameters={ InputSchema.Obj(properties=buildJsonObject{}) },
             execute={
+                // 通过 AppEventBus 触发内置 WebView 打开抖音登录页
+                runCatching {
+                    appEventBus.emit(
+                        me.rerere.rikkahub.data.event.AppEvent.OpenWebView("$DY/login")
+                    )
+                }
                 listOf(UIMessagePart.Text(
-                    "📱 点击下方链接在浏览器打开抖音登录页（如无法点击，请让AI调用 app_switch 工具，action=open_url, url=https://www.douyin.com/login）:\n\n" +
-                    "👉 [打开抖音登录页扫码](https://www.douyin.com/login)\n\n" +
-                    "扫码确认后回到对话，调 douyin_check_login 即自动完成任务，无需手动复制 Cookie。"
+                    "📱 已在内置浏览器打开抖音登录页，请用手机抖音扫码确认。\n\n" +
+                    "扫描登录后，在该二维码确认后调用 **douyin_check_login** 即自动完成登录，**无需手动复制Cookie**。"
                 ))
             },
         ))

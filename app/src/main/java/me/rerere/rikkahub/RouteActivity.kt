@@ -388,6 +388,10 @@ class RouteActivity : ComponentActivity() {
                     is AppEvent.Speak -> tts.speak(event.text)
                     is AppEvent.EmojiSelected -> { /* handled in UIAvatar */ }
                     is AppEvent.McpOAuthCallback -> Unit // 由 McpManager 消费
+                    is AppEvent.OpenWebView -> {
+                        // 在 App 内置 WebView 打开 URL，避免跳到外部浏览器
+                        backStack.add(Screen.WebView(event.url, ""))
+                    }
                     is AppEvent.RequestVoiceCall -> {
                         val convId = event.conversationId
                         // 单通话守卫: 已有通话进行中就不重复弹
