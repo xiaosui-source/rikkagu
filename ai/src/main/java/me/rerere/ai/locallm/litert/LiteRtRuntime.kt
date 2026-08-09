@@ -1,4 +1,4 @@
-package me.rerere.locallm.litert
+package me.rerere.ai.locallm.litert
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -28,7 +28,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import me.rerere.locallm.AcceleratorProbe
+import me.rerere.ai.locallm.AcceleratorProbe
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.CancellationException
 import java.util.concurrent.TimeUnit

@@ -1,4 +1,4 @@
-package me.rerere.locallm.litert
+package me.rerere.ai.locallm.litert
 
 import android.util.Log
 import com.google.ai.edge.litertlm.Tool
