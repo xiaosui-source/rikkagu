@@ -755,8 +755,6 @@
   <string name="setting_display_page_show_thinking_content_title">Show Thinking Content</string>
   <string name="setting_display_page_show_token_usage_desc">Display token usage and message count</string>
   <string name="setting_display_page_show_token_usage_title">Show Token &amp; Context Stats</string>
-  <string name="setting_display_page_show_updates_desc">Whether to display app update notifications</string>
-  <string name="setting_display_page_show_updates_title">Show Updates</string>
   <string name="setting_display_page_show_user_avatar_desc">Whether to display user avatar in chat messages</string>
   <string name="setting_display_page_show_user_avatar_title">Show User Avatar</string>
   <string name="setting_display_page_skip_crop_image_desc">Skip crop interface after importing images or taking photos</string>
@@ -1130,11 +1128,6 @@
   <string name="translator_page_translate">Translate</string>
   <string name="tts">TTS</string>
   <string name="unpin_chat">Unpin the Chat</string>
-  <string name="update_card_check_failed">Check update failed</string>
-  <string name="update_card_close">Close</string>
-  <string name="update_card_downloading">Downloading, please check status bar for progress</string>
-  <string name="update_card_new_version_found">New version found %s</string>
-  <string name="update_card_unknown_error">Unknown error</string>
   <string name="upload_file">Upload File</string>
   <string name="use_web_search">Web Search</string>
   <string name="user_default_name">User</string>

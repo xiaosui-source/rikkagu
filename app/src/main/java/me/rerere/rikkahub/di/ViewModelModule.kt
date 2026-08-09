@@ -45,7 +45,6 @@ val viewModelModule = module {
             settingsStore = get(),
             conversationRepo = get(),
             chatService = get(),
-            updateChecker = get(),
             filesManager = get(),
             favoriteRepository = get(),
         )
