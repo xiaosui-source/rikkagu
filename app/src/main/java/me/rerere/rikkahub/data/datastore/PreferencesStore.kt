@@ -917,13 +917,26 @@ private val DEFAULT_TTS_PROVIDERS = listOf(
         id = DEFAULT_SYSTEM_TTS_ID,
         name = "",
     ),
-    TTSProviderSetting.OpenAI(
+    TTSProviderSetting.EdgeTTS(
         id = Uuid.parse("e36b22ef-ca82-40ab-9e70-60cad861911c"),
-        name = "AiHubMix",
-        baseUrl = "https://aihubmix.com/v1",
-        model = "gpt-4o-mini-tts",
-        voice = "alloy",
-    )
+        name = "Edge TTS (免费)",
+        voice = "zh-CN-XiaoxiaoNeural",
+    ),
+    TTSProviderSetting.BaiduTTS(
+        id = Uuid.parse("5a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d"),
+        name = "百度 TTS (免费)",
+        speed = 5,
+    ),
+    TTSProviderSetting.YoudaoTTS(
+        id = Uuid.parse("6b2c3d4e-5f6a-4b7c-9d8e-0f1a2b3c4d5e"),
+        name = "有道 TTS (免费)",
+        speed = 50,
+    ),
+    TTSProviderSetting.GoogleFreeTTS(
+        id = Uuid.parse("7c3d4e5f-6a7b-4c8d-8e9f-1a2b3c4d5e6f"),
+        name = "Google TTS (免费)",
+        lang = "zh-CN",
+    ),
 )
 
 val DEFAULT_SYSTEM_ASR_ID = Uuid.parse("4d2e9c1a-9d24-4a5e-b1c3-7e9f2a6d8b01")

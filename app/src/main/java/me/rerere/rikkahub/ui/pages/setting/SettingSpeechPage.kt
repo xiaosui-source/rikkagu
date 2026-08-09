@@ -529,59 +529,16 @@ private fun AddTTSProviderButton(onAdd: (TTSProviderSetting) -> Unit) {
 @Composable
 private fun AddASRProviderButton(onAdd: (ASRProviderSetting) -> Unit) {
     var showBottomSheet by remember { mutableStateOf(false) }
-    var showTypeMenu by remember { mutableStateOf(false) }
-    var currentProvider: ASRProviderSetting by remember { mutableStateOf(ASRProviderSetting.OpenAIRealtime()) }
+    var currentProvider: ASRProviderSetting by remember { mutableStateOf(ASRProviderSetting.SystemAsr()) }
 
     Box {
         IconButton(
-            onClick = { showTypeMenu = true }
+            onClick = {
+                currentProvider = ASRProviderSetting.SystemAsr()
+                showBottomSheet = true
+            }
         ) {
             Icon(HugeIcons.Add01, stringResource(R.string.setting_asr_page_add_provider))
-        }
-        DropdownMenu(
-            expanded = showTypeMenu,
-            onDismissRequest = { showTypeMenu = false }
-        ) {
-            DropdownMenuItem(
-                text = { Text("OpenAI Realtime") },
-                onClick = {
-                    currentProvider = ASRProviderSetting.OpenAIRealtime()
-                    showTypeMenu = false
-                    showBottomSheet = true
-                }
-            )
-            DropdownMenuItem(
-                text = { Text("SiliconFlow") },
-                onClick = {
-                    currentProvider = ASRProviderSetting.SiliconFlow()
-                    showTypeMenu = false
-                    showBottomSheet = true
-                }
-            )
-            DropdownMenuItem(
-                text = { Text("Volcengine") },
-                onClick = {
-                    currentProvider = ASRProviderSetting.Volcengine()
-                    showTypeMenu = false
-                    showBottomSheet = true
-                }
-            )
-            DropdownMenuItem(
-                text = { Text("MiMo") },
-                onClick = {
-                    currentProvider = ASRProviderSetting.MiMo()
-                    showTypeMenu = false
-                    showBottomSheet = true
-                }
-            )
-            DropdownMenuItem(
-                text = { Text("系统语音识别 (免费)") },
-                onClick = {
-                    currentProvider = ASRProviderSetting.SystemAsr()
-                    showTypeMenu = false
-                    showBottomSheet = true
-                }
-            )
         }
     }
 

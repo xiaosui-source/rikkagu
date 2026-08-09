@@ -42,7 +42,6 @@ fun TTSProviderConfigure(
     ) {
         // Provider type selector
         var expanded by remember { mutableStateOf(false) }
-        val providers = remember { TTSProviderSetting.Types }
 
         FormItem(
             label = { Text(stringResource(R.string.setting_tts_page_provider_type)) },
@@ -81,78 +80,61 @@ fun TTSProviderConfigure(
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
-                    providers.forEach { providerClass ->
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    when (providerClass) {
-                                        TTSProviderSetting.OpenAI::class -> "OpenAI"
-                                        TTSProviderSetting.Gemini::class -> "Gemini"
-                                        TTSProviderSetting.SystemTTS::class -> "System TTS"
-                                        TTSProviderSetting.MiniMax::class -> "MiniMax"
-                                        TTSProviderSetting.Qwen::class -> "Qwen"
-                                        TTSProviderSetting.Groq::class -> "Groq"
-                                        TTSProviderSetting.XAI::class -> "xAI"
-                                        TTSProviderSetting.MiMo::class -> "MiMo"
-                                        TTSProviderSetting.ElevenLabs::class -> "ElevenLabs"
-                                        else -> providerClass.simpleName ?: "Unknown"
-                                    }
-                                )
-                            },
-                            onClick = {
-                                expanded = false
-                                val newSetting = when (providerClass) {
-                                    TTSProviderSetting.OpenAI::class -> TTSProviderSetting.OpenAI(
-                                        id = setting.id,
-                                        name = "OpenAI TTS"
-                                    )
-
-                                    TTSProviderSetting.Gemini::class -> TTSProviderSetting.Gemini(
-                                        id = setting.id,
-                                        name = "Gemini TTS"
-                                    )
-
-                                    TTSProviderSetting.SystemTTS::class -> TTSProviderSetting.SystemTTS(
-                                        id = setting.id,
-                                        name = "System TTS"
-                                    )
-
-                                    TTSProviderSetting.MiniMax::class -> TTSProviderSetting.MiniMax(
-                                        id = setting.id,
-                                        name = "MiniMax TTS"
-                                    )
-
-                                    TTSProviderSetting.Qwen::class -> TTSProviderSetting.Qwen(
-                                        id = setting.id,
-                                        name = "Qwen TTS"
-                                    )
-
-                                    TTSProviderSetting.Groq::class -> TTSProviderSetting.Groq(
-                                        id = setting.id,
-                                        name = "Groq TTS"
-                                    )
-
-                                    TTSProviderSetting.XAI::class -> TTSProviderSetting.XAI(
-                                        id = setting.id,
-                                        name = "xAI TTS"
-                                    )
-
-                                    TTSProviderSetting.MiMo::class -> TTSProviderSetting.MiMo(
-                                        id = setting.id,
-                                        name = "MiMo TTS"
-                                    )
-
-                                    TTSProviderSetting.ElevenLabs::class -> TTSProviderSetting.ElevenLabs(
-                                        id = setting.id,
-                                        name = "ElevenLabs TTS"
-                                    )
-
-                                    else -> setting
+                    val freeProviders = listOf(
+                    TTSProviderSetting.SystemTTS::class,
+                    TTSProviderSetting.EdgeTTS::class,
+                    TTSProviderSetting.BaiduTTS::class,
+                    TTSProviderSetting.YoudaoTTS::class,
+                    TTSProviderSetting.GoogleFreeTTS::class,
+                )
+                freeProviders.forEach { providerClass ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                when (providerClass) {
+                                    TTSProviderSetting.SystemTTS::class -> "系统 TTS (免费)"
+                                    TTSProviderSetting.EdgeTTS::class -> "Edge TTS (免费)"
+                                    TTSProviderSetting.BaiduTTS::class -> "百度 TTS (免费)"
+                                    TTSProviderSetting.YoudaoTTS::class -> "有道 TTS (免费)"
+                                    TTSProviderSetting.GoogleFreeTTS::class -> "Google TTS (免费)"
+                                    else -> providerClass.simpleName ?: "Unknown"
                                 }
-                                onValueChange(newSetting)
+                            )
+                        },
+                        onClick = {
+                            expanded = false
+                            val newSetting = when (providerClass) {
+                                TTSProviderSetting.SystemTTS::class -> TTSProviderSetting.SystemTTS(
+                                    id = setting.id,
+                                    name = "系统 TTS"
+                                )
+
+                                TTSProviderSetting.EdgeTTS::class -> TTSProviderSetting.EdgeTTS(
+                                    id = setting.id,
+                                    name = "Edge TTS"
+                                )
+
+                                TTSProviderSetting.BaiduTTS::class -> TTSProviderSetting.BaiduTTS(
+                                    id = setting.id,
+                                    name = "百度 TTS"
+                                )
+
+                                TTSProviderSetting.YoudaoTTS::class -> TTSProviderSetting.YoudaoTTS(
+                                    id = setting.id,
+                                    name = "有道 TTS"
+                                )
+
+                                TTSProviderSetting.GoogleFreeTTS::class -> TTSProviderSetting.GoogleFreeTTS(
+                                    id = setting.id,
+                                    name = "Google TTS"
+                                )
+
+                                else -> setting
                             }
-                        )
-                    }
+                            onValueChange(newSetting)
+                        }
+                    )
+                }
                 }
             }
         }
@@ -174,21 +156,71 @@ fun TTSProviderConfigure(
 
         // Provider-specific fields
         when (setting) {
-            is TTSProviderSetting.OpenAI -> OpenAITTSConfiguration(setting, onValueChange)
-            is TTSProviderSetting.Gemini -> GeminiTTSConfiguration(setting, onValueChange)
-            is TTSProviderSetting.MiniMax -> MiniMaxTTSConfiguration(setting, onValueChange)
             is TTSProviderSetting.SystemTTS -> SystemTTSConfiguration(setting, onValueChange)
-            is TTSProviderSetting.Qwen -> QwenTTSConfiguration(setting, onValueChange)
-            is TTSProviderSetting.Groq -> GroqTTSConfiguration(setting, onValueChange)
-            is TTSProviderSetting.XAI -> XAITTSConfiguration(setting, onValueChange)
-            is TTSProviderSetting.MiMo -> MiMoTTSConfiguration(setting, onValueChange)
-            is TTSProviderSetting.EdgeTTS -> "Edge"
-                    is TTSProviderSetting.BaiduTTS -> "百度"
-                    is TTSProviderSetting.YoudaoTTS -> "有道"
-                    is TTSProviderSetting.GoogleFreeTTS -> "Google"
-                    is TTSProviderSetting.ElevenLabs -> ElevenLabsTTSConfiguration(setting, onValueChange)
+            is TTSProviderSetting.EdgeTTS -> FreeTTSConfiguration("Edge TTS", "Microsoft 免费接口，无需填写任何参数，开箱即用")
+            is TTSProviderSetting.BaiduTTS -> FreeTTSConfiguration("百度 TTS", "免费接口，无需填写任何参数，开箱即用")
+            is TTSProviderSetting.YoudaoTTS -> FreeTTSConfiguration("有道 TTS", "免费接口，无需填写任何参数，开箱即用")
+            is TTSProviderSetting.GoogleFreeTTS -> FreeTTSConfiguration("Google TTS", "免费接口，无需填写任何参数，开箱即用")
+            is TTSProviderSetting.OpenAI -> OpenAIEmptyConfiguration()
+            is TTSProviderSetting.Gemini -> GeminiEmptyConfiguration()
+            is TTSProviderSetting.MiniMax -> MiniMaxEmptyConfiguration()
+            is TTSProviderSetting.Qwen -> QwenEmptyConfiguration()
+            is TTSProviderSetting.Groq -> GroqEmptyConfiguration()
+            is TTSProviderSetting.XAI -> XAIEmptyConfiguration()
+            is TTSProviderSetting.MiMo -> MiMoEmptyConfiguration()
+            is TTSProviderSetting.ElevenLabs -> ElevenLabsEmptyConfiguration()
         }
     }
+}
+
+@Composable
+private fun FreeTTSConfiguration(title: String, description: String) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = title,
+            style = androidx.compose.material3.MaterialTheme.typography.titleMedium,
+        )
+        Text(
+            text = description,
+            style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+        )
+    }
+}
+
+@Composable
+private fun OpenAIEmptyConfiguration() {
+    Text("已停用付费 TTS，请选择免费类型", style = androidx.compose.material3.MaterialTheme.typography.bodySmall)
+}
+@Composable
+private fun GeminiEmptyConfiguration() {
+    Text("已停用付费 TTS，请选择免费类型", style = androidx.compose.material3.MaterialTheme.typography.bodySmall)
+}
+@Composable
+private fun MiniMaxEmptyConfiguration() {
+    Text("已停用付费 TTS，请选择免费类型", style = androidx.compose.material3.MaterialTheme.typography.bodySmall)
+}
+@Composable
+private fun QwenEmptyConfiguration() {
+    Text("已停用付费 TTS，请选择免费类型", style = androidx.compose.material3.MaterialTheme.typography.bodySmall)
+}
+@Composable
+private fun GroqEmptyConfiguration() {
+    Text("已停用付费 TTS，请选择免费类型", style = androidx.compose.material3.MaterialTheme.typography.bodySmall)
+}
+@Composable
+private fun XAIEmptyConfiguration() {
+    Text("已停用付费 TTS，请选择免费类型", style = androidx.compose.material3.MaterialTheme.typography.bodySmall)
+}
+@Composable
+private fun MiMoEmptyConfiguration() {
+    Text("已停用付费 TTS，请选择免费类型", style = androidx.compose.material3.MaterialTheme.typography.bodySmall)
+}
+@Composable
+private fun ElevenLabsEmptyConfiguration() {
+    Text("已停用付费 TTS，请选择免费类型", style = androidx.compose.material3.MaterialTheme.typography.bodySmall)
 }
 
 @Composable
