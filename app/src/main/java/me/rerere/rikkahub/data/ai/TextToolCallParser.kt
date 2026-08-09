@@ -34,7 +34,8 @@ object TextToolCallParser {
     private val TOOL_START =
         Regex("""<(invoke|tool_call|use_tool|function_call|tool)\b([^>]*)>""", RegexOption.IGNORE_CASE)
 
-    private val PARAM = Regex("""<parameter\b([^>]*)>(.*?)</parameter>""", RegexOption.IGNORE_CASE or RegexOption.DOT_MATCHES_ALL)
+    private val PARAM =
+        Regex("""<parameter\b([^>]*)>([\s\S]*?)</parameter>""", RegexOption.IGNORE_CASE)
     private val PROP_ATTR = Regex("""(name|tool_name|function|tool)\s*=\s*["']([^"']+)["']""", RegexOption.IGNORE_CASE)
     private val ID_ATTR = Regex("""(id|tool_call_id|call_id)\s*=\s*["']([^"']+)["']""", RegexOption.IGNORE_CASE)
 
