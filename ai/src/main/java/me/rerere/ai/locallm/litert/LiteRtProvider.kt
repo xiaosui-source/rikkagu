@@ -691,7 +691,7 @@ class LiteRtProvider(
     override suspend fun generateImage(
         providerSetting: ProviderSetting,
         params: ImageGenerationParams,
-    ): Flow<ImageGenerationItem> = error("LiteRT does not support image generation in 22A")
+    ): ImageGenerationResult = error("LiteRT does not support image generation in 22A")
 
     /**
      * Translate the LiteRT-LM SDK's raw native error message into a user-actionable
