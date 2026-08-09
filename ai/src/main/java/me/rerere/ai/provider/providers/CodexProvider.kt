@@ -1,4 +1,4 @@
-package me.rerere.rikkahub.data.codex
+package me.rerere.locallm.provider.providers
 
 import android.content.Context
 import android.os.Build
@@ -19,22 +19,22 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
-import me.rerere.ai.core.ReasoningLevel
-import me.rerere.ai.core.TokenUsage
-import me.rerere.ai.provider.ImageGenerationParams
-import me.rerere.ai.provider.Modality
-import me.rerere.ai.provider.Model
-import me.rerere.ai.provider.ModelAbility
-import me.rerere.ai.provider.Provider
-import me.rerere.ai.provider.ProviderSetting
-import me.rerere.ai.provider.TextGenerationParams
-import me.rerere.ai.provider.providers.openai.ResponseAPI
-import me.rerere.ai.ui.ImageGenerationItem
-import me.rerere.ai.ui.MessageChunk
-import me.rerere.ai.ui.UIMessage
-import me.rerere.ai.ui.UIMessageChoice
-import me.rerere.ai.ui.handleMessageChunk
-import me.rerere.ai.util.toHeaders
+import me.rerere.locallm.core.ReasoningLevel
+import me.rerere.locallm.core.TokenUsage
+import me.rerere.locallm.provider.ImageGenerationParams
+import me.rerere.locallm.provider.Modality
+import me.rerere.locallm.provider.Model
+import me.rerere.locallm.provider.ModelAbility
+import me.rerere.locallm.provider.Provider
+import me.rerere.locallm.provider.ProviderSetting
+import me.rerere.locallm.provider.TextGenerationParams
+import me.rerere.locallm.provider.providers.openai.ResponseAPI
+import me.rerere.locallm.ui.ImageGenerationItem
+import me.rerere.locallm.ui.MessageChunk
+import me.rerere.locallm.ui.UIMessage
+import me.rerere.locallm.ui.UIMessageChoice
+import me.rerere.locallm.ui.handleMessageChunk
+import me.rerere.locallm.util.toHeaders
 import me.rerere.common.http.await
 import me.rerere.rikkahub.R
 import okhttp3.MediaType.Companion.toMediaType
@@ -137,7 +137,7 @@ class CodexProvider(
         params: TextGenerationParams,
     ): MessageChunk {
         var collected = listOf(UIMessage.assistant(""))
-        var usage: me.rerere.ai.core.TokenUsage? = null
+        var usage: me.rerere.locallm.core.TokenUsage? = null
         streamText(providerSetting, messages, params).collect { chunk ->
             collected = collected.handleMessageChunk(chunk, params.model)
             usage = chunk.usage ?: usage
