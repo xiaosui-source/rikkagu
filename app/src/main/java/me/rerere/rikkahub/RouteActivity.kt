@@ -344,23 +344,7 @@ class RouteActivity : ComponentActivity() {
         val scope = rememberCoroutineScope()
         val tts = rememberCustomTtsState()
 
-        // 首次启动：未同意免责声明时强制展示
-        if (!settings.disclaimerAccepted) {
-            DisclaimerPage(
-                onAccept = {
-                    scope.launch {
-                        settingsStore.update {
-                            it.copy(
-                                disclaimerAccepted = true,
-                                disclaimerAcceptedAt = (System.currentTimeMillis() / 1000).toInt()
-                            )
-                        }
-                    }
-                },
-                onDecline = { finish() }
-            )
-            return
-        }
+        // 无免责声明强制展示（服务条款已移除）
         val asr = rememberCustomAsrState()
         val eventBus = koinInject<AppEventBus>()
         val migrationState by DatabaseMigrationTracker.state.collectAsStateWithLifecycle()

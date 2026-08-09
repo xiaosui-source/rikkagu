@@ -25,6 +25,9 @@ import kotlin.uuid.Uuid
 
 val DEFAULT_AUTO_MODEL_ID = Uuid.parse("b7055fb4-39f9-4042-a88a-0d80ed76cf08")
 
+// NVIDIA 默认模型（deepseek-v4-flash-0731），作为 App 默认聊天/标题/压缩模型
+val DEFAULT_NVIDIA_MODEL_ID = Uuid.parse("6d3b9c2e-7a4f-4c8d-b2e1-9e0f1a2b3c4d")
+
 val DEFAULT_PROVIDERS = listOf(
     ProviderSetting.OpenAI(
         id = Uuid.parse("a8d2d463-e8c0-41f2-b89e-f5eb8e716cce"),
@@ -312,41 +315,9 @@ val DEFAULT_PROVIDERS = listOf(
         },
         models = listOf(
             Model(
-                modelId = "meta/llama-3.3-70b-instruct",
-                displayName = "Llama 3.3 70B Instruct",
-                id = Uuid.parse("c1a0b2e3-5a4b-4c8d-9e1f-0a2b3c4d5e6f"),
-                inputModalities = listOf(Modality.TEXT),
-                outputModalities = listOf(Modality.TEXT),
-                abilities = listOf(ModelAbility.TOOL),
-            ),
-            Model(
-                modelId = "deepseek-ai/deepseek-r1",
-                displayName = "DeepSeek R1",
-                id = Uuid.parse("d2b1c3e4-6b5c-4d9e-8f20-1b3c4d5e6f70"),
-                inputModalities = listOf(Modality.TEXT),
-                outputModalities = listOf(Modality.TEXT),
-                abilities = listOf(ModelAbility.TOOL, ModelAbility.REASONING),
-            ),
-            Model(
-                modelId = "nvidia/llama-3.1-nemotron-ultra-253b-v1",
-                displayName = "Llama 3.1 Nemotron Ultra",
-                id = Uuid.parse("e3c2d4f5-7c6d-4e8f-9a31-2c4d5e6f7081"),
-                inputModalities = listOf(Modality.TEXT),
-                outputModalities = listOf(Modality.TEXT),
-                abilities = listOf(ModelAbility.TOOL, ModelAbility.REASONING),
-            ),
-            Model(
-                modelId = "qwen/qwen2.5-72b-instruct",
-                displayName = "Qwen 2.5 72B Instruct",
-                id = Uuid.parse("f4d3e5a6-8d7e-4f8a-b142-3d5e6f708192"),
-                inputModalities = listOf(Modality.TEXT),
-                outputModalities = listOf(Modality.TEXT),
-                abilities = listOf(ModelAbility.TOOL),
-            ),
-            Model(
-                modelId = "nvidia/nemotron-4-340b-instruct",
-                displayName = "NVIDIA Nemotron 4 340B",
-                id = Uuid.parse("a5e4f6b7-9e8f-4a9b-c253-4e6f708193a3"),
+                id = DEFAULT_NVIDIA_MODEL_ID,
+                modelId = "deepseek-ai/deepseek-v4-flash-0731",
+                displayName = "DeepSeek V4 Flash (0731)",
                 inputModalities = listOf(Modality.TEXT),
                 outputModalities = listOf(Modality.TEXT),
                 abilities = listOf(ModelAbility.TOOL, ModelAbility.REASONING),
