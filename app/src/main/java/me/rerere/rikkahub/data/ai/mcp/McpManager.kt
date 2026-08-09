@@ -275,11 +275,36 @@ class McpManager(
             workspaceRepository = workspaceRepository,
             getApiKey = {
                 val model = settings.getCurrentChatModel()
-                model?.findProvider(settings.providers)?.apiKey
-            },
-            getBaseUrl = {
-                val model = settings.getCurrentChatModel()
-                model?.findProvider(settings.providers)?.baseUrl
+                model?.findProvider(settings.providers)?.let { provider ->
+                    when (provider) {
+                        is me.rerere.ai.provider.ProviderSetting.OpenAI -> provider.apiKey
+                        is me.rerere.ai.provider.ProviderSetting.Google -> provider.apiKey
+                        is me.rerere.ai.provider.ProviderSetting.Claude -> provider.apiKey
+                }
+                model?.findProvider(settings.providers)?.let { provider ->
+                    when (provider) {
+                        is me.rerere.ai.provider.ProviderSetting.OpenAI -> provider.apiKey
+                        is me.rerere.ai.provider.ProviderSetting.Google -> provider.apiKey
+                        is me.rerere.ai.provider.ProviderSetting.Claude -> provider.apiKey
+                        else -> null
+                    }
+                }
+                model?.findProvider(settings.providers)?.let { provider ->
+                    when (provider) {
+                        is me.rerere.ai.provider.ProviderSetting.OpenAI -> provider.apiKey
+                        is me.rerere.ai.provider.ProviderSetting.Google -> provider.apiKey
+                        is me.rerere.ai.provider.ProviderSetting.Claude -> provider.apiKey
+                        else -> null
+                    }
+                }
+                model?.findProvider(settings.providers)?.let { provider ->
+                    when (provider) {
+                        is me.rerere.ai.provider.ProviderSetting.OpenAI -> provider.apiKey
+                        is me.rerere.ai.provider.ProviderSetting.Google -> provider.apiKey
+                        is me.rerere.ai.provider.ProviderSetting.Claude -> provider.apiKey
+                        else -> null
+                    }
+                }
             },
         )
         val githubToolCount = builtinTools.count { it.name.startsWith("github_") }

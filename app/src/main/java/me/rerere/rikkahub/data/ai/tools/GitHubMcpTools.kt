@@ -346,7 +346,7 @@ internal fun buildGitHubTools(getToken: () -> String?, enabled: () -> Boolean): 
                 val repo = g("repo")
                 val message = g("message")
                 val branch = g("branch")
-                val files = o["files"]?.jsonObjectOrNull?.let { it as? JsonArray } ?: return@Tool listOf(UIMessagePart.Text("{\"error\":\"files param must be an array\"}"))
+                val files = o["files"] as? JsonArray ?: return@Tool listOf(UIMessagePart.Text("{\"error\":\"files param must be an array\"}"))
 
                 if (files.isEmpty()) return@Tool listOf(UIMessagePart.Text("{\"error\":\"files array is empty\"}"))
 
