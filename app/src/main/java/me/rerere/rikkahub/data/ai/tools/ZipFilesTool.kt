@@ -227,8 +227,19 @@ fun buildWriteFilesTool(conversationId: String? = null): Tool = Tool(
         }
 
         if (finalFiles.isEmpty()) {
-            error("No files to package. Provide 'files' array or use 'base_files':'previous' with 'edits'.")
-        }
+                error("No files to package. Provide 'files' array or use 'base_files':'previous' with 'edits'.")
+            }
+
+            // 检查文件数量，防止过多文件导致性能问题
+            if (finalFiles.size > 1000) {
+                error("Too many files. Maximum 1000 files allowed. Current: ${finalFiles.size}")
+            }
+
+            // 检查文件总大小，防止过大ZIP包
+            val totalSize = finalFiles.values.sumOf { it.length }
+            if (totalSize > 100 * 1024 * 1024) { // 100MB限制
+                error("Total file size exceeds 100MB limit. Current size: ${totalSize / 1024 / 1024}MB")
+            }
 
         // Update cache with the final file contents (按 conversationId 隔离)
         WriteFilesCache.updateAll(convId, finalFiles)

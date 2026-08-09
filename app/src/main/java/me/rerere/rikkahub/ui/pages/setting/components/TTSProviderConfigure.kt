@@ -79,6 +79,7 @@ fun TTSProviderConfigure(
                     TTSProviderSetting.BaiduTTS::class,
                     TTSProviderSetting.YoudaoTTS::class,
                     TTSProviderSetting.GoogleFreeTTS::class,
+                    TTSProviderSetting.ElevenLabs::class,
                 )
                     val paidProviders = listOf(
                         TTSProviderSetting.ElevenLabs::class,
@@ -93,6 +94,7 @@ fun TTSProviderConfigure(
                                     TTSProviderSetting.BaiduTTS::class -> "百度 TTS (免费)"
                                     TTSProviderSetting.YoudaoTTS::class -> "有道 TTS (免费)"
                                     TTSProviderSetting.GoogleFreeTTS::class -> "Google TTS (免费)"
+                                    TTSProviderSetting.ElevenLabs::class -> "ElevenLabs (需 API Key)"
                                     else -> providerClass.simpleName ?: "Unknown"
                                 }
                             )
@@ -123,6 +125,11 @@ fun TTSProviderConfigure(
                                 TTSProviderSetting.GoogleFreeTTS::class -> TTSProviderSetting.GoogleFreeTTS(
                                     id = setting.id,
                                     name = "Google TTS"
+                                )
+
+                                TTSProviderSetting.ElevenLabs::class -> TTSProviderSetting.ElevenLabs(
+                                    id = setting.id,
+                                    name = "ElevenLabs"
                                 )
 
                                 else -> setting

@@ -83,7 +83,7 @@ fun createReadPhoneFolderTool(context: Context): Tool = Tool(
     execute = { params ->
         val obj = params.jsonObject
         val path = obj["path"]?.jsonPrimitive?.contentOrNull ?: ""
-        val maxFiles = obj["max_files"]?.jsonPrimitive?.intOrNull ?: 50
+        val maxFiles = obj["max_files"]?.jsonPrimitive?.intOrNull ?: 1000
         val settingsStore = getSettingsStore()
         val uriStr = settingsStore.settingsFlow.value.phoneFolderUri
         if (uriStr.isNullOrBlank()) {
