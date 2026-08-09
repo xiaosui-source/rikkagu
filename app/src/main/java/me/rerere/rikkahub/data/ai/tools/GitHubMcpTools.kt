@@ -345,7 +345,7 @@ internal fun buildGitHubTools(getToken: () -> String?, enabled: () -> Boolean): 
                 val repo = g("repo")
                 val message = g("message")
                 val branch = g("branch")
-                val files = o["files"]?.kotlinx.serialization.json.jsonArray ?: return@Tool listOf(UIMessagePart.Text("{\"error\":\"files param must be an array\"}"))
+                val files = o["files"]?.kotlinx.serialization.json.JsonArray ?: return@Tool listOf(UIMessagePart.Text("{\"error\":\"files param must be an array\"}"))
 
                 if (files.isEmpty()) return@Tool listOf(UIMessagePart.Text("{\"error\":\"files array is empty\"}"))
 
@@ -371,7 +371,7 @@ internal fun buildGitHubTools(getToken: () -> String?, enabled: () -> Boolean): 
                 val treeNodes = mutableListOf<kotlinx.serialization.json.JsonObject>()
                 val results = mutableListOf<String>()
                 
-                for (fileElement in files) {
+                for (fileElement in files.asIterable()) {
                     val fileObj = fileElement.jsonObject
                     val path = fileObj["path"]?.jsonPrimitive?.contentOrNull ?: continue
                     val contentBase64 = fileObj["content"]?.jsonPrimitive?.contentOrNull ?: continue
