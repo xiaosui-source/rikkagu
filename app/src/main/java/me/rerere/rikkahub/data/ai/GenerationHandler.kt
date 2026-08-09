@@ -233,7 +233,21 @@ class GenerationHandler(
                         .toLocalDateTime(TimeZone.currentSystemDefault())
                 )
                 emit(GenerationChunk.Messages(messages))
- 
+
+                // 兼容模型把工具调用以纯文本 XML（<invoke name=...><parameter name=...>...</parameter></invoke>）
+                // 输出的情况：将其识别为结构化 Tool，统一走"正在执行工具"渲染与执行。
+                // 覆盖所有供应商/模型：只要文本中出现成对的工具调用标签即被解析。
+                val lastMsg = messages.last()
+                val parsedParts = TextToolCallParser.extract(
+                    lastMsg.parts,
+                    allowedToolNames = toolsInternal.map { it.name }.toSet(),
+                )
+                if (parsedParts != lastMsg.parts) {
+                    messages = messages.slice(0 until messages.lastIndex) +
+                        lastMsg.copy(parts = parsedParts)
+                    emit(GenerationChunk.Messages(messages))
+                }
+
                 val tools = messages.last().getTools().filter { !it.isExecuted }
                 if (tools.isEmpty()) {
                     // finish_reason == "length" means the model hit the token limit
