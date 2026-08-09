@@ -216,9 +216,9 @@ internal fun ProviderSetting.defaultBaseUrlForReset(): String {
             is ProviderSetting.OpenAI -> if (defaultProvider is ProviderSetting.OpenAI) return defaultProvider.baseUrl
             is ProviderSetting.Google -> if (defaultProvider is ProviderSetting.Google) return defaultProvider.baseUrl
             is ProviderSetting.Claude -> if (defaultProvider is ProviderSetting.Claude) return defaultProvider.baseUrl
-            is ProviderSetting.AICore -> if (defaultProvider is ProviderSetting.AICore) return defaultProvider.baseUrl
-            is ProviderSetting.Codex -> if (defaultProvider is ProviderSetting.Codex) return defaultProvider.baseUrl
-            is ProviderSetting.LiteRtLocal -> if (defaultProvider is ProviderSetting.LiteRtLocal) return defaultProvider.baseUrl
+            is ProviderSetting.AICore -> if (defaultProvider is ProviderSetting.AICore) return ""
+            is ProviderSetting.Codex -> if (defaultProvider is ProviderSetting.Codex) return ""
+            is ProviderSetting.LiteRtLocal -> if (defaultProvider is ProviderSetting.LiteRtLocal) return ""
         }
     }
 
