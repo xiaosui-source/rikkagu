@@ -267,8 +267,8 @@ sealed class ProviderSetting {
         @Transient override val builtIn: Boolean = false,
         @Transient override val description: @Composable (() -> Unit) = {},
         @Transient override val shortDescription: @Composable (() -> Unit) = {},
-        override var apiKey: String = "",
-        override var baseUrl: String = "http://localhost:11434/v1",
+        var apiKey: String = "",
+        var baseUrl: String = "http://localhost:11434/v1",
         /** 本地模型文件路径（.gguf / .bin 等），选填 */
         var modelFilePath: String = "",
     ) : ProviderSetting() {

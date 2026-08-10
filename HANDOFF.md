@@ -1,32 +1,57 @@
 # HANDOFF.md
 
-## 最近任务 — 更新功能移除（✅ 已完成）
+## 最近任务 — 恢复本地供应商功能（🔄 进行中）
 
 ### 当前任务
-把 App 的「应用更新」功能去掉，用户不需要更新提示。
+从 rikkahub-agent 仓库恢复本地供应商功能，但只保留从该仓库深度集成的核心部分，不保留 LiteRt 特定实现文件。
 
-### ✅ 已完成（全部）
-- **ChatDrawer.kt**：移除侧边栏 `UpdateCard(vm)` 展示块 + 相关 import + `rememberIsPlayStoreVersion`/`isPlayStore`（更新判断）
-- **ChatVM.kt**：移除 `updateChecker` 构造参数 + `updateState` 字段 + `UpdateChecker`/`UiState` import
-- **ViewModelModule.kt**：移除 ChatVM DI 里的 `updateChecker = get()`
-- **AppModule.kt**：移除 `UpdateChecker(get())` bean + import
-- **删除文件**：`UpdateChecker.kt`、`UpdateCard.kt`、`PlayStore.kt`(hooks)、`PlayStoreUtil.kt`
-- **设置开关**：移除 `SettingDisplayGeneralPage.kt` / `SettingPreferencesNotificationPage.kt` 里的「显示更新 showUpdates」开关项
-- **PreferencesStore.kt**：移除 `showUpdates` 字段
-- **字符串资源**：清理 6 个语言包里 `show_updates_*` 与 `update_card_*` 字符串
+### ✅ 已完成
+- **local-llm 模块**：恢复核心文件（6个）
+  - AcceleratorProbe.kt - 加速器探测
+  - LocalRuntime.kt - 本地运行时
+  - LocalRuntimePreferences.kt - 运行时配置
+  - MemoryGuard.kt - 内存保护
+  - ModelInstall.kt - 模型安装
+  - build.gradle.kts - 模块构建配置
+- **ProviderSetting.kt**：添加 `LocalModel` 类型
+  - 兼容 OpenAI API 格式
+  - 默认地址 `http://localhost:11434/v1`（Ollama）
+  - 支持自定义 `modelFilePath` 字段
+- **DefaultProviders.kt**：添加本地模型到默认供应商列表
+  - 名称："本地模型"
+  - 描述："运行在设备本地的 LLM 推理服务（Ollama / llama.cpp / vLLM）"
+- **构建配置**：
+  - settings.gradle.kts：添加 local-llm 模块
+  - ai/build.gradle.kts：添加 local-llm 依赖
+  - local-llm/build.gradle.kts：添加 LiteRT-LM 依赖（0.11.0）
+  - gradle/libs.versions.toml：添加 litertlm 依赖
 
-### ✅ 自检结论
-- 全代码库 (java/) 已无 `UpdateChecker/UpdateCard/updateChecker/updateState/rememberIsPlayStoreVersion/PlayStoreUtil/showUpdates` 任何残留引用
-- `ChatVM` 中 `SharingStarted/stateIn/viewModelScope/map` 等 import 仍被文件中其他代码使用，无未使用 import 警告
-- res/、manifest、proguard 均无残留引用
-- （按用户指示 push 前不编译，直接推送）
+### ❌ 已删除（LiteRt 特定实现，非从 rikkahub-agent 迁移）
+- LiteRtCatalog.kt
+- LiteRtModelConfig.kt
+- LiteRtModelMetadata.kt
+- LiteRtProvider.kt
+- LiteRtRuntime.kt
+- LiteRtToolBridge.kt
+- LiteRtToolBridgeRegistry.kt
+- LiteRtToolPrefix.kt
+- jniLibs/ 目录
 
-### 📋 状态
-- 改动已 commit + push（ghp token 通过 origin remote 推送）
+### ⚠️ 卡住的问题
+- **local-llm 模块构建失败**：
+  - `mergeReleaseJniLibFolders` 任务失败（current 为 null）
+  - 循环依赖：local-llm 依赖 ai，ai 依赖 local-llm
+  - 已尝试移除循环依赖和 jniLibs 配置
+
+### 📋 下一步
+1. 修复 local-llm 模块的构建配置
+2. 确保本地供应商功能完整可用
+3. 测试本地模型加载和推理
 
 ### 🕳️ 踩过的坑
-- 更新功能横跨 8+ 处（UI 卡片、VM、DI 两处、两处设置页、datastore、字符串6语言），删除时要同步清理 import 才能避免编译错误
-- `isPlayStore` 变量只服务于 UpdateCard，删卡后必须一并删变量、hook 及 `PlayStoreUtil` object
+- **循环依赖问题**：local-llm 模块依赖 ai 模块，导致构建失败
+- **jniLibs 配置问题**：空的 jniLibs 目录导致 merge 任务失败
+- **继承冲突**：LocalModel 最初尝试继承 OpenAI，导致序列化和组件函数冲突
 
 ---
 
