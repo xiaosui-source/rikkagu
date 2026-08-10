@@ -92,7 +92,6 @@ dependencies {
     // ===== 内部模块 =====
     implementation(project(":common"))
     implementation(project(":ai"))
-    implementation(project(":local-llm"))
     implementation(project(":material3"))
     implementation(project(":web"))
     implementation(project(":search"))
