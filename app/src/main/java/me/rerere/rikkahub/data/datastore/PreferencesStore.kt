@@ -668,7 +668,7 @@ data class Settings(
     val compressPrompt: String = DEFAULT_COMPRESS_PROMPT,
     val assistantId: Uuid = DEFAULT_ASSISTANT_ID,
     val providers: List<ProviderSetting> = DEFAULT_PROVIDERS,
-    val assistants: List<Assistant> = DEFAULT_ASSISTANTS,
+    val assistants: List<Assistant> = DEFAULT_ASSISTANTS.map { it.copy(enabledSkills = allSkills) },
     val assistantTags: List<Tag> = emptyList(),
     val searchServices: List<SearchServiceOptions> = SearchServiceOptions.allDefaults(),
     val searchCommonOptions: SearchCommonOptions = SearchCommonOptions(),
@@ -890,6 +890,44 @@ private fun Model.findModelProviderFromList(providers: List<ProviderSetting>): P
     }
     return null
 }
+
+internal val allSkills = listOf(
+    "ask-matt",
+    "code-review",
+    "codebase-design",
+    "diagnosing-bugs",
+    "domain-modeling",
+    "grill-with-docs",
+    "implement",
+    "improve-codebase-architecture",
+    "prototype",
+    "research",
+    "resolving-merge-conflicts",
+    "setup-matt-pocock-skills",
+    "tdd",
+    "to-spec",
+    "to-tickets",
+    "triage",
+    "wayfinder",
+    "wizard",
+    "claude-handoff",
+    "loop-me",
+    "setup-ts-deep-modules",
+    "writing-beats",
+    "writing-fragments",
+    "writing-shape",
+    "git-guardrails-claude-code",
+    "migrate-to-shoehorn",
+    "scaffold-exercises",
+    "setup-pre-commit",
+    "grill-me",
+    "grilling",
+    "handoff",
+    "teach",
+    "to-questionnaire",
+    "wait-what",
+    "writing-for-agents",
+)
 
 internal val DEFAULT_ASSISTANT_ID = Uuid.parse("0950e2dc-9bd5-4801-afa3-aa887aa36b4e")
 internal val DEFAULT_NVIDIA_MODEL_ID = Uuid.parse("b7055fb4-39f9-4042-a88a-0d80ed76cf08")
