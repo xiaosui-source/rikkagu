@@ -891,7 +891,7 @@ private fun Model.findModelProviderFromList(providers: List<ProviderSetting>): P
     return null
 }
 
-internal val allSkills = listOf(
+internal val allSkills: Set<String> = setOf(
     "ask-matt",
     "code-review",
     "codebase-design",
