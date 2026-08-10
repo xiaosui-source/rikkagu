@@ -114,16 +114,8 @@ fun ProviderConfigure(
                 ProviderConfigureClaude(provider, onEdit)
             }
 
-            is ProviderSetting.AICore -> {
-                // AICore 已被删除，不显示配置界面
-            }
-
-            is ProviderSetting.Codex -> {
-                // Codex 已被删除，不显示配置界面
-            }
-
-            is ProviderSetting.LiteRtLocal -> {
-                // LiteRtLocal 已被删除，不显示配置界面
+            is ProviderSetting.LocalModel -> {
+                // 本地模型不显示配置界面
             }
 
             else -> {
@@ -142,9 +134,7 @@ fun ProviderSetting.convertTo(type: KClass<out ProviderSetting>): ProviderSettin
         is ProviderSetting.OpenAI -> this.apiKey
         is ProviderSetting.Google -> this.apiKey
         is ProviderSetting.Claude -> this.apiKey
-        is ProviderSetting.AICore -> ""
-        is ProviderSetting.Codex -> ""
-        is ProviderSetting.LiteRtLocal -> ""
+        is ProviderSetting.LocalModel -> this.apiKey
         else -> ""
     }
 
@@ -152,15 +142,14 @@ fun ProviderSetting.convertTo(type: KClass<out ProviderSetting>): ProviderSettin
         is ProviderSetting.OpenAI -> this.baseUrl
         is ProviderSetting.Google -> this.baseUrl
         is ProviderSetting.Claude -> this.baseUrl
-        is ProviderSetting.AICore -> ""
-        is ProviderSetting.Codex -> ""
-        is ProviderSetting.LiteRtLocal -> ""
+        is ProviderSetting.LocalModel -> this.baseUrl
         else -> ""
     }
     val targetDefaultBaseUrl = when (type) {
         ProviderSetting.OpenAI::class -> ProviderSetting.OpenAI().baseUrl
         ProviderSetting.Google::class -> ProviderSetting.Google().baseUrl
         ProviderSetting.Claude::class -> ProviderSetting.Claude().baseUrl
+        ProviderSetting.LocalModel::class -> ProviderSetting.LocalModel().baseUrl
         else -> error("Unsupported provider type: $type")
     }
     val convertedBaseUrl = sourceBaseUrl.convertToTargetBaseUrl(targetDefaultBaseUrl)
@@ -205,6 +194,23 @@ fun ProviderSetting.convertTo(type: KClass<out ProviderSetting>): ProviderSettin
             baseUrl = convertedBaseUrl
         )
 
+        ProviderSetting.LocalModel::class -> ProviderSetting.LocalModel(
+            id = this.id,
+            enabled = this.enabled,
+            name = this.name,
+            models = this.models,
+            balanceOption = this.balanceOption,
+            builtIn = this.builtIn,
+            description = this.description,
+            shortDescription = this.shortDescription,
+            apiKey = apiKey,
+            baseUrl = convertedBaseUrl,
+            modelFilePath = when (this) {
+                is ProviderSetting.LocalModel -> this.modelFilePath
+                else -> ""
+            }
+        )
+
         else -> error("Unsupported provider type: $type")
     }
 }
@@ -216,9 +222,7 @@ internal fun ProviderSetting.defaultBaseUrlForReset(): String {
             is ProviderSetting.OpenAI -> if (defaultProvider is ProviderSetting.OpenAI) return defaultProvider.baseUrl
             is ProviderSetting.Google -> if (defaultProvider is ProviderSetting.Google) return defaultProvider.baseUrl
             is ProviderSetting.Claude -> if (defaultProvider is ProviderSetting.Claude) return defaultProvider.baseUrl
-            is ProviderSetting.AICore -> if (defaultProvider is ProviderSetting.AICore) return ""
-            is ProviderSetting.Codex -> if (defaultProvider is ProviderSetting.Codex) return ""
-            is ProviderSetting.LiteRtLocal -> if (defaultProvider is ProviderSetting.LiteRtLocal) return ""
+            is ProviderSetting.LocalModel -> if (defaultProvider is ProviderSetting.LocalModel) return defaultProvider.baseUrl
         }
     }
 
@@ -226,9 +230,7 @@ internal fun ProviderSetting.defaultBaseUrlForReset(): String {
         is ProviderSetting.OpenAI -> ProviderSetting.OpenAI().baseUrl
         is ProviderSetting.Google -> ProviderSetting.Google().baseUrl
         is ProviderSetting.Claude -> ProviderSetting.Claude().baseUrl
-        is ProviderSetting.AICore -> ""
-        is ProviderSetting.Codex -> ""
-        is ProviderSetting.LiteRtLocal -> ""
+        is ProviderSetting.LocalModel -> ProviderSetting.LocalModel().baseUrl
         else -> ""
     }
 }
@@ -239,9 +241,7 @@ internal fun ProviderSetting.resetBaseUrlToDefault(): ProviderSetting {
         is ProviderSetting.OpenAI -> this.copy(baseUrl = defaultBaseUrl)
         is ProviderSetting.Google -> this.copy(baseUrl = defaultBaseUrl)
         is ProviderSetting.Claude -> this.copy(baseUrl = defaultBaseUrl)
-        is ProviderSetting.AICore -> this
-        is ProviderSetting.Codex -> this
-        is ProviderSetting.LiteRtLocal -> this
+        is ProviderSetting.LocalModel -> this.copy(baseUrl = defaultBaseUrl)
         else -> this
     }
 }
@@ -251,9 +251,7 @@ internal fun ProviderSetting.isUsingDefaultBaseUrl(): Boolean {
         is ProviderSetting.OpenAI -> this.baseUrl
         is ProviderSetting.Google -> this.baseUrl
         is ProviderSetting.Claude -> this.baseUrl
-        is ProviderSetting.AICore -> ""
-        is ProviderSetting.Codex -> ""
-        is ProviderSetting.LiteRtLocal -> ""
+        is ProviderSetting.LocalModel -> this.baseUrl
         else -> ""
     }
     return baseUrl == defaultBaseUrlForReset()
