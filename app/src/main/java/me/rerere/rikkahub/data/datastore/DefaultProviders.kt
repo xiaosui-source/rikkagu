@@ -293,44 +293,4 @@ val DEFAULT_PROVIDERS = listOf(
             )
         }
     ),
-    ProviderSetting.LocalModel(
-        id = Uuid.parse("c8e1f2a3-4b5c-6d7e-8f90-1a2b3c4d5e6f"),
-        name = "本地模型",
-        baseUrl = "http://localhost:11434/v1",
-        apiKey = "not-needed",
-        enabled = true,
-        builtIn = true,
-        description = {
-            Text("运行在设备本地的 LLM 推理服务（Ollama / llama.cpp / vLLM）")
-        },
-        shortDescription = {
-            Text("本地模型 · 无需联网")
-        },
-        models = listOf(
-            Model(
-                id = Uuid.parse("d9e8f7a6-b5c4-3d2e-1f01-2a3b4c5d6e7f"),
-                modelId = "llama3.2",
-                displayName = "Llama 3.2 (3B)",
-                inputModalities = listOf(Modality.TEXT),
-                outputModalities = listOf(Modality.TEXT),
-                abilities = listOf(ModelAbility.TOOL),
-            ),
-            Model(
-                id = Uuid.parse("e8f7a6b5-c4d3-2e1f-0012-3b4c5d6e7f8a"),
-                modelId = "qwen2.5:7b",
-                displayName = "Qwen 2.5 (7B)",
-                inputModalities = listOf(Modality.TEXT),
-                outputModalities = listOf(Modality.TEXT),
-                abilities = listOf(ModelAbility.TOOL, ModelAbility.REASONING),
-            ),
-            Model(
-                id = Uuid.parse("f7a6b5c4-d3e2-1f00-1234-5c6d7e8f9a0b"),
-                modelId = "phi4:14b",
-                displayName = "Phi-4 (14B)",
-                inputModalities = listOf(Modality.TEXT),
-                outputModalities = listOf(Modality.TEXT),
-                abilities = listOf(ModelAbility.TOOL, ModelAbility.REASONING),
-            ),
-        ),
-    ),
 )

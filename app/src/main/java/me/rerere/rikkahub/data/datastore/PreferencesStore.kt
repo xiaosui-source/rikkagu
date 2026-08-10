@@ -421,10 +421,6 @@ class SettingsStore(
                             models = provider.models.distinctBy { model -> model.id }
                         )
 
-                        is ProviderSetting.LocalModel -> provider.copy(
-                            models = provider.models.distinctBy { model -> model.id }
-                        )
-
                         else -> provider
                     }
                 },
