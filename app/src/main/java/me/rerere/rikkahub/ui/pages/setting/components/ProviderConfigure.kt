@@ -115,7 +115,7 @@ fun ProviderConfigure(
             }
 
             is ProviderSetting.LocalModel -> {
-                // 本地模型不显示配置界面
+                ProviderConfigureLocalModel(provider, onEdit)
             }
 
             else -> {
@@ -690,4 +690,71 @@ private fun ColumnScope.ProviderConfigureGoogle(
             )
         }
     }
+}
+
+@Composable
+private fun ColumnScope.ProviderConfigureLocalModel(
+    provider: ProviderSetting.LocalModel,
+    onEdit: (ProviderSetting.LocalModel) -> Unit
+) {
+    val toaster = LocalToaster.current
+    val modelFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+        try {
+            val fileName = uri.lastPathSegment ?: "unknown"
+            onEdit(provider.copy(modelFilePath = uri.toString()))
+            toaster.show("已选择: $fileName", type = ToastType.Success)
+        } catch (e: Exception) {
+            toaster.show("选择失败: ${e.message}", type = ToastType.Error)
+        }
+    }
+
+    Text(
+        text = "本地模型文件",
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.padding(top = 8.dp)
+    )
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        OutlinedTextField(
+            value = if (provider.modelFilePath.startsWith("content://"))
+                provider.modelFilePath.substringAfterLast("/") else provider.modelFilePath,
+            onValueChange = {},
+            label = { Text("模型文件") },
+            modifier = Modifier.weight(1f),
+            readOnly = true,
+            placeholder = { Text("未选择") }
+        )
+        OutlinedButton(
+            onClick = { modelFileLauncher.launch(arrayOf("*/*")) }
+        ) {
+            Text("选择文件")
+        }
+    }
+
+    if (provider.modelFilePath.isNotBlank()) {
+        Text(
+            text = "已选择: ${provider.modelFilePath.substringAfterLast("/")}",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.primary
+        )
+    }
+
+    Text(
+        text = "原生推理引擎 (ONNX Runtime)",
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.padding(top = 12.dp)
+    )
+
+    Text(
+        text = "选择 .onnx 模型文件后，将使用 ONNX Runtime 在设备端直接运行。",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
 }
