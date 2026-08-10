@@ -70,6 +70,7 @@ shizuku = "13.1.0"
 xz = "1.12"
 termux = "0.118.0"
 diffutils = "4.17"
+litertlm = "0.11.0"
 
 [libraries]
 androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "cameraCore" }
@@ -190,6 +191,7 @@ xz = { module = "org.tukaani:xz", version.ref = "xz" }
 termux-terminal-view = { module = "com.termux.termux-app:terminal-view", version.ref = "termux" }
 guava-listenablefuture = { module = "com.google.guava:listenablefuture", version = "9999.0-empty-to-avoid-conflict-with-guava" }
 diffutils = { module = "io.github.java-diff-utils:java-diff-utils", version.ref = "diffutils" }
+litertlm = { module = "com.google.ai.edge.litertlm:litertlm-android", version.ref = "litertlm" }
 androidx-localbroadcastmanager = { group = "androidx.localbroadcastmanager", name = "localbroadcastmanager", version = "1.1.0" }
 androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycleRuntimeKtx" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }
