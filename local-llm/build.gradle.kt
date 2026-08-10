@@ -39,6 +39,9 @@ android {
             useLegacyPackaging = false
         }
     }
+    buildFeatures {
+        buildConfig = false
+    }
 }
 
 kotlin {
