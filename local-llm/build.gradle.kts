@@ -12,14 +12,6 @@ android {
         minSdk = 26
         consumerProguardFiles("consumer-rules.pro")
     }
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-        }
-        debug {
-            isMinifyEnabled = false
-        }
-    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -29,15 +21,6 @@ android {
         // tests instead of throwing "not mocked" exceptions. Required because production
         // code (e.g. LiteRtToolPrefix) calls android.util.Log which isn't available on JVM.
         unitTests.isReturnDefaultValues = true
-    }
-    sourceSets {
-        getByName("main").jniLibs.setSrcDirs(listOf("src/main/jniLibs"))
-    }
-    packaging {
-        jniLibs {
-            // Avoid extracting native libs at install time so System.loadLibrary path stays cheap.
-            useLegacyPackaging = false
-        }
     }
     buildFeatures {
         buildConfig = false
@@ -53,7 +36,6 @@ kotlin {
 }
 
 dependencies {
-    api(project(":ai"))
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.androidx.datastore.preferences)
