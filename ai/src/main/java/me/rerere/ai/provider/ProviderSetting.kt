@@ -1,3 +1,9 @@
+﻿/*
+ * 灵犀 Lingxi
+ * 衍生自 Lingxi (https://github.com/scottwilliamavery26071994-bot/rikkahub)，原作者 RE
+ * 本项目基于 GNU AGPL v3 开源，详见根目录 LICENSE 文件
+ */
+
 package me.rerere.ai.provider
 
 import androidx.compose.runtime.Composable
@@ -21,12 +27,6 @@ enum class ClaudePromptCacheTtl(val apiValue: String?) {
     @SerialName("1h")
     ONE_HOUR("1h")
 }
-
-@Serializable
-data class OpenRouterRouting(
-    val provider: String = "",
-    val location: String = "",
-)
 
 @Serializable
 sealed class ProviderSetting {
@@ -70,15 +70,13 @@ sealed class ProviderSetting {
         var baseUrl: String = "https://api.openai.com/v1",
         var chatCompletionsPath: String = "/chat/completions",
         var useResponseApi: Boolean = false,
-        // OpenRouter only: emit per-block cache_control breakpoints. Anthropic/Gemini/Qwen
-        // need them explicitly; auto-caching providers have the field stripped upstream, so
-        // it is applied to every model on the OpenRouter host. See ChatCompletionsAPI.
-        var promptCaching: Boolean = true,
-        var includeHistoryReasoning: Boolean = true,
+        /**
+         * 提示词式工具调用: true 时不用原生 tool_calls 参数(部分免Key服务不支持),
+         * 改为在系统提示词中描述工具并让模型输出 <tool_call>{json}</tool_call> 标记,
+         * 由客户端解析并执行工具。
+         */
         var promptToolCalling: Boolean = false,
         var enableSearch: Boolean = false,
-        // OpenRouter only: provider-routing preferences emitted as the `provider` object.
-        var routing: OpenRouterRouting? = null,
     ) : ProviderSetting() {
         override fun addModel(model: Model): ProviderSetting {
             return copy(models = models + model)
@@ -203,7 +201,7 @@ sealed class ProviderSetting {
         @Transient override val shortDescription: @Composable (() -> Unit) = {},
         var apiKey: String = "",
         var baseUrl: String = "https://api.anthropic.com/v1",
-        var promptCaching: Boolean = true,  // ~10% input rate on cache hits, near-pure win
+        var promptCaching: Boolean = false,
         var promptCacheTtl: ClaudePromptCacheTtl = ClaudePromptCacheTtl.FIVE_MINUTES,
     ) : ProviderSetting() {
         override fun addModel(model: Model): ProviderSetting {
@@ -251,183 +249,50 @@ sealed class ProviderSetting {
         }
     }
 
+    /**
+     * 本地模型提供商（兼容 OpenAI API 格式）
+     *
+     * 适用于：Ollama / llama.cpp server / vLLM / text-generation-webui 等本地推理服务。
+     * 默认地址 http://localhost:11434/v1 指向 Ollama 默认端口，
+     * 用户可修改 baseUrl 适配不同推理引擎。
+     */
     @Serializable
-    @SerialName("aicore")
-    data class AICore(
-        override var id: Uuid = AICORE_PROVIDER_ID,
-        override var enabled: Boolean = true,
-        override var name: String = "AICore (on-device)",
-        override var models: List<Model> = AICORE_DEFAULT_MODELS,
-        override val balanceOption: BalanceOption = BalanceOption(),
-        @Transient override val builtIn: Boolean = true,
-        @Transient override val description: @Composable (() -> Unit) = {},
-        @Transient override val shortDescription: @Composable (() -> Unit) = {},
-        // Defaults to PREVIEW because the STABLE feature ID is missing on most current
-        // AICore beta channels — PREVIEW is what actually resolves to a working model on
-        // Pixel 8/9/10 today. Users can flip back to STABLE once Google promotes it.
-        var releaseStage: AICoreReleaseStage = AICoreReleaseStage.PREVIEW,
-    ) : ProviderSetting() {
-        override fun addModel(model: Model): ProviderSetting = this // synthetic models, no add
-        override fun editModel(model: Model): ProviderSetting {
-            return copy(models = models.map { if (it.id == model.id) model else it })
-        }
-
-        override fun delModel(model: Model): ProviderSetting = this // synthetic models, no delete
-
-        override fun moveMove(from: Int, to: Int): ProviderSetting {
-            return copy(models = models.toMutableList().apply {
-                val m = removeAt(from)
-                add(to, m)
-            })
-        }
-
-        override fun copyProvider(
-            id: Uuid,
-            enabled: Boolean,
-            name: String,
-            models: List<Model>,
-            balanceOption: BalanceOption,
-            builtIn: Boolean,
-            description: @Composable (() -> Unit),
-            shortDescription: @Composable (() -> Unit),
-        ): ProviderSetting {
-            return this.copy(
-                id = id,
-                enabled = enabled,
-                name = name,
-                models = models,
-                builtIn = builtIn,
-                description = description,
-                shortDescription = shortDescription,
-                balanceOption = balanceOption,
-            )
-        }
-    }
-
-    @Serializable
-    @SerialName("local_litert")
-    data class LiteRtLocal(
-        override var id: Uuid = LITERT_PROVIDER_ID,
-        override var enabled: Boolean = false,
-        override var name: String = "Local · LiteRT",
-        override var models: List<Model> = emptyList(),
-        override val balanceOption: BalanceOption = BalanceOption(),
-        @Transient override val builtIn: Boolean = true,
-        @Transient override val description: @Composable (() -> Unit) = {},
-        @Transient override val shortDescription: @Composable (() -> Unit) = {},
-    ) : ProviderSetting() {
-        override fun addModel(model: Model): ProviderSetting = copy(models = models + model)
-        override fun editModel(model: Model): ProviderSetting =
-            copy(models = models.map { if (it.id == model.id) model else it })
-        override fun delModel(model: Model): ProviderSetting =
-            copy(models = models.filter { it.id != model.id })
-        override fun moveMove(from: Int, to: Int): ProviderSetting =
-            copy(models = models.toMutableList().apply { add(to, removeAt(from)) })
-        override fun copyProvider(
-            id: Uuid,
-            enabled: Boolean,
-            name: String,
-            models: List<Model>,
-            balanceOption: BalanceOption,
-            builtIn: Boolean,
-            description: @Composable (() -> Unit),
-            shortDescription: @Composable (() -> Unit),
-        ): ProviderSetting = copy(
-            id = id, enabled = enabled, name = name, models = models,
-            builtIn = builtIn, description = description, shortDescription = shortDescription,
-            balanceOption = balanceOption,
-        )
-    }
-
-    @Serializable
-    @SerialName("codex")
-    data class Codex(
+    @SerialName("local_model")
+    data class LocalModel(
         override var id: Uuid = Uuid.random(),
-        override var enabled: Boolean = false,
-        override var name: String = "Codex",
+        override var enabled: Boolean = true,
+        override var name: String = "本地模型",
         override var models: List<Model> = emptyList(),
         override val balanceOption: BalanceOption = BalanceOption(),
-        @Transient override val builtIn: Boolean = true,
+        @Transient override val builtIn: Boolean = false,
         @Transient override val description: @Composable (() -> Unit) = {},
         @Transient override val shortDescription: @Composable (() -> Unit) = {},
-    ) : ProviderSetting() {
-        override fun addModel(model: Model): ProviderSetting = copy(models = models + model)
-
-        override fun editModel(model: Model): ProviderSetting =
-            copy(models = models.map { if (it.id == model.id) model.copy() else it })
-
-        override fun delModel(model: Model): ProviderSetting =
-            copy(models = models.filter { it.id != model.id })
-
-        override fun moveMove(from: Int, to: Int): ProviderSetting {
-            return copy(models = models.toMutableList().apply {
-                val model = removeAt(from)
-                add(to, model)
-            })
-        }
-
-        override fun copyProvider(
-            id: Uuid,
-            enabled: Boolean,
-            name: String,
-            models: List<Model>,
-            balanceOption: BalanceOption,
-            builtIn: Boolean,
-            description: @Composable (() -> Unit),
-            shortDescription: @Composable (() -> Unit),
-        ): ProviderSetting {
-            return copy(
-                id = id,
-                enabled = enabled,
-                name = name,
-                models = models,
-                balanceOption = balanceOption,
-                builtIn = builtIn,
-                description = description,
-                shortDescription = shortDescription,
-            )
-        }
-    }
+        override var apiKey: String = "",
+        override var baseUrl: String = "http://localhost:11434/v1",
+        /** 本地模型文件路径（.gguf / .bin 等），选填 */
+        var modelFilePath: String = "",
+    ) : OpenAI(
+        id = id,
+        enabled = enabled,
+        name = name,
+        models = models,
+        balanceOption = balanceOption,
+        builtIn = builtIn,
+        description = description,
+        shortDescription = shortDescription,
+        apiKey = apiKey,
+        baseUrl = baseUrl,
+    )
+    
 
     companion object {
-        // Types presented to the user when adding / converting a provider. AICore is
-        // intentionally NOT in this list: it is a singleton built-in (one per device,
-        // synthesized from the AICore system app), so the "type segmented row" inside
-        // the Add-Provider dialog and ProviderConfigure should not offer it as a choice.
-        // Including it overflowed the dialog width and wrapped the OpenAI / Google labels
-        // onto two lines on a Pixel 10 Pro.
         val Types by lazy {
             listOf(
                 OpenAI::class,
                 Google::class,
                 Claude::class,
+                LocalModel::class,
             )
         }
     }
 }
-
-@Serializable
-enum class AICoreReleaseStage { STABLE, PREVIEW }
-
-// Stable IDs for the synthetic AICore provider + models so saved settings and
-// conversations referencing them survive app re-installs and provider re-seeds.
-val AICORE_PROVIDER_ID: Uuid = Uuid.parse("a1c0a1c0-1234-4111-a000-000000000001")
-val LITERT_PROVIDER_ID: Uuid = Uuid.parse("11111111-aaaa-bbbb-cccc-000000000002")
-private val AICORE_NANO_FAST_ID: Uuid = Uuid.parse("a1c0a1c0-1234-4111-a000-000000000002")
-private val AICORE_NANO_FULL_ID: Uuid = Uuid.parse("a1c0a1c0-1234-4111-a000-000000000003")
-
-val AICORE_NANO_FAST_MODEL: Model = Model(
-    id = AICORE_NANO_FAST_ID,
-    modelId = "nano-fast",
-    displayName = "Gemini Nano (FAST)",
-    abilities = listOf(ModelAbility.TOOL),
-)
-
-val AICORE_NANO_FULL_MODEL: Model = Model(
-    id = AICORE_NANO_FULL_ID,
-    modelId = "nano-full",
-    displayName = "Gemini Nano (FULL)",
-    abilities = listOf(ModelAbility.TOOL),
-)
-
-val AICORE_DEFAULT_MODELS: List<Model> = listOf(AICORE_NANO_FAST_MODEL, AICORE_NANO_FULL_MODEL)

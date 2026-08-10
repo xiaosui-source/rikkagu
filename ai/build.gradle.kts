@@ -41,6 +41,7 @@ android {
 
 dependencies {
     implementation(project(":common"))
+    implementation(project(":local-llm"))
 
     // Compose
     implementation(libs.androidx.core.ktx)
