@@ -930,6 +930,25 @@ private val DEFAULT_ASR_PROVIDERS = listOf(
     )
 )
 
+internal val DEFAULT_ASSISTANT_ID = Uuid.parse("0950e2dc-9bd5-4801-afa3-aa887aa36b4e")
+internal val DEFAULT_NVIDIA_MODEL_ID = Uuid.parse("b7055fb4-39f9-4042-a88a-0d80ed76cf08")
+internal val DEFAULT_ASSISTANTS = listOf(
+    Assistant(
+        id = DEFAULT_ASSISTANT_ID,
+        name = "",
+        systemPrompt = "",
+        localTools = listOf(
+            LocalToolOption.TimeInfo,
+            LocalToolOption.WebFetch,
+            LocalToolOption.Clipboard,
+            LocalToolOption.JavascriptEngine,
+            LocalToolOption.ListZipContents,
+            LocalToolOption.AskUser,
+            LocalToolOption.CheckTokenUsage,
+            LocalToolOption.AllowSkipReply,
+        )
+    ),
+)
 internal val DEFAULT_ASSISTANTS_IDS = DEFAULT_ASSISTANTS.map { it.id }
 
 val DEFAULT_MODE_INJECTIONS = listOf(
