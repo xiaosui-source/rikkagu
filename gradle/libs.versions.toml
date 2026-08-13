@@ -2,7 +2,7 @@
 agp = "9.1.1"
 barcodeScanning = "17.3.0"
 textRecognition = "16.0.1"
-imageLabeling = "17.0.9"
+imageLabeling = "17.0.8"
 cameraCore = "1.6.1"
 dom4j = "2.2.0"
 jlatexmath = "1.3"
