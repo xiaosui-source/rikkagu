@@ -59,12 +59,20 @@ private suspend fun fetch(url: String, cookie: String = ""): String {
 
 private fun aid(input: String) = Regex("""(\d{15,20})""").find(input)?.groupValues?.get(1) ?: input
 
+/** 将参数 Map 转为 URL 查询字符串 */
+private fun q(params: Map<String, Any?>): String =
+    params.filterValues { it != null }
+        .map { (k, v) -> "$k=${java.net.URLEncoder.encode(v.toString(), "UTF-8")}" }
+        .joinToString("&")
+
 fun buildDouyinMcpTools(
     context: android.content.Context,
     getCookie: () -> String,
     workspaceRepository: me.rerere.rikkahub.data.repository.WorkspaceRepository,
     appEventBus: me.rerere.rikkahub.data.event.AppEventBus,
 ): List<Tool> = buildList {
+    // WebView 隐形会话（AI 自动化浏览器）：数据抓取全部走此会话，签名有效
+    val s = session(context)
 
     // ===== 登录 =====
         add(Tool(name="douyin_login",
@@ -158,45 +166,12 @@ fun buildDouyinMcpTools(
             needsApproval=false,
             parameters={ InputSchema.Obj(properties=buildJsonObject{} ) },
             execute={
-                // 从沙箱读取QR token，查询登录状态
-                val tokenInfo = try {
-                    workspaceRepository.executeCommand(
-                        "default",
-                        "cat ~/.config/douyinmcp/qr_token.txt 2>/dev/null || echo ''",
-                        timeoutMillis = 5000
-                    ).stdout.trim()
-                } catch(e: Exception) { "" }
-
-                val c = getCookie()
-                if (c.isNotBlank() && c.contains("sessionid")) {
-                    listOf(UIMessagePart.Text(buildJsonObject{
-                        put("logged_in", true)
-                        put("status","已登录")
-                        put("cookie_length", c.length)
-                    }.toString()))
-                } else if (tokenInfo.isNotBlank()) {
-                    // 尝试通过token获取登录后的Cookie
-                    val statusApi = "$DY/passport/web/check_qrconnect/"
-                    val status = try {
-                        http.newCall(Request.Builder().url(statusApi)
-                            .headers(hdrs("", DY))
-                            .post("""{"token":"$tokenInfo","service":"","webUid":"","verifyFp":"verify_" }""".toRequestBody("application/x-www-form-urlencoded".toMediaType()))
-                            .build())
-                            .execute().use { it.body?.string()?.take(8000) ?: "{}" }
-                    } catch(e: Exception) { "{}" }
-                    listOf(UIMessagePart.Text(buildJsonObject{
-                        put("logged_in", false)
-                        put("qr_token", tokenInfo)
-                        put("check_response", status.take(3000))
-                        put("提示","二维码登录状态查询。若用户已扫码确认，这里会返回Cookie自动保存到沙箱")
-                    }.toString()))
-                } else {
-                    listOf(UIMessagePart.Text(buildJsonObject{
-                        put("logged_in", c.isNotBlank() && c.contains("sessionid"))
-                        put("cookie_length", c.length)
-                        if(c.isBlank()) put("action","请先调用 douyin_login 获取登录二维码")
-                    }.toString()))
-                }
+                // 用 WebView 会话检测登录态（cookie 含 sessionid）
+                val loggedIn = s.isLoggedIn()
+                listOf(UIMessagePart.Text(buildJsonObject{
+                    put("logged_in", loggedIn)
+                    put("status", if (loggedIn) "已登录，AI 可自动评论/点赞/发布" else "未登录，请调用 douyin_login 扫码一次")
+                }.toString()))
             },
         ))
 
@@ -238,13 +213,11 @@ fun buildDouyinMcpTools(
         execute={ args ->
             val o=args.jsonObject; val kw=o["keyword"]?.jsonPrimitive?.contentOrNull?:error("kw")
             val cnt=o["count"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()?:10
-            val c=getCookie(); if(c.isBlank()) return@Tool listOf(UIMessagePart.Text("""{"error":"未登录，请先扫码登录"}"""))
-            val params=mutableMapOf<String,Any?>("keyword" to kw,"count" to cnt,"offset" to 0,
+                        val params=mutableMapOf<String,Any?>("keyword" to kw,"count" to cnt,"offset" to 0,
                 "search_channel" to 0,"sort_type" to (o["sort_type"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()?:0),
                 "publish_time" to (o["publish_time"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()?:0),
                 "verifyFp" to "verify_","fp" to "verify_","enable_history" to "1","search_source" to "tab_search")
-            listOf(UIMessagePart.Text(api("/aweme/v1/web/general/search/single/",params,c,
-                "$DY/search/${java.net.URLEncoder.encode(kw,"UTF-8")}?type=general")))
+            listOf(UIMessagePart.Text(s.api("/aweme/v1/web/general/search/single/", q(params))))
         },
     ))
 
@@ -257,9 +230,8 @@ fun buildDouyinMcpTools(
         },required=listOf("aweme_id")) },
         execute={ args ->
             val id=aid(args.jsonObject["aweme_id"]?.jsonPrimitive?.contentOrNull?:error("id"))
-            val c=getCookie(); if(c.isBlank()) return@Tool listOf(UIMessagePart.Text("""{"error":"未登录"}"""))
-            val params=mutableMapOf<String,Any?>("aweme_id" to id,"verifyFp" to "verify_","fp" to "verify_")
-            listOf(UIMessagePart.Text(api("/aweme/v1/web/aweme/detail/",params,c)))
+                        val params=mutableMapOf<String,Any?>("aweme_id" to id,"verifyFp" to "verify_","fp" to "verify_")
+            listOf(UIMessagePart.Text(s.api("/aweme/v1/web/aweme/detail/", q(params))))
         },
     ))
 
@@ -274,10 +246,9 @@ fun buildDouyinMcpTools(
         },required=listOf("aweme_id")) },
         execute={ args ->
             val o=args.jsonObject; val id=aid(o["aweme_id"]?.jsonPrimitive?.contentOrNull?:error("id"))
-            val c=getCookie(); if(c.isBlank()) return@Tool listOf(UIMessagePart.Text("""{"error":"未登录"}"""))
-            val params=mutableMapOf<String,Any?>("aweme_id" to id,"cursor" to (o["cursor"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()?:0),
+                        val params=mutableMapOf<String,Any?>("aweme_id" to id,"cursor" to (o["cursor"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()?:0),
                 "count" to (o["count"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()?:20),"item_type" to 0,"verifyFp" to "verify_","fp" to "verify_")
-            listOf(UIMessagePart.Text(api("/aweme/v1/web/comment/list/",params,c)))
+            listOf(UIMessagePart.Text(s.api("/aweme/v1/web/comment/list/", q(params))))
         },
     ))
 
@@ -291,10 +262,9 @@ fun buildDouyinMcpTools(
         },required=listOf("comment_id")) },
         execute={ args ->
             val o=args.jsonObject; val cid=o["comment_id"]?.jsonPrimitive?.contentOrNull?:error("id")
-            val c=getCookie(); if(c.isBlank()) return@Tool listOf(UIMessagePart.Text("""{"error":"未登录"}"""))
-            val params=mutableMapOf<String,Any?>("comment_id" to cid,"cursor" to (o["cursor"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()?:0),
+                        val params=mutableMapOf<String,Any?>("comment_id" to cid,"cursor" to (o["cursor"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()?:0),
                 "count" to (o["count"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()?:20),"item_type" to 0,"verifyFp" to "verify_","fp" to "verify_")
-            listOf(UIMessagePart.Text(api("/aweme/v1/web/comment/list/reply/",params,c)))
+            listOf(UIMessagePart.Text(s.api("/aweme/v1/web/comment/list/reply/", q(params))))
         },
     ))
 
@@ -307,9 +277,8 @@ fun buildDouyinMcpTools(
         },required=listOf("sec_user_id")) },
         execute={ args ->
             val uid=args.jsonObject["sec_user_id"]?.jsonPrimitive?.contentOrNull?:error("id")
-            val c=getCookie(); if(c.isBlank()) return@Tool listOf(UIMessagePart.Text("""{"error":"未登录"}"""))
-            val params=mutableMapOf<String,Any?>("sec_user_id" to uid,"verifyFp" to "verify_","fp" to "verify_")
-            listOf(UIMessagePart.Text(api("/aweme/v1/web/user/profile/other/",params,c)))
+                        val params=mutableMapOf<String,Any?>("sec_user_id" to uid,"verifyFp" to "verify_","fp" to "verify_")
+            listOf(UIMessagePart.Text(s.api("/aweme/v1/web/user/profile/other/", q(params))))
         },
     ))
 
@@ -323,10 +292,9 @@ fun buildDouyinMcpTools(
         },required=listOf("sec_user_id")) },
         execute={ args ->
             val o=args.jsonObject; val uid=o["sec_user_id"]?.jsonPrimitive?.contentOrNull?:error("id")
-            val c=getCookie(); if(c.isBlank()) return@Tool listOf(UIMessagePart.Text("""{"error":"未登录"}"""))
-            val params=mutableMapOf<String,Any?>("sec_user_id" to uid,"max_cursor" to (o["max_cursor"]?.jsonPrimitive?.contentOrNull?:"0"),
+                        val params=mutableMapOf<String,Any?>("sec_user_id" to uid,"max_cursor" to (o["max_cursor"]?.jsonPrimitive?.contentOrNull?:"0"),
                 "count" to (o["count"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()?:18),"locate_query" to "false","verifyFp" to "verify_","fp" to "verify_")
-            listOf(UIMessagePart.Text(api("/aweme/v1/web/aweme/post/",params,c)))
+            listOf(UIMessagePart.Text(s.api("/aweme/v1/web/aweme/post/", q(params))))
         },
     ))
 
@@ -340,10 +308,9 @@ fun buildDouyinMcpTools(
         }) },
         execute={ args ->
             val o=args.jsonObject
-            val c=getCookie(); if(c.isBlank()) return@Tool listOf(UIMessagePart.Text("""{"error":"未登录"}"""))
-            val params=mutableMapOf<String,Any?>("refresh_index" to (o["refresh_index"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()?:0),
+                        val params=mutableMapOf<String,Any?>("refresh_index" to (o["refresh_index"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()?:0),
                 "count" to (o["count"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()?:20),"video_type_select" to 0)
-            listOf(UIMessagePart.Text(api("/aweme/v1/web/tab/feed/",params,c,DY)))
+            listOf(UIMessagePart.Text(s.api("/aweme/v1/web/tab/feed/", q(params))))
         },
     ))
 
@@ -356,8 +323,7 @@ fun buildDouyinMcpTools(
         },required=listOf("share_url")) },
         execute={ args ->
             val url=args.jsonObject["share_url"]?.jsonPrimitive?.contentOrNull?:error("url")
-            val c=getCookie(); if(c.isBlank()) return@Tool listOf(UIMessagePart.Text("""{"error":"未登录"}"""))
-            // 跟随重定向获取真实URL
+                        // 跟随重定向获取真实URL
             val client = OkHttpClient.Builder().followRedirects(false).build()
             val resp = client.newCall(Request.Builder().url(url).header("User-Agent","Mozilla/5.0").build()).execute()
             val loc = resp.header("Location") ?: ""
@@ -378,10 +344,9 @@ fun buildDouyinMcpTools(
         },required=listOf("aweme_id")) },
         execute={ args ->
             val id=aid(args.jsonObject["aweme_id"]?.jsonPrimitive?.contentOrNull?:error("id"))
-            val c=getCookie(); if(c.isBlank()) return@Tool listOf(UIMessagePart.Text("""{"error":"未登录"}"""))
-            // 获取详情→提取下载链接
+                        // 获取详情→提取下载链接
             val params=mutableMapOf<String,Any?>("aweme_id" to id,"verifyFp" to "verify_","fp" to "verify_")
-            val detail = api("/aweme/v1/web/aweme/detail/",params,c)
+            val detail = s.api("/aweme/v1/web/aweme/detail/", q(params))
             listOf(UIMessagePart.Text(buildJsonObject{
                 put("aweme_id",id)
                 put("detail",detail.take(5000))
@@ -399,9 +364,8 @@ fun buildDouyinMcpTools(
         },required=listOf("aweme_id")) },
         execute={ args ->
             val id=aid(args.jsonObject["aweme_id"]?.jsonPrimitive?.contentOrNull?:error("id"))
-            val c=getCookie(); if(c.isBlank()) return@Tool listOf(UIMessagePart.Text("""{"error":"未登录"}"""))
-            val params=mutableMapOf<String,Any?>("aweme_id" to id,"verifyFp" to "verify_","fp" to "verify_")
-            val detail = api("/aweme/v1/web/aweme/detail/",params,c)
+                        val params=mutableMapOf<String,Any?>("aweme_id" to id,"verifyFp" to "verify_","fp" to "verify_")
+            val detail = s.api("/aweme/v1/web/aweme/detail/", q(params))
             listOf(UIMessagePart.Text(buildJsonObject{
                 put("aweme_id",id); put("detail",detail.take(5000))
                 put("transcribe_howto","1.从detail中提取视频下载链接(video.play_addr.url_list) 2.用workspace_shell下载: curl -L '链接' -o /tmp/video.mp4 3.用workspace_shell提取音频: ffmpeg -i /tmp/video.mp4 -vn /tmp/audio.mp3 4.如有ASR服务(OpenAI Whisper等)，上传转写")
@@ -420,12 +384,10 @@ fun buildDouyinMcpTools(
         execute={ args ->
             val o=args.jsonObject; val kw=o["keyword"]?.jsonPrimitive?.contentOrNull?:error("kw")
             val cnt=o["count"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()?:3
-            val c=getCookie(); if(c.isBlank()) return@Tool listOf(UIMessagePart.Text("""{"error":"未登录"}"""))
-            val params=mutableMapOf<String,Any?>("keyword" to kw,"count" to cnt,"offset" to 0,
+                        val params=mutableMapOf<String,Any?>("keyword" to kw,"count" to cnt,"offset" to 0,
                 "search_channel" to 0,"sort_type" to 1,"publish_time" to 0,"verifyFp" to "verify_","fp" to "verify_",
                 "enable_history" to "1","search_source" to "tab_search")
-            listOf(UIMessagePart.Text(api("/aweme/v1/web/general/search/single/",params,c,
-                "$DY/search/${java.net.URLEncoder.encode(kw,"UTF-8")}?type=general")))
+            listOf(UIMessagePart.Text(s.api("/aweme/v1/web/general/search/single/", q(params))))
         },
     ))
 
@@ -438,9 +400,8 @@ fun buildDouyinMcpTools(
         },required=listOf("aweme_id")) },
         execute={ args ->
             val id=aid(args.jsonObject["aweme_id"]?.jsonPrimitive?.contentOrNull?:error("id"))
-            val c=getCookie(); if(c.isBlank()) return@Tool listOf(UIMessagePart.Text("""{"error":"未登录"}"""))
-            val params=mutableMapOf<String,Any?>("aweme_id" to id,"verifyFp" to "verify_","fp" to "verify_")
-            val detail = api("/aweme/v1/web/aweme/detail/",params,c)
+                        val params=mutableMapOf<String,Any?>("aweme_id" to id,"verifyFp" to "verify_","fp" to "verify_")
+            val detail = s.api("/aweme/v1/web/aweme/detail/", q(params))
             listOf(UIMessagePart.Text(buildJsonObject{
                 put("aweme_id",id); put("detail",detail.take(5000))
                 put("tip","图文作品的图片在 aweme_detail.images[] 数组中。下载: curl -L '图片URL' -o image.jpg")
@@ -457,9 +418,8 @@ fun buildDouyinMcpTools(
         },required=listOf("aweme_id")) },
         execute={ args ->
             val id=aid(args.jsonObject["aweme_id"]?.jsonPrimitive?.contentOrNull?:error("id"))
-            val c=getCookie(); if(c.isBlank()) return@Tool listOf(UIMessagePart.Text("""{"error":"未登录"}"""))
-            val params=mutableMapOf<String,Any?>("aweme_id" to id,"verifyFp" to "verify_","fp" to "verify_")
-            val detail = api("/aweme/v1/web/aweme/detail/",params,c)
+                        val params=mutableMapOf<String,Any?>("aweme_id" to id,"verifyFp" to "verify_","fp" to "verify_")
+            val detail = s.api("/aweme/v1/web/aweme/detail/", q(params))
             listOf(UIMessagePart.Text(buildJsonObject{
                 put("aweme_id",id); put("detail",detail.take(5000))
                 put("ocr_tip","RikkaHub的AI可以直接识别图片中的文字。请从返回的images数组中获取图片URL，AI即可读取图中文字。")

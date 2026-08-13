@@ -25,9 +25,9 @@ import java.net.URLEncoder
  */
 
 /** 会话单例（按进程复用，保持抖音签名/cookie 有效） */
-private var sharedSession: DouyinWebSession? = null
+internal var sharedSession: DouyinWebSession? = null
 
-private fun session(context: Context): DouyinWebSession =
+internal fun session(context: Context): DouyinWebSession =
     sharedSession ?: DouyinWebSession(context).also { sharedSession = it }
 
 fun buildDouyinWebTools(context: Context): List<Tool> {
