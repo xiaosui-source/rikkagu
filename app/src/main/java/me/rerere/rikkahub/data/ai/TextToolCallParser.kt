@@ -7,8 +7,13 @@
 package me.rerere.rikkahub.data.ai
 
 import kotlin.text.RegexOption
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import me.rerere.ai.ui.UIMessagePart
 
@@ -76,7 +81,17 @@ object TextToolCallParser {
         text: String,
         allowedToolNames: Set<String> = emptySet(),
     ): Pair<String, List<UIMessagePart.Tool>> {
-        if (text.isBlank() || !TOOL_START.containsMatchIn(text)) {
+        if (text.isBlank()) {
+            return text to emptyList()
+        }
+        // 无 XML 标签时：尝试解析裸 JSON 工具调用（兼容星火等输出 {"name":"xxx"} 的模型）
+        if (!TOOL_START.containsMatchIn(text)) {
+            val jsonTools = parseJsonToolCalls(text, allowedToolNames)
+            if (jsonTools.isNotEmpty()) {
+                // 移除被识别的 JSON 片段，保留其余文本
+                val cleaned = JSON_TOOL_CALL.replace(text, "").trim()
+                return cleaned to jsonTools
+            }
             return text to emptyList()
         }
 
@@ -139,6 +154,66 @@ object TextToolCallParser {
         // 追加最后的剩余文本
         cleaned.append(text, cursor, text.length)
         return cleaned.toString().trim() to tools
+    }
+
+    /** 裸 JSON 工具调用正则：{"name":"xxx","arguments":{...}} 或 {"name":"xxx"} */
+    private val JSON_TOOL_CALL = Regex("""\{"name"\s*:\s*"[^"]*"\s*(?:,\s*"arguments"\s*:\s*\{[^}]*\})?\}""")
+
+    /** 解析裸 JSON 形式的工具调用（兼容弱模型/提示词式输出的非标准格式） */
+    private fun parseJsonToolCalls(text: String, allowedToolNames: Set<String>): List<UIMessagePart.Tool> {
+        val tools = mutableListOf<UIMessagePart.Tool>()
+        JSON_TOOL_CALL.findAll(text).forEach { m ->
+            runCatching {
+                val obj = Json.parseToJsonElement(m.value).jsonObject
+                val rawName = obj["name"]?.jsonPrimitive?.contentOrNull ?: return@runCatching
+                val matchedName = resolveToolName(rawName, allowedToolNames)
+                if (matchedName != null) {
+                    val argsObj: JsonObject = obj["arguments"]?.jsonObject ?: JsonObject(emptyMap())
+                    val input = buildJsonObject {
+                        argsObj.forEach { (k, v) -> put(k, v) }
+                    }.toString()
+                    tools += UIMessagePart.Tool(
+                        toolCallId = "text-tool-${m.range.first}-${kotlin.random.Random.nextInt(1000000)}",
+                        toolName = matchedName,
+                        input = input,
+                        output = emptyList(),
+                        approvalState = me.rerere.ai.ui.ToolApprovalState.Auto,
+                    )
+                }
+            }
+        }
+        return tools
+    }
+
+    /** 工具名模糊匹配：精确→忽略大小写→中文映射（抖音→douyin）→包含匹配 */
+    private fun resolveToolName(raw: String, allowed: Set<String>): String? {
+        if (allowed.isEmpty()) return raw
+        if (raw in allowed) return raw
+        allowed.firstOrNull { it.equals(raw, ignoreCase = true) }?.let { return it }
+        // 中文工具名映射：抖音→douyin 等常见映射（覆盖常见工具名）
+        val normalized = raw
+            .replace("抖音", "douyin")
+            .replace("文件", "file")
+            .replace("记忆", "memory")
+            .replace("视频详情", "video_detail")
+            .replace("用户主页", "user_profile")
+            .replace("热搜", "hot_search")
+            .replace("推荐", "feed")
+            .replace("视频", "video")
+            .replace("搜索", "search")
+            .replace("用户", "user")
+            .replace("登录", "login")
+            .replace("评论", "comment")
+            .replace("点赞", "like")
+            .replace("发布", "publish")
+        allowed.firstOrNull { it.equals(normalized, ignoreCase = true) }?.let { return it }
+        // 包含匹配（允许一方包含另一方，忽略下划线/大小写）
+        allowed.firstOrNull { a ->
+            val aN = a.lowercase().replace("_", "")
+            val rN = raw.lowercase().replace("_", "")
+            aN.contains(rN) || rN.contains(aN)
+        }?.let { return it }
+        return null
     }
 
     private fun jackAttrName(attrText: String): String? {
