@@ -723,7 +723,8 @@ class ChatCompletionsAPI(
                         } else part
                     })
                 }
-            val toolPrompt = if (tools.isNotEmpty()) buildPromptToolCallingSystem(tools, model.modelId) else null
+            // 提示词式工具调用已移除（由 JS 调度器 ToolRouterJs 负责）
+            val toolPrompt = null
             val systemTexts = filteredMessages
                 .filter { it.role == MessageRole.SYSTEM }
                 .flatMap { it.parts.filterIsInstance<UIMessagePart.Text>() }
@@ -759,32 +760,23 @@ class ChatCompletionsAPI(
             }
         }
 
-        // 原生模式：工具列表+推理提示注入到第一条用户消息（不污染系统提示）
-        if (tools.isNotEmpty() && !usePromptTools) {
-            val hints = buildList {
-                if (tools.isNotEmpty()) add(buildToolListPrompt(tools, model.modelId))
-                if (usePromptReasoning) add(buildPromptReasoningSystem())
-            }
-            if (hints.isNotEmpty()) {
-                val hintText = hints.joinToString("\n\n")
-                val firstUserIdx = filteredMessages.indexOfFirst { it.role == MessageRole.USER }
-                if (firstUserIdx >= 0) {
-                    val msg = filteredMessages[firstUserIdx]
-                    val firstText = msg.parts.filterIsInstance<UIMessagePart.Text>().firstOrNull()
-                    val newParts = if (firstText == null) {
-                        listOf(UIMessagePart.Text(hintText)) + msg.parts
-                    } else {
-                        msg.parts.map { part ->
-                            if (part === firstText) UIMessagePart.Text(hintText + "\n\n" + firstText.text) else part
-                        }
-                    }
-                    filteredMessages = filteredMessages.toMutableList().apply {
-                        this[firstUserIdx] = msg.copy(parts = newParts)
-                    }
+        // 提示词式工具调用已移除：工具由 JS 调度器（ToolRouterJs）自动调用，
+        // 模型无需在提示词中看到工具列表；仅保留提示词式推理注入。
+        if (usePromptReasoning && !usePromptTools) {
+            val reasoningHint = buildPromptReasoningSystem()
+            val firstUserIdx = filteredMessages.indexOfFirst { it.role == MessageRole.USER }
+            if (firstUserIdx >= 0) {
+                val msg = filteredMessages[firstUserIdx]
+                val firstText = msg.parts.filterIsInstance<UIMessagePart.Text>().firstOrNull()
+                val newParts = if (firstText == null) {
+                    listOf(UIMessagePart.Text(reasoningHint)) + msg.parts
                 } else {
-                    filteredMessages = listOf(
-                        UIMessage(role = MessageRole.USER, parts = listOf(UIMessagePart.Text(hintText)))
-                    ) + filteredMessages
+                    msg.parts.map { part ->
+                        if (part === firstText) UIMessagePart.Text(reasoningHint + "\n\n" + firstText.text) else part
+                    }
+                }
+                filteredMessages = filteredMessages.toMutableList().apply {
+                    this[firstUserIdx] = msg.copy(parts = newParts)
                 }
             }
         }
