@@ -563,9 +563,11 @@ class GenerationHandler(
                     append(buildRecentChatsPrompt(assistant, conversationRepo))
                 }
  
-                // 代码文件命名和ZIP打包功能说明
-                appendLine()
-                append(buildCodeBlockPrompt())
+                // 代码文件命名和ZIP打包功能说明（弱模型跳过，避免指令被原样回显）
+                if (!isWeakModel(model, provider)) {
+                    appendLine()
+                    append(buildCodeBlockPrompt())
+                }
  
                 // 工具prompt
                 tools.forEach { tool ->
@@ -803,6 +805,14 @@ private fun <T> Flow<T>.throttleLatest(periodMillis: Long): Flow<T> {
 /**
  * 构建代码块提示 - 告知AI代码文件命名和ZIP打包功能
  */
+/** 判断是否为弱模型（星火 Lite 等）：精简系统提示，避免指令回显 */
+private fun isWeakModel(model: Model, provider: ProviderSetting): Boolean {
+    val id = model.modelId.lowercase()
+    val host = (provider as? me.rerere.ai.provider.ProviderSetting.OpenAI)?.baseUrl?.lowercase() ?: ""
+    return id.contains("lite") || id.contains("mini") || id.contains("nano") ||
+        host.contains("xf-yun") || host.contains("spark-api") || host.contains("iflytek")
+}
+
 private fun buildCodeBlockPrompt(): String = buildString {
     appendLine("## Code Block Rules (MUST FOLLOW)")
     appendLine()
