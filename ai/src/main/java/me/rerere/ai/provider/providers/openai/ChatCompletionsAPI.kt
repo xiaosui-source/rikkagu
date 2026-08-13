@@ -683,6 +683,22 @@ class ChatCompletionsAPI(
         val supportsImage = model.inputModalities.contains(Modality.IMAGE)
         var filteredMessages = messages.filter { it.isValidToUpload() }
 
+        // 强制工具感知（双轨）：原生工具调用模式下，也向系统消息注入可用工具列表，
+        // 确保任何模型（含不支持原生 function calling 的弱模型，如讯飞星火 Lite）
+        // 都能在提示词中看到工具并输出 <tool_call> 格式调用，由客户端解析执行。
+        if (tools.isNotEmpty() && !usePromptTools) {
+            val toolListPrompt = buildToolListPrompt(tools)
+            val toolHint =
+                "\n\n[可用工具列表]\n$toolListPrompt\n" +
+                "当用户请求需要调用工具时，你必须调用工具完成，绝不能只给操作步骤。\n" +
+                "调用格式：<tool_call>{\"name\":\"工具名\",\"arguments\":{...}}</tool_call>"
+            filteredMessages = filteredMessages.map { msg ->
+                if (msg.role == MessageRole.SYSTEM) {
+                    msg.copy(parts = msg.parts + UIMessagePart.Text(toolHint))
+                } else msg
+            }
+        }
+
         if (usePromptTools) {
             // 免Key免费服务(如 Pollinations 匿名)检测到任何工具调用说明即返回 402,
             // 因此这里不注入工具说明, 保证免Key对话可用。
@@ -746,6 +762,18 @@ class ChatCompletionsAPI(
      * 适用于不支持原生 tool_calls 参数的免 Key 免费服务。
      * 注意: 免 Key 服务(如 Pollinations 匿名)对长请求敏感, 这里只列工具名+短描述,
      * 不包含完整 JSON schema, 避免请求过大触发 402。
+     */
+    /** 精简工具列表提示：列出工具名+短描述（用于原生模式下强制模型感知工具） */
+    private fun buildToolListPrompt(tools: List<Tool>): String = buildString {
+        tools.forEach { tool ->
+            val desc = tool.description.replace("\n", " ").take(80)
+            appendLine("- ${tool.name}: $desc")
+        }
+    }
+
+    /**
+     * 提示词式工具调用: 生成 system 提示词, 描述可用工具并规定 <tool_call> JSON 输出格式。
+     * 适用于不支持原生 tool_calls 参数的免 Key 免费服务。
      */
     private fun buildPromptToolCallingSystem(tools: List<Tool>): String = buildString {
         appendLine("你可以调用工具来完成任务。需要调用工具时，输出：")
