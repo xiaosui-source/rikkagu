@@ -84,11 +84,17 @@ object TextToolCallParser {
         if (text.isBlank()) {
             return text to emptyList()
         }
-        // 无 XML 标签时：尝试解析裸 JSON 工具调用（兼容星火等输出 {"name":"xxx"} 的模型）
+        // 无标准 XML 标签时：尝试多种兼容格式
         if (!TOOL_START.containsMatchIn(text)) {
+            // ① <工具名>{"参数":...}</工具名> 格式（星火等输出）
+            val tagJsonTools = parseTagJsonToolCalls(text, allowedToolNames)
+            if (tagJsonTools.isNotEmpty()) {
+                val cleaned = TAG_JSON_TOOL.replace(text, "").trim()
+                return cleaned to tagJsonTools
+            }
+            // ② 裸 JSON 工具调用 {"name":"xxx"}
             val jsonTools = parseJsonToolCalls(text, allowedToolNames)
             if (jsonTools.isNotEmpty()) {
-                // 移除被识别的 JSON 片段，保留其余文本
                 val cleaned = JSON_TOOL_CALL.replace(text, "").trim()
                 return cleaned to jsonTools
             }
@@ -154,6 +160,37 @@ object TextToolCallParser {
         // 追加最后的剩余文本
         cleaned.append(text, cursor, text.length)
         return cleaned.toString().trim() to tools
+    }
+
+    /** <工具名>{"参数":...} 格式正则（星火等弱模型输出，可无闭合标签） */
+    private val TAG_JSON_TOOL = Regex("""<([a-z_][a-z0-9_]*)\s*>\s*(\{[^}]*\})""", RegexOption.IGNORE_CASE)
+
+    /** 解析 <工具名>{"参数":...}</工具名> 格式的工具调用 */
+    private fun parseTagJsonToolCalls(text: String, allowedToolNames: Set<String>): List<UIMessagePart.Tool> {
+        val tools = mutableListOf<UIMessagePart.Tool>()
+        TAG_JSON_TOOL.findAll(text).forEach { m ->
+            runCatching {
+                val tagName = m.groupValues[1].trim()
+                val matchedName = resolveToolName(tagName, allowedToolNames)
+                if (matchedName != null) {
+                    val bodyJson = m.groupValues[2]
+                    val argsObj = runCatching {
+                        Json.parseToJsonElement(bodyJson).jsonObject
+                    }.getOrElse { JsonObject(emptyMap()) }
+                    val input = buildJsonObject {
+                        argsObj.forEach { (k, v) -> put(k, v) }
+                    }.toString()
+                    tools += UIMessagePart.Tool(
+                        toolCallId = "text-tool-${m.range.first}-${kotlin.random.Random.nextInt(1000000)}",
+                        toolName = matchedName,
+                        input = input,
+                        output = emptyList(),
+                        approvalState = me.rerere.ai.ui.ToolApprovalState.Auto,
+                    )
+                }
+            }
+        }
+        return tools
     }
 
     /** 裸 JSON 工具调用正则：{"name":"xxx","arguments":{...}} 或 {"name":"xxx"} */
