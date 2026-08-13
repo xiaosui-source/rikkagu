@@ -456,13 +456,6 @@ class GenerationHandler(
                     append(effectiveSystemPrompt)
                 }
 
-                // 工具使用引导：让 AI 明确调用内置工具，而非给用户操作步骤
-                appendLine()
-                appendLine("【工具使用规则 - 必须遵守】")
-                appendLine("1. 你已内置大量工具（抖音/GitHub/文件/记忆/浏览器等），用户请求相关操作时，必须直接调用对应工具自动完成，绝不能只给用户操作步骤或建议用户去别的应用操作。")
-                appendLine("2. 抖音相关：发布/上传视频 → douyin_web_publish；对视频评论 → douyin_web_comment；点赞 → douyin_web_like；搜索/视频详情/用户主页/热搜 → douyin_web_search / douyin_web_video_detail / douyin_web_user_profile / douyin_web_hot_search；需要登录 → douyin_login（自动生成二维码直接显示）。")
-                appendLine("3. 若用户未提供所需参数（如视频文件路径、视频ID），先询问用户提供，而不是拒绝执行或给操作步骤。")
-
                 // 记忆
                 if (assistant.enableMemory) {
                     appendLine()
