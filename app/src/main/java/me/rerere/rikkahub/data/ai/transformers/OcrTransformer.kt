@@ -10,6 +10,8 @@ import android.content.Context
 import android.util.Log
 import com.google.android.gms.tasks.Tasks
 import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.label.ImageLabeling
+import com.google.mlkit.vision.label.defaults.ImageLabelerOptions
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.chinese.ChineseTextRecognizerOptions
 import kotlinx.coroutines.Dispatchers
@@ -130,12 +132,19 @@ object OcrTransformer : InputMessageTransformer, KoinComponent {
                 return offlineResult
             }
             Log.w(TAG, "performOcr: 离线识别无文字, 使用本地图像标签识别")
-            // 无文字图片 → 本地识图（识别物体/场景，纯本地，不依赖外部 API）
-            val labelResult = analyzeImageLocal(part)
+            // 无文字图片 → 本地图像标签识别（准确识图，ML Kit Image Labeling）
+            val labelResult = performImageLabeling(part)
             if (labelResult.isNotBlank()) {
                 val labelWrapped = wrapOcrText(labelResult)
                 cache.put(part.url, labelWrapped)
                 return labelWrapped
+            }
+            // ImageLabeling 失败 → 兜底：本地图像分析
+            val fallback = analyzeImageLocal(part)
+            if (fallback.isNotBlank()) {
+                val fbWrapped = wrapOcrText(fallback)
+                cache.put(part.url, fbWrapped)
+                return fbWrapped
             }
             Log.w(TAG, "performOcr: 本地识图无结果")
         }
@@ -161,6 +170,26 @@ object OcrTransformer : InputMessageTransformer, KoinComponent {
             ""
         } finally {
             try { recognizer.close() } catch (_: Exception) {}
+        }
+    }
+
+    /** 本地图像标签识别（ML Kit Image Labeling）：准确识别图片中的物体/场景，纯本地 */
+    private fun performImageLabeling(part: UIMessagePart.Image): String {
+        val context = get<Context>()
+        val labeler = ImageLabeling.getClient(ImageLabelerOptions.DEFAULT_OPTIONS)
+        return try {
+            val uri = android.net.Uri.parse(part.url)
+            val image = InputImage.fromFilePath(context, uri)
+            val result = Tasks.await(labeler.process(image))
+            val tags = result.sortedByDescending { it.confidence }
+                .take(10)
+                .joinToString("、") { "${it.text}(${"%.2f".format(it.confidence)})" }
+            if (tags.isNotBlank()) "图片内容识别：$tags" else ""
+        } catch (e: Exception) {
+            Log.w(TAG, "performImageLabeling 失败: ${e.message}", e)
+            ""
+        } finally {
+            try { labeler.close() } catch (_: Exception) {}
         }
     }
 
