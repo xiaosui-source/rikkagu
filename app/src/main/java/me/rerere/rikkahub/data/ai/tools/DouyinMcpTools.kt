@@ -74,7 +74,7 @@ fun buildDouyinMcpTools(
             execute={
                 // 方案：App 内置 WebView 加载抖音登录页（抖音网页 JS 自动生成有效二维码签名），
                 // 提取二维码图片直接显示在对话中。不依赖已失效的 passport API，不落盘。
-                val qrImage = extractDouyinQrCode(context)
+                val qrImage = extractQrFromPage(context, "$DY/login")
                 if (qrImage != null) {
                     listOf(
                         UIMessagePart.Text(buildJsonObject{
@@ -95,6 +95,42 @@ fun buildDouyinMcpTools(
                         "⚠️ 二维码提取失败，已改为在应用内打开抖音登录页。\n" +
                         "请在打开的页面中扫码登录，登录后 Cookie 会自动保存。"
                     ))
+                }
+            },
+        ))
+
+        add(Tool(name="douyin_open_page",
+            description="自动打开抖音的任意页面（支持抖音任何 URL），若页面需要登录会自动提取登录二维码图片直接显示；无二维码则返回页面截图。Params: url(抖音页面地址，如 https://www.douyin.com/video/xxxx 或留空用首页)",
+            needsApproval=false,
+            parameters={ InputSchema.Obj(properties=buildJsonObject{
+                put("url",buildJsonObject{put("type","string");put("description","抖音页面 URL（可选，默认 https://www.douyin.com/）")})
+            }) },
+            execute={ args ->
+                val o = args.jsonObject
+                val rawUrl = o["url"]?.jsonPrimitive?.contentOrNull?.trim() ?: ""
+                val target = if (rawUrl.isBlank()) "$DY/" else rawUrl
+
+                // 1. 先尝试提取页面二维码（登录墙时页面会渲染二维码）
+                val qr = extractQrFromPage(context, target)
+                if (qr != null) {
+                    listOf(
+                        UIMessagePart.Text(buildJsonObject{
+                            put("page", target)
+                            put("action","👉 页面需要登录，请用手机抖音APP扫描下方二维码登录")
+                            put("step","扫描后自动登录，登录状态自动保存")
+                        }.toString()),
+                        UIMessagePart.Image(url = qr),
+                    )
+                } else {
+                    // 2. 无二维码：打开页面 + 返回提示
+                    runCatching {
+                        appEventBus.emit(me.rerere.rikkahub.data.event.AppEvent.OpenWebView(target))
+                    }
+                    listOf(UIMessagePart.Text(buildJsonObject{
+                        put("page", target)
+                        put("status","页面无需登录，已在应用内打开")
+                        put("tip","可直接浏览页面内容")
+                    }.toString()))
                 }
             },
         ))
@@ -436,7 +472,7 @@ fun buildDouyinMcpTools(
  * 在 App 内置 WebView 中加载抖音登录页，提取二维码图片（base64 data URI）。
  * 抖音网页自身执行 JS 签名，二维码有效；不依赖失效的 passport API，不落盘。
  */
-private suspend fun extractDouyinQrCode(context: android.content.Context): String? {
+private suspend fun extractQrFromPage(context: android.content.Context, url: String): String? {
     return withContext(Dispatchers.Main) {
         runCatching {
             val webView = WebView(context.applicationContext)
@@ -475,7 +511,7 @@ private suspend fun extractDouyinQrCode(context: android.content.Context): Strin
                 }
             }
 
-            webView.loadUrl("$DY/login")
+            webView.loadUrl(url)
 
             // 等待提取结果（最多 25 秒）
             val result = withTimeoutOrNull(25000) { deferred.await() }
