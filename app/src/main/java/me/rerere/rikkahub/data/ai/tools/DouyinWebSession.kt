@@ -61,31 +61,21 @@ class DouyinWebSession(private val context: Context) {
                     View.MeasureSpec.makeMeasureSpec(1, View.MeasureSpec.EXACTLY),
                     View.MeasureSpec.makeMeasureSpec(1, View.MeasureSpec.EXACTLY)
                 )
-                view.webViewClient = object : WebViewClient() {}
+                // 用 onPageFinished 标志可靠地等待页面加载完成
+                val pageLoaded = CompletableDeferred<Unit>()
+                view.webViewClient = object : WebViewClient() {
+                    override fun onPageFinished(view: WebView?, url: String?) {
+                        if (!pageLoaded.isCompleted) pageLoaded.complete(Unit)
+                    }
+                }
                 if (!bridgeAttached) {
                     view.addJavascriptInterface(bridge, "AndroidBridge")
                     bridgeAttached = true
                 }
                 webView = view
                 view.loadUrl("https://www.douyin.com/")
-            }
-        }
-        // 等待页面初始化（最多 15 秒）
-        withTimeoutOrNull(15000) {
-            var loaded = false
-            repeat(50) {
-                delay(300)
-                val state = withContext(Dispatchers.Main) {
-                    var s: String? = null
-                    webView?.evaluateJavascript("document.readyState") { r -> s = r }
-                    s
-                }
-                if (state == "\"complete\"") {
-                    loaded = true
-                    return@repeat
-                }
-            }
-            if (loaded) {
+                // 等待页面加载（最多 15 秒）
+                withTimeoutOrNull(15000) { pageLoaded.await() }
                 // 再等 3 秒让签名 JS 初始化
                 delay(3000)
             }
