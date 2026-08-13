@@ -803,6 +803,8 @@ class ChatCompletionsAPI(
     private fun buildToolListPrompt(tools: List<Tool>, modelId: String): String = buildString {
         val weak = isWeakModelId(modelId)
         val limit = if (weak) 15 else 40
+        appendLine("仅当用户明确请求以下操作时才调用工具：抖音搜索/视频/用户/热搜/评论/点赞/发布/登录、文件读写、网页抓取等。")
+        appendLine("普通问候（如'你好'）、闲聊、纯问题解答【绝不调用工具】，直接正常回答。")
         appendLine("工具由你自己直接调用执行，绝不是告诉用户用什么命令或让用户操作！")
         appendLine("当用户请求需要工具时，你的【完整回答】必须且只能是一个标准 JSON（不要输出任何其他文字、解释、markdown）：")
         appendLine("{\"name\":\"工具名\",\"arguments\":{\"参数名\":\"参数值\"}}")
@@ -837,6 +839,10 @@ class ChatCompletionsAPI(
     private fun buildPromptToolCallingSystem(tools: List<Tool>, modelId: String): String = buildString {
         val weak = isWeakModelId(modelId)
         val limit = if (weak) 15 else 40
+        appendLine("仅当用户明确请求以下操作时才调用工具：抖音搜索/视频/用户/热搜/评论/点赞/发布/登录、文件读写、网页抓取等。")
+        appendLine("普通问候（如'你好'）、闲聊、纯问题解答【绝不调用工具】，直接正常回答。")
+        appendLine("仅当用户明确请求以下操作时才调用工具：抖音搜索/视频/用户/热搜/评论/点赞/发布/登录、文件读写、网页抓取等。")
+        appendLine("普通问候（如'你好'）、闲聊、纯问题解答【绝不调用工具】，直接正常回答。")
         appendLine("工具由你自己直接调用执行，绝不是告诉用户用什么命令或让用户操作！")
         appendLine("当用户请求需要工具时，你的【完整回答】必须且只能是一个标准 JSON（不要输出任何其他文字、解释、markdown）：")
         appendLine("{\"name\":\"工具名\",\"arguments\":{\"参数名\":\"参数值\"}}")
