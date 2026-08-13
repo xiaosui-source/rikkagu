@@ -226,8 +226,10 @@ class ChatCompletionsAPI(
             )
         }
         } catch (e: Exception) {
+            // 原生工具调用失败 → 标记该模型不支持原生，自动降级为提示词式工具调用重试
             if (params.tools.isNotEmpty() && !providerSetting.promptToolCalling) {
-                Log.w(TAG, "generateText: native tools failed, retry with prompt tool calling: ${e.message}")
+                Log.w(TAG, "generateText: native tools failed, auto-detect unsupported, retry with prompt tool calling: ${e.message}")
+                markNativeToolsUnsupported(params.model.modelId)
                 generateText(providerSetting.copy(promptToolCalling = true), messages, params)
             } else {
                 throw e
@@ -407,15 +409,42 @@ class ChatCompletionsAPI(
         // 与上游 rikkahub 对齐: 在 callbackFlow 上叠加 Channel.UNLIMITED 缓冲。
     }.buffer(Channel.UNLIMITED)
         .catch { e ->
-            // 原生工具调用失败 → 自动降级为提示词式工具调用重发（适配不支持原生 function calling 的模型）
+            // 原生工具调用失败 → 标记该模型不支持原生，自动降级为提示词式工具调用重发
             if (params.tools.isNotEmpty() && !providerSetting.promptToolCalling) {
-                Log.w(TAG, "streamText: native tools failed, retry with prompt tool calling: ${e.message}")
+                Log.w(TAG, "streamText: native tools failed, auto-detect unsupported, retry with prompt tool calling: ${e.message}")
+                markNativeToolsUnsupported(params.model.modelId)
                 emitAll(streamText(providerSetting.copy(promptToolCalling = true), messages, params))
             } else {
                 throw e
             }
         }
 
+
+    /** 模型原生工具调用支持缓存：自动检测结果，避免每次重复探测 */
+    private val nativeToolSupportCache = java.util.concurrent.ConcurrentHashMap<String, Boolean>()
+
+    /** 判断模型是否支持原生工具调用（自动检测+缓存） */
+    private fun supportsNativeTools(modelId: String, host: String): Boolean {
+        val id = modelId.lowercase()
+        // 已知弱模型/弱 host → 不支持原生，直接用提示词式
+        if (isWeakModelId(modelId) || isWeakHost(host)) return false
+        // 缓存结果优先（自动检测过的模型记住结论）
+        nativeToolSupportCache[id]?.let { return it }
+        // 默认假设支持原生（首次尝试，失败后更新缓存为不支持）
+        return true
+    }
+
+    /** 判断弱模型服务 host（xf-yun/spark/iflytek 等） */
+    private fun isWeakHost(host: String): Boolean {
+        val h = host.lowercase()
+        return listOf("xf-yun", "spark-api", "iflytek", "pollinations", "free")
+            .any { h.contains(it) }
+    }
+
+    /** 标记该模型不支持原生工具调用（请求失败时调用，后续自动用提示词式） */
+    private fun markNativeToolsUnsupported(modelId: String) {
+        nativeToolSupportCache[modelId.lowercase()] = false
+    }
 
     private fun buildChatCompletionRequest(
         messages: List<UIMessage>,
@@ -425,13 +454,11 @@ class ChatCompletionsAPI(
     ): JsonObject {
         val host = providerSetting.baseUrl.toHttpUrl().host
 
-        // 强制工具调用：任何模型都必须使用工具（模型不支持原生时强制走提示词式工具调用）
+        // 自动检测工具调用方式：模型支持原生则用原生，不支持（弱模型/已检测失败）自动用提示词式
         val hasTools = params.tools.isNotEmpty()
-        // 讯飞星火等弱模型不支持原生 function calling，强制使用提示词式工具调用
-        val isXfyun = host.contains("xf-yun.com") || host.contains("spark-api") || host.contains("iflytek")
-        // 原生优先（强模型）；星火等不支持原生的模型强制提示词式；用户手动配置也强制提示词式
-        val useNativeTools = hasTools && !isXfyun && !providerSetting.promptToolCalling
-        val usePromptTools = hasTools && (isXfyun || providerSetting.promptToolCalling)
+        val autoSupportsNative = supportsNativeTools(params.model.modelId, host)
+        val useNativeTools = hasTools && autoSupportsNative && !providerSetting.promptToolCalling
+        val usePromptTools = hasTools && (!autoSupportsNative || providerSetting.promptToolCalling)
         val effectivePromptToolCalling = usePromptTools
 
         // 强制推理: 原生支持则用原生，否则用提示词式推理（任何模型都启用）
