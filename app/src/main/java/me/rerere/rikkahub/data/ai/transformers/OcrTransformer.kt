@@ -198,8 +198,7 @@ object OcrTransformer : InputMessageTransformer, KoinComponent {
         val context = get<Context>()
         return try {
             val uri = android.net.Uri.parse(part.url)
-            val input = context.contentResolver.openInputStream(uri) ?: return ""
-            val bitmap = me.rerere.rikkahub.utils.ImageUtils.loadOptimizedBitmap(input, maxSize = 512) ?: return ""
+            val bitmap = me.rerere.rikkahub.utils.ImageUtils.loadOptimizedBitmap(context, uri, maxSize = 512) ?: return ""
             try {
                 val w = bitmap.width
                 val h = bitmap.height
