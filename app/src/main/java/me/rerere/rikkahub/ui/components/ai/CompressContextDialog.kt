@@ -8,17 +8,17 @@ package me.rerere.rikkahub.ui.components.ai
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -36,6 +36,7 @@ import kotlinx.coroutines.Job
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.ui.RabbitLoadingIndicator
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CompressContextDialog(
     onDismiss: () -> Unit,
@@ -93,20 +94,17 @@ fun CompressContextDialog(
                         text = stringResource(R.string.chat_page_compress_target_tokens),
                         style = MaterialTheme.typography.labelMedium
                     )
-                    SingleChoiceSegmentedButtonRow(
-                        modifier = Modifier.fillMaxWidth()
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        tokenOptions.forEachIndexed { index, tokens ->
-                            SegmentedButton(
+                        tokenOptions.forEach { tokens ->
+                            FilterChip(
                                 selected = selectedTokens == tokens,
                                 onClick = { selectedTokens = tokens },
-                                shape = SegmentedButtonDefaults.itemShape(
-                                    index = index,
-                                    count = tokenOptions.size
-                                )
-                            ) {
-                                Text("$tokens")
-                            }
+                                label = { Text("$tokens") },
+                            )
                         }
                     }
 
@@ -115,20 +113,17 @@ fun CompressContextDialog(
                         text = stringResource(R.string.chat_page_compress_keep_recent),
                         style = MaterialTheme.typography.labelMedium
                     )
-                    SingleChoiceSegmentedButtonRow(
-                        modifier = Modifier.fillMaxWidth()
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        keepRecentOptions.forEachIndexed { index, count ->
-                            SegmentedButton(
+                        keepRecentOptions.forEach { count ->
+                            FilterChip(
                                 selected = keepRecentMessages == count,
                                 onClick = { keepRecentMessages = count },
-                                shape = SegmentedButtonDefaults.itemShape(
-                                    index = index,
-                                    count = keepRecentOptions.size
-                                )
-                            ) {
-                                Text("$count")
-                            }
+                                label = { Text("$count") },
+                            )
                         }
                     }
 
