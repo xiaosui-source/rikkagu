@@ -128,7 +128,7 @@ class GenerationHandler(
             if (lastUserMsg != null && tools.isNotEmpty()) {
                 val userText = lastUserMsg.toText().trim()
                 if (userText.isNotBlank()) {
-                    me.rerere.rikkahub.data.ai.ToolRouterJs.route(userText)?.let { (toolName, argsJson) ->
+                    me.rerere.rikkahub.data.ai.ToolRouter.route(userText)?.let { (toolName, argsJson) ->
                         val toolDef = tools.firstOrNull { it.name == toolName }
                         if (toolDef != null && messages.lastOrNull()?.getTools()?.isEmpty() != false) {
                             val argsElement = json.parseToJsonElement(argsJson)
