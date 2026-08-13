@@ -217,6 +217,7 @@ class McpManager(
             },
         )
         list += me.rerere.rikkahub.data.ai.tools.buildDouyinMcpTools(
+            context = context,
             getCookie = {
                 kotlinx.coroutines.runBlocking {
                 // 从沙箱读取抖音Cookie文件

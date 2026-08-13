@@ -1,5 +1,20 @@
 package me.rerere.rikkahub.data.ai.tools
 
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.os.Handler
+import android.os.Looper
+import android.util.Base64
+import android.webkit.CookieManager
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import android.view.View
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonPrimitive
@@ -45,6 +60,7 @@ private suspend fun fetch(url: String, cookie: String = ""): String {
 private fun aid(input: String) = Regex("""(\d{15,20})""").find(input)?.groupValues?.get(1) ?: input
 
 fun buildDouyinMcpTools(
+    context: android.content.Context,
     getCookie: () -> String,
     workspaceRepository: me.rerere.rikkahub.data.repository.WorkspaceRepository,
     appEventBus: me.rerere.rikkahub.data.event.AppEventBus,
@@ -56,69 +72,30 @@ fun buildDouyinMcpTools(
             needsApproval=false,
             parameters={ InputSchema.Obj(properties=buildJsonObject{}) },
             execute={
-                // 模拟浏览器完整参数请求抖音 passport 二维码接口
-                val qrApi = "$DY/passport/web/get_qr_code/?" +
-                    "device_platform=webapp&aid=6383&channel=channel_pc_web&" +
-                    "version_code=170400&version_name=17.4.0&platform=PC"
-                val body = buildJsonObject {
-                    put("service", "$DY/")
-                    put("webUid", "")
-                    put("aid", "6383")
-                    put("device_platform", "webapp")
-                    put("channel", "channel_pc_web")
-                    put("version_code", "170400")
-                    put("version_name", "17.4.0")
-                    put("platform", "PC")
-                    put("app_name", "aweme_pc")
-                    put("app_version", "17.4.0")
-                }.toString()
-                val resp = try {
-                    http.newCall(Request.Builder().url(qrApi)
-                        .headers(hdrs("", "$DY/"))
-                        .post(body.toRequestBody("application/x-www-form-urlencoded".toMediaType()))
-                        .build())
-                        .execute().use { it.body?.string()?.take(12000) ?: "{}" }
-                } catch(e: Exception) { "{}" }
-
-                val parts = mutableListOf<UIMessagePart>()
-                var qrUrl: String? = null
-                var token: String? = null
-                try {
-                    val apiJson = Json.parseToJsonElement(resp).jsonObject
-                    // 如果 API 失败，data 里会有错误码
-                    val data = apiJson["data"]?.jsonObject
-                    token = data?.get("token")?.jsonPrimitive?.contentOrNull
-                    data?.get("qrcode")?.jsonPrimitive?.contentOrNull?.let { qrUrl = it }
-                } catch(e: Exception) {}
-
-                if (qrUrl != null) {
-                    val qrImage: String = qrUrl ?: ""
-                    // 抖音返回 qrcode 通常是 base64 的 data URI。
-                    // 渲染端（ChatMessage/ChatMessageTools）会解码 base64 直接在内存中显示图片。
-                    parts.add(UIMessagePart.Text(buildJsonObject{
-                        put("action","👉 请用手机抖音APP扫描下方二维码登录")
-                        put("step1","打开手机抖音")
-                        put("step2","点击右上角『扫一扫』图标")
-                        put("step3","扫描下方二维码，手机确认后自动完成登录")
-                        put("qr_token", token ?: "")
-                    }.toString()))
-                    parts.add(UIMessagePart.Image(url = qrImage))
-                    // 保存 token 到沙箱供 douyin_check_login 轮询确认
-                    val saveCmd = "mkdir -p ~/.config/douyinmcp && echo '${token ?: ""}' > ~/.config/douyinmcp/qr_token.txt 2>/dev/null || true"
-                    try { workspaceRepository.executeCommand("default", saveCmd, timeoutMillis = 3000) } catch(e: Exception) {}
-                    parts.add(UIMessagePart.Text(buildJsonObject{
-                        put("status","二维码已生成，等待用户扫码")
-                        put("next","用户扫码后调用 douyin_check_login 确认登录，登录成功后 Cookie 会自动保存到沙箱")
-                    }.toString()))
+                // 方案：App 内置 WebView 加载抖音登录页（抖音网页 JS 自动生成有效二维码签名），
+                // 提取二维码图片直接显示在对话中。不依赖已失效的 passport API，不落盘。
+                val qrImage = extractDouyinQrCode(context)
+                if (qrImage != null) {
+                    listOf(
+                        UIMessagePart.Text(buildJsonObject{
+                            put("action","👉 请用手机抖音APP扫描下方二维码登录")
+                            put("step1","打开手机抖音")
+                            put("step2","点击右上角『扫一扫』图标")
+                            put("step3","扫描下方二维码，手机确认后自动完成登录")
+                            put("tip","扫码后自动登录，登录状态会自动保存")
+                        }.toString()),
+                        UIMessagePart.Image(url = qrImage),
+                    )
                 } else {
-                    // API 被风控时降级：提供可点击链接，用户点击后浏览器打开登录页
-                    parts.add(UIMessagePart.Text(
-                        "⚠️ 抖音扫码API暂时不可用，已为你提供替代登录方式。\n\n" +
-                        "👉 [点击这里在浏览器打开抖音登录页](https://www.douyin.com/login)\n\n" +
-                        "用手机抖音扫码确认后，调用 **douyin_check_login** 即自动完成登录，**无需手动复制Cookie**。"
+                    // 兜底：在应用内打开抖音登录页
+                    runCatching {
+                        appEventBus.emit(me.rerere.rikkahub.data.event.AppEvent.OpenWebView("$DY/login"))
+                    }
+                    listOf(UIMessagePart.Text(
+                        "⚠️ 二维码提取失败，已改为在应用内打开抖音登录页。\n" +
+                        "请在打开的页面中扫码登录，登录后 Cookie 会自动保存。"
                     ))
                 }
-                parts
             },
         ))
 
@@ -454,3 +431,79 @@ fun buildDouyinMcpTools(
         },
     ))
 }
+
+/**
+ * 在 App 内置 WebView 中加载抖音登录页，提取二维码图片（base64 data URI）。
+ * 抖音网页自身执行 JS 签名，二维码有效；不依赖失效的 passport API，不落盘。
+ */
+private suspend fun extractDouyinQrCode(context: android.content.Context): String? {
+    return withContext(Dispatchers.Main) {
+        runCatching {
+            val webView = WebView(context.applicationContext)
+            webView.settings.javaScriptEnabled = true
+            webView.settings.domStorageEnabled = true
+            webView.settings.loadWithOverviewMode = true
+            webView.settings.useWideViewPort = true
+            webView.setBackgroundColor(Color.WHITE)
+
+            val deferred = CompletableDeferred<String?>()
+            var destroyed = false
+            fun destroySafe() {
+                if (!destroyed) {
+                    destroyed = true
+                    webView.destroy()
+                }
+            }
+
+            webView.webViewClient = object : WebViewClient() {
+                override fun onPageFinished(view: WebView?, url: String?) {
+                    // 等待二维码渲染后提取
+                    view?.postDelayed({
+                        view.evaluateJavascript(DOUYIN_QR_JS) { result ->
+                            val clean = result?.removeSurrounding("\"")
+                                ?.replace("\\u002F", "/")
+                                ?.replace("\\/", "/")
+                                ?.trim()
+                            if (!clean.isNullOrBlank() && clean != "null" && (clean.startsWith("data:") || clean.startsWith("http"))) {
+                                deferred.complete(clean)
+                            } else {
+                                deferred.complete(null)
+                            }
+                            destroySafe()
+                        }
+                    }, 6000)
+                }
+            }
+
+            webView.loadUrl("$DY/login")
+
+            // 等待提取结果（最多 25 秒）
+            val result = withTimeoutOrNull(25000) { deferred.await() }
+            destroySafe()
+            result
+        }.getOrNull()
+    }
+}
+
+/** 在抖音登录页 DOM 中查找二维码图片（img 或 canvas） */
+private const val DOUYIN_QR_JS = """
+(function(){
+  try {
+    // 1. 找 img 标签（data URI 或较长的二维码图 URL）
+    var imgs = document.querySelectorAll('img');
+    for (var i = 0; i < imgs.length; i++) {
+      var s = imgs[i].src || '';
+      if (s.indexOf('data:') === 0 || s.length > 200) return s;
+    }
+    // 2. 找 canvas 二维码
+    var canvases = document.querySelectorAll('canvas');
+    for (var j = 0; j < canvases.length; j++) {
+      try {
+        var d = canvases[j].toDataURL('image/png');
+        if (d && d.length > 100) return d;
+      } catch(e) {}
+    }
+  } catch(e) {}
+  return '';
+})()
+"""
