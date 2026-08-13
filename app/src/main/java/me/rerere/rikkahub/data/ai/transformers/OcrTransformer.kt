@@ -10,8 +10,6 @@ import android.content.Context
 import android.util.Log
 import com.google.android.gms.tasks.Tasks
 import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.label.ImageLabeling
-import com.google.mlkit.vision.label.ImageLabelerOptions
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.chinese.ChineseTextRecognizerOptions
 import kotlinx.coroutines.Dispatchers
@@ -133,7 +131,7 @@ object OcrTransformer : InputMessageTransformer, KoinComponent {
             }
             Log.w(TAG, "performOcr: 离线识别无文字, 使用本地图像标签识别")
             // 无文字图片 → 本地识图（识别物体/场景，纯本地，不依赖外部 API）
-            val labelResult = performImageLabeling(part)
+            val labelResult = analyzeImageLocal(part)
             if (labelResult.isNotBlank()) {
                 val labelWrapped = wrapOcrText(labelResult)
                 cache.put(part.url, labelWrapped)
@@ -166,23 +164,69 @@ object OcrTransformer : InputMessageTransformer, KoinComponent {
         }
     }
 
-    /** 本地图像标签识别：无文字图片 → 识别物体/场景标签（ML Kit，纯本地，不依赖外部API） */
-    private fun performImageLabeling(part: UIMessagePart.Image): String {
+    /** 本地图片分析：无文字图片 → 提取图片信息（尺寸/平均色/亮度 + 条码识别），纯本地零依赖 */
+    private fun analyzeImageLocal(part: UIMessagePart.Image): String {
         val context = get<Context>()
-        val labeler = ImageLabeling.getClient(ImageLabelerOptions.DEFAULT_OPTIONS)
         return try {
             val uri = android.net.Uri.parse(part.url)
-            val image = InputImage.fromFilePath(context, uri)
-            val result = Tasks.await(labeler.process(image))
-            val tags = result.sortedByDescending { it.confidence }
-                .take(10)
-                .joinToString("、") { "${it.text}(${"%.2f".format(it.confidence)})" }
-            if (tags.isNotBlank()) "图片内容：$tags" else ""
+            val input = context.contentResolver.openInputStream(uri) ?: return ""
+            val bitmap = me.rerere.rikkahub.utils.ImageUtils.loadOptimizedBitmap(input, maxSize = 512) ?: return ""
+            try {
+                val w = bitmap.width
+                val h = bitmap.height
+                // 平均色 + 亮度（采样统计）
+                var rSum = 0L; var gSum = 0L; var bSum = 0L; var count = 0
+                val step = maxOf(1, (w * h) / 2000)
+                var x = 0
+                while (x < w) {
+                    var y = 0
+                    while (y < h) {
+                        val p = bitmap.getPixel(x, y)
+                        rSum += android.graphics.Color.red(p)
+                        gSum += android.graphics.Color.green(p)
+                        bSum += android.graphics.Color.blue(p)
+                        count++
+                        y += step
+                    }
+                    x += step
+                }
+                if (count == 0) return ""
+                val avgR = (rSum / count).toInt()
+                val avgG = (gSum / count).toInt()
+                val avgB = (bSum / count).toInt()
+                val hex = String.format("#%02X%02X%02X", avgR, avgG, avgB)
+                val brightness = (avgR * 0.299 + avgG * 0.587 + avgB * 0.114).toInt()
+                buildString {
+                    append("图片信息：尺寸 ${w}x${h}px，平均色调 $hex，亮度 $brightness/255")
+                    // 条码/二维码识别（已有依赖 barcode-scanning）
+                    try {
+                        val barcode = scanBarcode(uri)
+                        if (barcode.isNotBlank()) append("，条码内容：$barcode")
+                    } catch (_: Exception) {}
+                }
+            } finally {
+                bitmap.recycle()
+            }
         } catch (e: Exception) {
-            Log.w(TAG, "performImageLabeling 失败: ${e.message}", e)
+            Log.w(TAG, "analyzeImageLocal 失败: ${e.message}", e)
+            ""
+        }
+    }
+
+    /** 本地条码/二维码识别（ML Kit barcode-scanning，纯本地） */
+    private fun scanBarcode(uri: android.net.Uri): String {
+        val context = get<Context>()
+        val scanner = com.google.mlkit.vision.barcode.BarcodeScanning.getClient(
+            com.google.mlkit.vision.barcode.BarcodeScannerOptions.Builder().build()
+        )
+        return try {
+            val image = InputImage.fromFilePath(context, uri)
+            val result = Tasks.await(scanner.process(image))
+            result.firstOrNull()?.rawValue?.take(200) ?: ""
+        } catch (e: Exception) {
             ""
         } finally {
-            try { labeler.close() } catch (_: Exception) {}
+            try { scanner.close() } catch (_: Exception) {}
         }
     }
 

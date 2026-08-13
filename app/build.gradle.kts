@@ -198,7 +198,6 @@ dependencies {
     // ===== 识别 / 扫码 / 权限 =====
     implementation(libs.text.recognition)
     implementation(libs.barcode.scanning)
-    implementation(libs.image.labeling)
     implementation(libs.quickie.bundled)
     implementation(libs.zxing.core)
     implementation(libs.shizuku.api)
