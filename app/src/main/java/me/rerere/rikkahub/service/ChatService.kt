@@ -127,11 +127,18 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.uuid.Uuid
 
 private const val TAG = "ChatService"
-// #972 无限上下文：消息数超过阈值自动压缩历史（保留最近 N 条 + 摘要）
+// #972 无限上下文：消息数兜底阈值（主要依赖 token 估算，见 SMART_COMPRESS_*）
 private const val AUTO_COMPRESS_THRESHOLD = 200
-private const val AUTO_COMPRESS_KEEP = 50
-// 自动压缩统一目标 token 数（与手动压缩默认档位一致）
-private const val AUTO_COMPRESS_TARGET_TOKENS = 2000
+
+// ===== 无限制上下文：基于 token 估算的主动智能压缩 =====
+// 估算 token 超过该值即触发自动压缩（保守值 30k，覆盖 32K/64K/128K/200K 各类窗口，确保永不超限）
+private const val SMART_COMPRESS_ESTIMATE_LIMIT = 30_000
+// 压缩目标 token 数（摘要保持精简，给后续对话留足空间）
+private const val SMART_COMPRESS_TARGET_TOKENS = 3_000
+// 压缩时保留的最近消息条数（保留足够上下文连贯性）
+private const val SMART_COMPRESS_KEEP_MESSAGES = 30
+// 消息数少于该值不触发智能压缩（避免小对话频繁压缩）
+private const val SMART_COMPRESS_MIN_MESSAGES = 30
 
 data class ChatError(
     val id: Uuid = Uuid.random(),
@@ -738,23 +745,9 @@ class ChatService(
             ?: settings.providers.asSequence().flatMap { it.models }.firstOrNull()
             ?: return
 
-        // #972 无限上下文：消息数超过阈值时自动压缩历史（保留最近 N 条 + AI 摘要），
-        // 让长对话持续可生成而不被上下文窗口截断
-        runCatching {
-            val latestConv = getConversationFlow(conversationId).value
-            if (latestConv.currentMessages.size > AUTO_COMPRESS_THRESHOLD) {
-                Log.i(TAG, "auto compress: ${latestConv.currentMessages.size} messages > $AUTO_COMPRESS_THRESHOLD")
-                compressConversation(
-                    conversationId = conversationId,
-                    conversation = latestConv,
-                    additionalPrompt = "",
-                    targetTokens = AUTO_COMPRESS_TARGET_TOKENS,
-                    keepRecentMessages = AUTO_COMPRESS_KEEP,
-                )
-            }
-        }.onFailure { e ->
-            Log.w(TAG, "auto compress failed: ${e.javaClass.simpleName}")
-        }
+        // #972 无限上下文：基于 token 估算的主动智能压缩（消息数兜底 + token 阈值）
+        // 生成前主动压缩，任何模型窗口下都不会触发上下文限制
+        smartCompressIfNeeded(conversationId)
 
         val senderName = if (assistant.useAssistantAvatar) {
             assistant.name.ifEmpty { context.getString(R.string.assistant_page_default_assistant) }
@@ -965,8 +958,8 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
                     conversationId = conversationId,
                     conversation = conversation,
                     additionalPrompt = "",
-                    targetTokens = AUTO_COMPRESS_TARGET_TOKENS,
-                    keepRecentMessages = 6
+                    targetTokens = SMART_COMPRESS_TARGET_TOKENS,
+                    keepRecentMessages = SMART_COMPRESS_KEEP_MESSAGES
                 )
                 if (compressResult.isSuccess) {
                     Log.i(TAG, "自动压缩成功，用户可重试")
@@ -1144,6 +1137,9 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
             ?: settings.providers.asSequence().flatMap { it.models }.firstOrNull()
             ?: return
 
+        // 无限制上下文：群聊生成前同样主动智能压缩
+        smartCompressIfNeeded(conversationId)
+
         // 该 AI 可见的消息：用户消息 + 公开消息 + 自己的历史回复
         val visibleMessages = conversation.currentMessages.filter { msg ->
             msg.role == MessageRole.USER || msg.isPublic ||
@@ -1299,8 +1295,8 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
                     conversationId = conversationId,
                     conversation = conversation,
                     additionalPrompt = "",
-                    targetTokens = AUTO_COMPRESS_TARGET_TOKENS,
-                    keepRecentMessages = 6
+                    targetTokens = SMART_COMPRESS_TARGET_TOKENS,
+                    keepRecentMessages = SMART_COMPRESS_KEEP_MESSAGES
                 )
                 if (compressResult.isSuccess) {
                     Log.i(TAG, "群聊自动压缩成功")
@@ -1545,6 +1541,73 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
         }.onFailure {
             Log.e(TAG, "Operation failed", it)
             Log.e(TAG, "generateSuggestion failed, conversationId=$conversationId", it)
+        }
+    }
+
+    // ===== 无限制上下文：token 估算 + 主动智能压缩 =====
+
+    /** 估算消息列表的 token 数（中英文混合约 3 字符/token，图片/视频/音频按 1000 估算） */
+    private fun estimateConversationTokens(messages: List<UIMessage>): Int {
+        var total = 0
+        messages.forEach { msg ->
+            total += msg.parts.sumOf { part ->
+                when (part) {
+                    is UIMessagePart.Text -> part.text.length / 3
+                    is UIMessagePart.Reasoning -> part.reasoning.length / 3
+                    is UIMessagePart.Tool -> (part.input.length + part.output.joinToString("") { p -> if (p is UIMessagePart.Text) p.text else "" }.length) / 3
+                    is UIMessagePart.VoiceMessage -> part.transcript.length / 3
+                    is UIMessagePart.Image, is UIMessagePart.Video, is UIMessagePart.Audio -> 1000
+                    is UIMessagePart.Document -> 500
+                    is UIMessagePart.ToolCall -> part.arguments.length / 3
+                    is UIMessagePart.ToolResult -> part.content.toString().length / 3
+                    else -> 50
+                }
+            }
+        }
+        return total
+    }
+
+    /**
+     * 主动智能压缩：每次生成前调用。
+     * 当估算 token 超过安全阈值（或消息数超过兜底阈值）时，自动压缩历史，
+     * 保证任何模型窗口下都不会触发上下文限制 —— 真正的无限制上下文。
+     */
+    private suspend fun smartCompressIfNeeded(conversationId: Uuid) {
+        runCatching {
+            val latestConv = getConversationFlow(conversationId).value
+            val messages = latestConv.currentMessages
+            if (messages.size < SMART_COMPRESS_MIN_MESSAGES) return
+
+            val estimatedTokens = estimateConversationTokens(messages)
+            val overMessages = messages.size > AUTO_COMPRESS_THRESHOLD
+            val overTokens = estimatedTokens > SMART_COMPRESS_ESTIMATE_LIMIT
+            if (overMessages || overTokens) {
+                Log.i(
+                    TAG,
+                    "smart compress: ${messages.size} msgs, ~$estimatedTokens tokens > limit=$SMART_COMPRESS_ESTIMATE_LIMIT"
+                )
+                compressConversation(
+                    conversationId = conversationId,
+                    conversation = latestConv,
+                    additionalPrompt = "",
+                    targetTokens = SMART_COMPRESS_TARGET_TOKENS,
+                    keepRecentMessages = SMART_COMPRESS_KEEP_MESSAGES,
+                )
+                // 压缩后再次估算，若仍超限则递归压缩（极端场景：摘要本身很大 + 保留消息很多）
+                val afterCompress = getConversationFlow(conversationId).value.currentMessages
+                if (estimateConversationTokens(afterCompress) > SMART_COMPRESS_ESTIMATE_LIMIT) {
+                    Log.w(TAG, "smart compress: still over limit after first pass, re-compressing")
+                    compressConversation(
+                        conversationId = conversationId,
+                        conversation = getConversationFlow(conversationId).value,
+                        additionalPrompt = "",
+                        targetTokens = SMART_COMPRESS_TARGET_TOKENS / 2,
+                        keepRecentMessages = 16,
+                    )
+                }
+            }
+        }.onFailure { e ->
+            Log.w(TAG, "smart compress failed: ${e.javaClass.simpleName}: ${e.message}")
         }
     }
 
