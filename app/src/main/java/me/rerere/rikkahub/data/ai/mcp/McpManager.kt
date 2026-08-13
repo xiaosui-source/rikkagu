@@ -404,12 +404,6 @@ class McpManager(
                 toolCount = 3,
             ) to 1,
             me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
-                id = "builtin-images",
-                name = "Images MCP",
-                description = "内置图片 MCP：图片生成/保存（移植自 Kelivo）",
-                toolCount = imagesToolCount,
-            ) to 1,
-            me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
                 id = "builtin-memory",
                 name = "Memory MCP",
                 description = "内置内存键值存储 MCP（会话内临时数据，移植自 Kelivo）",

@@ -166,3 +166,11 @@ fun buildFilesMcpTools(): List<Tool> = listOf(
         },
     ),
 )
+
+/** 内置 MCP 服务器信息（用于 MCP 管理界面显示） */
+data class BuiltinMcpServerInfo(
+    val id: String,
+    val name: String,
+    val description: String,
+    val toolCount: Int,
+)
