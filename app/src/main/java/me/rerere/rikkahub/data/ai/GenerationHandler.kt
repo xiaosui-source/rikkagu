@@ -266,6 +266,44 @@ class GenerationHandler(
                         )
                         continue
                     }
+
+                    // 【强制使用】兜底：模型未通过原生 tool_calls 调用工具，
+                    // 但用户消息匹配工具规则 → 客户端强制调用工具并注入结果
+                    val lastUserMsg = messages.lastOrNull { it.role == MessageRole.USER }
+                    val userText = lastUserMsg?.toText()?.trim() ?: ""
+                    val alreadyForced = messages.any { msg ->
+                        msg.parts.any { part ->
+                            part is UIMessagePart.Text && part.text.startsWith("【工具 ")
+                        }
+                    }
+                    if (userText.isNotBlank() && !alreadyForced) {
+                        val routed = me.rerere.rikkahub.data.ai.ToolRouter.route(userText)
+                        if (routed != null) {
+                            val (toolName, argsJson) = routed
+                            val toolDef = toolsInternal.firstOrNull { it.name == toolName }
+                            if (toolDef != null) {
+                                try {
+                                    val argsElement = json.parseToJsonElement(argsJson)
+                                    val output = toolDef.execute(argsElement)
+                                    val resultText = output.joinToString("\n") { part ->
+                                        if (part is UIMessagePart.Text) part.text else ""
+                                    }
+                                    if (resultText.isNotBlank()) {
+                                        messages = messages + UIMessage(
+                                            role = MessageRole.USER,
+                                            parts = listOf(UIMessagePart.Text("【工具 $toolName 执行结果】\n$resultText"))
+                                        )
+                                        emit(GenerationChunk.Messages(messages))
+                                        Log.i(TAG, "强制调用工具(模型未原生调用): $toolName")
+                                        continue
+                                    }
+                                } catch (e: Exception) {
+                                    Log.w(TAG, "强制调用工具失败 $toolName: ${e.message}")
+                                }
+                            }
+                        }
+                    }
+
                     // no tool calls, break
                     break
                 }
