@@ -723,7 +723,8 @@ class ChatCompletionsAPI(
                         } else part
                     })
                 }
-            val toolPrompt = if (tools.isNotEmpty()) buildPromptToolCallingSystem(tools, model.modelId) else null
+            val toolPrompt = if (tools.isNotEmpty() && shouldInjectTools(messages))
+                buildPromptToolCallingSystem(tools, model.modelId) else null
             val systemTexts = filteredMessages
                 .filter { it.role == MessageRole.SYSTEM }
                 .flatMap { it.parts.filterIsInstance<UIMessagePart.Text>() }
@@ -760,8 +761,8 @@ class ChatCompletionsAPI(
         }
 
         // 原生模式：工具列表+推理提示注入到第一条用户消息（不污染系统提示），
-        // 确保任何模型（含不支持原生 function calling 的弱模型）都能感知工具并调用
-        if (tools.isNotEmpty() && !usePromptTools) {
+        // 仅当用户消息涉及工具场景时才注入（纯问候不注入，避免弱模型误调用）
+        if (tools.isNotEmpty() && !usePromptTools && shouldInjectTools(messages)) {
             val hints = buildList {
                 if (tools.isNotEmpty()) add(buildToolListPrompt(tools, model.modelId))
                 if (usePromptReasoning) add(buildPromptReasoningSystem())
@@ -822,6 +823,21 @@ class ChatCompletionsAPI(
             val descLen = if (weak) 25 else 45
             appendLine("- ${tool.name}: ${tool.description.replace("\n", " ").take(descLen)}")
         }
+    }
+
+    /** 工具触发词：用户消息含这些词才注入工具列表（纯问候不注入，避免弱模型误调用） */
+    private val TOOL_TRIGGER_WORDS = listOf(
+        "抖音", "搜索", "视频", "用户", "热搜", "评论", "点赞", "发布", "上传",
+        "登录", "下载", "文件", "网页", "抓取", "爬", "shell", "工具", "查询",
+        "播放", "详情", "链接", "v.douyin", "douyin", "github", "翻译", "图片", "OCR",
+    )
+
+    /** 判断是否需要注入工具列表：最近用户消息含工具触发词 */
+    private fun shouldInjectTools(messages: List<UIMessage>): Boolean {
+        val lastUser = messages.lastOrNull { it.role == MessageRole.USER } ?: return true
+        val text = lastUser.toText().lowercase()
+        if (text.isBlank()) return true
+        return TOOL_TRIGGER_WORDS.any { text.contains(it.lowercase()) }
     }
 
     /** 判断弱模型 id（lite/mini/nano/tiny/small/light/compact），用于精简工具列表 */
