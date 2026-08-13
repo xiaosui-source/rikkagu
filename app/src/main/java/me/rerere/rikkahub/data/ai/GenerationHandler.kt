@@ -587,15 +587,16 @@ class GenerationHandler(
                 }
  
                 // 允许跳过回复
-                if (assistant.allowSkipReply) {
+                // 弱模型跳过复杂规则（理解不了）
+                if (assistant.allowSkipReply && !isWeakModel(model, provider)) {
                     appendLine()
                     appendLine()
                     appendLine("## Skip Reply")
                     appendLine("If you determine that no reply is needed (e.g., the user's message doesn't require a response, or you have nothing meaningful to add), you may reply with exactly `[SKIP]` (without any other text). This message will be hidden from the user. Use this sparingly and only when truly appropriate.")
                 }
 
-                // 屏幕跳转能力（AI总是可以跳转，不需要开关）
-                if (true) {
+                // 屏幕跳转能力（AI总是可以跳转，不需要开关）；弱模型跳过（理解不了）
+                if (!isWeakModel(model, provider)) {
                     appendLine()
                     appendLine()
                     appendLine("## 屏幕跳转能力")
@@ -609,8 +610,8 @@ class GenerationHandler(
                     appendLine("[JUMP] 标记不会展示给用户，仅用于触发屏幕跳转。")
                 }
  
-                // 分气泡: 告知模型它自己能控制消息如何被拆成多个气泡
-                if (assistant.splitBubbleByLine) {
+                // 分气泡: 告知模型它自己能控制消息如何被拆成多个气泡；弱模型跳过
+                if (assistant.splitBubbleByLine && !isWeakModel(model, provider)) {
                     appendLine()
                     appendLine()
                     appendLine("## Message Bubbles")
