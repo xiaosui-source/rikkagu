@@ -696,7 +696,7 @@ class ChatCompletionsAPI(
                         } else part
                     })
                 }
-            val toolPrompt = if (tools.isNotEmpty()) buildPromptToolCallingSystem(tools) else null
+            val toolPrompt = if (tools.isNotEmpty()) buildPromptToolCallingSystem(tools, model.modelId) else null
             val systemTexts = filteredMessages
                 .filter { it.role == MessageRole.SYSTEM }
                 .flatMap { it.parts.filterIsInstance<UIMessagePart.Text>() }
@@ -736,7 +736,7 @@ class ChatCompletionsAPI(
         // 确保任何模型（含不支持原生 function calling 的弱模型）都能感知工具并调用
         if (tools.isNotEmpty() && !usePromptTools) {
             val hints = buildList {
-                if (tools.isNotEmpty()) add(buildToolListPrompt(tools))
+                if (tools.isNotEmpty()) add(buildToolListPrompt(tools, model.modelId))
                 if (usePromptReasoning) add(buildPromptReasoningSystem())
             }
             if (hints.isNotEmpty()) {
@@ -772,16 +772,26 @@ class ChatCompletionsAPI(
         }
     }
 
-    /** 精简工具列表提示：抖音优先+限制40个，注入用户消息（不污染系统提示） */
-    private fun buildToolListPrompt(tools: List<Tool>): String = buildString {
+    /** 精简工具列表提示：抖音优先，按模型能力限制数量（弱模型更少），注入用户消息（不污染系统提示） */
+    private fun buildToolListPrompt(tools: List<Tool>, modelId: String): String = buildString {
+        val weak = isWeakModelId(modelId)
+        val limit = if (weak) 15 else 40
         appendLine("你可以调用工具来完成任务。需要调用工具时，输出：")
         appendLine("<tool_call>{\"name\":\"工具名\",\"arguments\":{...}}</tool_call>")
         appendLine("工具结果会返回给你，请基于结果继续回答。用户请求操作时必须调用工具完成，绝不能只给操作步骤。")
         appendLine("可用工具（部分）：")
         val prioritized = tools.sortedBy { !it.name.startsWith("douyin") }
-        prioritized.take(40).forEach { tool ->
-            appendLine("- ${tool.name}: ${tool.description.replace("\n", " ").take(45)}")
+        prioritized.take(limit).forEach { tool ->
+            val descLen = if (weak) 25 else 45
+            appendLine("- ${tool.name}: ${tool.description.replace("\n", " ").take(descLen)}")
         }
+    }
+
+    /** 判断弱模型 id（lite/mini/nano/tiny/small/light/compact），用于精简工具列表 */
+    private fun isWeakModelId(modelId: String): Boolean {
+        val id = modelId.lowercase()
+        return listOf("lite", "mini", "nano", "tiny", "small", "light", "compact")
+            .any { id.contains(it) }
     }
 
     /**
@@ -794,13 +804,17 @@ class ChatCompletionsAPI(
      * 提示词式工具调用: 生成 system 提示词, 描述可用工具并规定 <tool_call> JSON 输出格式。
      * 适用于不支持原生 tool_calls 参数的免 Key 免费服务。
      */
-    private fun buildPromptToolCallingSystem(tools: List<Tool>): String = buildString {
+    private fun buildPromptToolCallingSystem(tools: List<Tool>, modelId: String): String = buildString {
+        val weak = isWeakModelId(modelId)
+        val limit = if (weak) 15 else 40
         appendLine("你可以调用工具来完成任务。需要调用工具时，输出：")
         appendLine("<tool_call>{\"name\":\"工具名\",\"arguments\":{...}}</tool_call>")
         appendLine("工具结果会返回给你，请基于结果继续回答。无需调用工具时直接回答。")
-        appendLine("可用工具：")
-        tools.forEach { tool ->
-            appendLine("- ${tool.name}: ${tool.description.replace("\\n", " ").take(60)}")
+        appendLine("可用工具（部分）：")
+        val prioritized = tools.sortedBy { !it.name.startsWith("douyin") }
+        prioritized.take(limit).forEach { tool ->
+            val descLen = if (weak) 25 else 45
+            appendLine("- ${tool.name}: ${tool.description.replace("\n", " ").take(descLen)}")
         }
     }
 

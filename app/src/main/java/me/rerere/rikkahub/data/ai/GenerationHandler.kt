@@ -569,10 +569,12 @@ class GenerationHandler(
                     append(buildCodeBlockPrompt())
                 }
  
-                // 工具prompt
-                tools.forEach { tool ->
-                    appendLine()
-                    append(tool.systemPrompt(model, messages))
+                // 工具prompt（弱模型跳过长工具说明，避免指令回显）
+                if (!isWeakModel(model, provider)) {
+                    tools.forEach { tool ->
+                        appendLine()
+                        append(tool.systemPrompt(model, messages))
+                    }
                 }
  
                 // 插件提示词注入
@@ -805,12 +807,19 @@ private fun <T> Flow<T>.throttleLatest(periodMillis: Long): Flow<T> {
 /**
  * 构建代码块提示 - 告知AI代码文件命名和ZIP打包功能
  */
-/** 判断是否为弱模型（星火 Lite 等）：精简系统提示，避免指令回显 */
-private fun isWeakModel(model: Model, provider: ProviderSetting): Boolean {
+/**
+ * 判断是否为弱模型：精简系统提示，避免指令回显。
+ * 识别范围：模型名含 lite/mini/nano/tiny/small/light/compact + 弱模型服务 host。
+ * 注意：不误伤 flash/turbo 等实际较强的模型。
+ */
+internal fun isWeakModel(model: Model, provider: ProviderSetting): Boolean {
     val id = model.modelId.lowercase()
     val host = (provider as? me.rerere.ai.provider.ProviderSetting.OpenAI)?.baseUrl?.lowercase() ?: ""
-    return id.contains("lite") || id.contains("mini") || id.contains("nano") ||
-        host.contains("xf-yun") || host.contains("spark-api") || host.contains("iflytek")
+    val weakName = listOf("lite", "mini", "nano", "tiny", "small", "light", "compact")
+        .any { id.contains(it) }
+    val weakHost = listOf("xf-yun", "spark-api", "iflytek", "pollinations", "free")
+        .any { host.contains(it) }
+    return weakName || weakHost
 }
 
 private fun buildCodeBlockPrompt(): String = buildString {
