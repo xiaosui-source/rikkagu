@@ -30,7 +30,10 @@ class SkillsVM(
 
     init {
         loadSkills()
-        initDefaultSkills()
+        viewModelScope.launch(Dispatchers.IO) {
+            skillManager.initDefaultSkills()
+            _skills.value = skillManager.listSkills()
+        }
     }
 
     private fun loadSkills() {
