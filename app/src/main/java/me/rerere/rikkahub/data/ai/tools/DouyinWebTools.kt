@@ -173,27 +173,52 @@ fun buildDouyinWebTools(context: Context): List<Tool> {
             },
         ),
 
-        // ===== 自动点赞 =====
+        // ===== 自动点赞（WebView 模拟点击）=====
         Tool(
             name = "douyin_web_like",
-            description = "AI 自动给抖音视频点赞（需已登录）。注：抖音 Web 端无点赞接口，该工具返回提示。Params: aweme_id(视频ID)",
+            description = "AI 自动给抖音视频点赞（需已登录，扫码一次后全自动）。方案：WebView 打开视频页，JS 自动找到点赞按钮并点击（抖音页面自身执行点赞请求，签名有效）。Params: aweme_id(视频ID)",
             needsApproval = true,
             parameters = {
                 InputSchema.Obj(properties = buildJsonObject {
                     put("aweme_id", buildJsonObject { put("type", "string"); put("description", "视频 ID") })
-                    put("like", buildJsonObject { put("type", "string"); put("description", "true点赞/false取消，默认true") })
                 }, required = listOf("aweme_id"))
             },
             execute = { args ->
                 val o = args.jsonObject
                 val id = o["aweme_id"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"aweme_id required"}"""))
-                // 抖音 Web 点赞接口位于 iesdouyin.com 域（跨域完整 URL）
-                val body = buildJsonObject {
+
+                if (!s.isLoggedIn()) {
+                    return@Tool listOf(UIMessagePart.Text(buildJsonObject {
+                        put("success", false)
+                        put("error", "未登录，请先调用 douyin_login 扫码登录一次")
+                    }.toString()))
+                }
+
+                // 1. WebView 导航到视频页
+                val loaded = s.navigate("https://www.douyin.com/video/$id")
+                if (!loaded) {
+                    return@Tool listOf(UIMessagePart.Text(buildJsonObject {
+                        put("success", false)
+                        put("error", "视频页加载失败")
+                    }.toString()))
+                }
+
+                // 2. 等待点赞按钮出现并点击（最多 15 秒）
+                var clickResult = "not_found"
+                repeat(15) {
+                    delay(1000)
+                    clickResult = s.evalJs(DOUYIN_LIKE_JS) ?: "error"
+                    if (clickResult.contains("clicked") || clickResult.contains("already")) {
+                        return@repeat
+                    }
+                }
+
+                listOf(UIMessagePart.Text(buildJsonObject {
+                    put("success", clickResult.contains("clicked") || clickResult.contains("already"))
                     put("aweme_id", id)
-                    put("digg_after", 1)
-                }.toString()
-                val result = s.post("https://www.iesdouyin.com/web/api/v2/aweme/like/", body)
-                listOf(UIMessagePart.Text(result.take(12000)))
+                    put("result", clickResult)
+                    put("note", if (clickResult.contains("clicked")) "已自动点赞" else if (clickResult.contains("already")) "已点过赞" else "未能定位点赞按钮，可能需要手动处理")
+                }.toString()))
             },
         ),
 
@@ -254,3 +279,42 @@ fun buildDouyinWebTools(context: Context): List<Tool> {
         ),
     )
 }
+
+/** 抖音视频页点赞按钮 JS：找到点赞按钮并点击 */
+private const val DOUYIN_LIKE_JS = """
+(function(){
+  try {
+    // 1. 优先按 aria-label 找（抖音点赞按钮常见 aria-label="点赞"/"取消点赞"）
+    var els = document.querySelectorAll('[aria-label]');
+    for (var i = 0; i < els.length; i++) {
+      var label = els[i].getAttribute('aria-label') || '';
+      var cls = (els[i].className || '') + '';
+      if ((label.indexOf('点赞') >= 0 || cls.indexOf('digg') >= 0 || cls.indexOf('like') >= 0) && label.indexOf('取消') < 0) {
+        els[i].click();
+        return 'clicked';
+      }
+    }
+    // 2. 按 class 找（包含 digg/like 的元素）
+    var all = document.querySelectorAll('[class*="digg"],[class*="like"],[class*="favorite"]');
+    for (var j = 0; j < all.length; j++) {
+      var c = (all[j].className || '') + '';
+      if (c.indexOf('digg') >= 0 || c.indexOf('like') >= 0) {
+        // 避免点到"分享/收藏"
+        if (c.indexOf('share') < 0 && c.indexOf('collect') < 0 && c.indexOf('favorite') < 0) {
+          all[j].click();
+          return 'clicked';
+        }
+      }
+    }
+    // 3. 检查是否已点赞（aria-label 含"取消点赞"）
+    for (var k = 0; k < els.length; k++) {
+      var l2 = els[k].getAttribute('aria-label') || '';
+      if (l2.indexOf('取消点赞') >= 0) return 'already';
+    }
+  } catch(e) {
+    return 'error:' + e.message;
+  }
+  return 'not_found';
+})()
+"""
+\n

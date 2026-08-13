@@ -147,6 +147,31 @@ class DouyinWebSession(private val context: Context) {
         }
     }
 
+    /** 导航 WebView 到指定 URL（等待页面加载完成） */
+    suspend fun navigate(url: String): Boolean {
+        ensureReady()
+        val pageLoaded = CompletableDeferred<Boolean>()
+        withContext(Dispatchers.Main) {
+            val view = webView ?: return@withContext
+            view.webViewClient = object : WebViewClient() {
+                override fun onPageFinished(view: WebView?, url: String?) {
+                    if (!pageLoaded.isCompleted) pageLoaded.complete(true)
+                }
+            }
+            view.loadUrl(url)
+        }
+        return withTimeoutOrNull(20000) { pageLoaded.await() } ?: false
+    }
+
+    /** 在当前页面执行 JS，返回结果 */
+    suspend fun evalJs(js: String): String? {
+        val deferred = CompletableDeferred<String?>()
+        withContext(Dispatchers.Main) {
+            webView?.evaluateJavascript(js) { r -> deferred.complete(r) }
+        }
+        return withTimeoutOrNull(10000) { deferred.await() }
+    }
+
     /** 释放 WebView 资源 */
     suspend fun destroy() {
         withContext(Dispatchers.Main) {
