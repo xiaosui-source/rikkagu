@@ -10,6 +10,8 @@ import android.content.Context
 import android.util.Log
 import com.google.android.gms.tasks.Tasks
 import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.label.ImageLabeling
+import com.google.mlkit.vision.label.ImageLabelerOptions
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.chinese.ChineseTextRecognizerOptions
 import kotlinx.coroutines.Dispatchers
@@ -19,7 +21,6 @@ import kotlinx.serialization.json.Json
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.provider.Modality
 import me.rerere.ai.provider.Model
-import me.rerere.ai.provider.ProviderManager
 import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
@@ -121,7 +122,7 @@ object OcrTransformer : InputMessageTransformer, KoinComponent {
 
         val settings = get<SettingsStore>().settingsFlow.value
 
-        // 免费离线 OCR (ML Kit) 优先; 失败/空白时回退到 AI 视觉模型
+        // 纯本地：离线 OCR (ML Kit) 优先；无文字图片 → 本地图像标签识别（不依赖外部API）
         if (settings.offlineOcrEnabled) {
             val offlineText = performOfflineOcr(part)
             if (offlineText.isNotBlank()) {
@@ -130,41 +131,19 @@ object OcrTransformer : InputMessageTransformer, KoinComponent {
                 cache.put(part.url, offlineResult)
                 return offlineResult
             }
-            Log.w(TAG, "performOcr: 离线识别无结果, 回退 AI 视觉模型")
+            Log.w(TAG, "performOcr: 离线识别无文字, 使用本地图像标签识别")
+            // 无文字图片 → 本地识图（识别物体/场景，纯本地，不依赖外部 API）
+            val labelResult = performImageLabeling(part)
+            if (labelResult.isNotBlank()) {
+                val labelWrapped = wrapOcrText(labelResult)
+                cache.put(part.url, labelWrapped)
+                return labelWrapped
+            }
+            Log.w(TAG, "performOcr: 本地识图无结果")
         }
 
-        val model = settings.findModelById(settings.ocrModelId) ?: return "[Image]"
-        val providerSetting = model.findProvider(settings.providers) ?: return "[Image]"
-        val provider = get<ProviderManager>().getProviderByType(providerSetting)
-        val result = provider.generateText(
-            providerSetting = providerSetting,
-            messages = listOf(
-                UIMessage.system(settings.ocrPrompt),
-                UIMessage(
-                    role = MessageRole.USER,
-                    parts = listOf(UIMessagePart.Image(part.url))
-                )
-            ),
-            params = TextGenerationParams(
-                // OCR 是受控的内部调用, 必须保证图片被序列化发送。
-                // 本仓库在序列化层(ChatCompletionsAPI.buildMessages)依据 inputModalities 决定是否下发 image_url,
-                // 若用户所选 OCR 模型未被标记 IMAGE 模态(自建模型 / 注册表未收录的视觉模型常见),
-                // 图片会在序列化时被静默剥离, 模型收到空 content, 从而回复 "no visible content" / "no image was provided"。
-                // 这里强制注入 IMAGE 模态, 确保图片一定发送(对齐上游 rikkahub 总是序列化图片的行为);
-                // 若模型确实不支持图片, 会由 API 返回明确错误(已被下方 runCatching 兜底捕获)。
-                model = model.copy(inputModalities = (model.inputModalities + Modality.IMAGE).distinct()),
-                customHeaders = model.customHeaders,
-                customBody = model.customBodies,
-            ),
-        )
-        val content = result.choices[0].message?.toText() ?: "[ERROR, OCR failed]"
-        Log.i(TAG, "performOcr: $content")
-        val ocrResult = wrapOcrText(content)
-
-        // Cache the result
-        cache.put(part.url, ocrResult)
-        return ocrResult
-    }.getOrElse {
+        return "[Image]"
+        }.getOrElse {
         "[ERROR, OCR failed: $it]"
     }
 
@@ -184,6 +163,26 @@ object OcrTransformer : InputMessageTransformer, KoinComponent {
             ""
         } finally {
             try { recognizer.close() } catch (_: Exception) {}
+        }
+    }
+
+    /** 本地图像标签识别：无文字图片 → 识别物体/场景标签（ML Kit，纯本地，不依赖外部API） */
+    private fun performImageLabeling(part: UIMessagePart.Image): String {
+        val context = get<Context>()
+        val labeler = ImageLabeling.getClient(ImageLabelerOptions.DEFAULT_OPTIONS)
+        return try {
+            val uri = android.net.Uri.parse(part.url)
+            val image = InputImage.fromFilePath(context, uri)
+            val result = Tasks.await(labeler.process(image))
+            val tags = result.sortedByDescending { it.confidence }
+                .take(10)
+                .joinToString("、") { "${it.text}(${"%.2f".format(it.confidence)})" }
+            if (tags.isNotBlank()) "图片内容：$tags" else ""
+        } catch (e: Exception) {
+            Log.w(TAG, "performImageLabeling 失败: ${e.message}", e)
+            ""
+        } finally {
+            try { labeler.close() } catch (_: Exception) {}
         }
     }
 
