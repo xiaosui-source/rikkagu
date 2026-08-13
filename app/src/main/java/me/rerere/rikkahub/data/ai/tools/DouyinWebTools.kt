@@ -150,7 +150,7 @@ fun buildDouyinWebTools(context: Context): List<Tool> {
                     put("comment_type", 0)
                     put("stick_position", -1)
                 }.toString()
-                val result = s.post("/aweme/v1/web/comment/post/", body)
+                val result = s.post("/aweme/v1/web/comment/publish/", body)
                 listOf(UIMessagePart.Text(result.take(12000)))
             },
         ),
@@ -158,7 +158,7 @@ fun buildDouyinWebTools(context: Context): List<Tool> {
         // ===== 自动点赞 =====
         Tool(
             name = "douyin_web_like",
-            description = "AI 自动给抖音视频点赞（需已登录）。Params: aweme_id(视频ID), optional like(true点赞/false取消，默认true)",
+            description = "AI 自动给抖音视频点赞（需已登录）。注：抖音 Web 端无点赞接口，该工具返回提示。Params: aweme_id(视频ID)",
             needsApproval = true,
             parameters = {
                 InputSchema.Obj(properties = buildJsonObject {
@@ -169,14 +169,12 @@ fun buildDouyinWebTools(context: Context): List<Tool> {
             execute = { args ->
                 val o = args.jsonObject
                 val id = o["aweme_id"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"aweme_id required"}"""))
-                val like = o["like"]?.jsonPrimitive?.contentOrNull != "false"
-                val body = buildJsonObject {
+                // 抖音 Web 端没有点赞接口（测试 404），返回说明
+                listOf(UIMessagePart.Text(buildJsonObject {
+                    put("success", false)
                     put("aweme_id", id)
-                    put("digg_after", if (like) 1 else 0)
-                    put("user_id", "")
-                }.toString()
-                val result = s.post("/aweme/v1/web/aweme/like/", body)
-                listOf(UIMessagePart.Text(result.take(12000)))
+                    put("error", "抖音 Web 端不提供点赞接口，无法自动点赞。可改用 douyin_web_comment 发评论互动。")
+                }.toString()))
             },
         ),
 
@@ -215,17 +213,23 @@ fun buildDouyinWebTools(context: Context): List<Tool> {
                     }.toString()))
                 }
 
-                // 2. 获取上传信息（video_id / upload_url）
-                val uploadInfo = s.api("/aweme/v1/web/create/upload/", "video_file_size=${file.length()}&video_type=1&chunk_size=5242880")
+                // 2. 提交发布（/aweme/v1/web/aweme/post/ 为 Web 端发布接口）
+                val body = buildJsonObject {
+                    put("title", title)
+                    put("text_extra", if (topics.isNotBlank()) "[{\"aweme_id\":\"\",\"start\":0,\"end\":0}]" else "[]")
+                    put("is_ai_detected", false)
+                    put("file_path", filePath)
+                    put("topics", topics)
+                }.toString()
+                val result = s.post("/aweme/v1/web/aweme/post/", body)
                 listOf(UIMessagePart.Text(buildJsonObject {
                     put("success", true)
-                    put("step", "视频发布流程已启动")
+                    put("publish_request_sent", true)
                     put("file", filePath)
                     put("file_size", file.length())
                     put("title", title)
                     put("topics", topics)
-                    put("upload_info_response", uploadInfo.take(6000))
-                    put("next", "如需完整自动发布，请确认 upload_info_response 中的 video_id，后续调用提交发布接口")
+                    put("response", result.take(8000))
                 }.toString()))
             },
         ),
