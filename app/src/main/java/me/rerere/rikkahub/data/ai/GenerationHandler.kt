@@ -120,7 +120,37 @@ class GenerationHandler(
         val providerImpl = providerManager.getProviderByType(provider)
  
         var messages: List<UIMessage> = messages
- 
+
+        // JS 工具调度：生成前自动路由用户消息到工具（弱模型无需输出工具调用，
+        // 由 JS 规则识别意图并调用工具，结果注入上下文后模型基于结果回答）
+        runCatching {
+            val lastUserMsg = messages.lastOrNull { it.role == MessageRole.USER }
+            if (lastUserMsg != null && tools.isNotEmpty()) {
+                val userText = lastUserMsg.toText().trim()
+                if (userText.isNotBlank()) {
+                    me.rerere.rikkahub.data.ai.ToolRouterJs.route(userText)?.let { (toolName, argsJson) ->
+                        val toolDef = tools.firstOrNull { it.name == toolName }
+                        if (toolDef != null && messages.lastOrNull()?.getTools()?.isEmpty() != false) {
+                            val argsElement = json.parseToJsonElement(argsJson)
+                            val output = toolDef.execute(argsElement)
+                            val resultText = output.joinToString("\n") { part ->
+                                if (part is UIMessagePart.Text) part.text else ""
+                            }
+                            if (resultText.isNotBlank()) {
+                                messages = messages + UIMessage(
+                                    role = MessageRole.USER,
+                                    parts = listOf(UIMessagePart.Text("【工具 ${toolName} 执行结果】\n$resultText"))
+                                )
+                                Log.i(TAG, "JS Router: auto-invoked $toolName")
+                            }
+                        }
+                    }
+                }
+            }
+        }.onFailure { e ->
+            Log.w(TAG, "JS Router failed: ${e.message}")
+        }
+
         for (stepIndex in 0 until maxSteps) {
             Log.i(TAG, "streamText: start step #$stepIndex (${model.id})")
  
