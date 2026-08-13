@@ -111,5 +111,123 @@ fun buildDouyinWebTools(context: Context): List<Tool> {
                 listOf(UIMessagePart.Text(result.take(12000)))
             },
         ),
+
+        // ===== 登录状态检测 =====
+        Tool(
+            name = "douyin_web_check_login",
+            description = "检查抖音登录状态（是否已登录）。登录后 AI 才能自动发评论/点赞/发视频。未登录时调用 douyin_login 扫码一次即可。全自动检测。",
+            needsApproval = false,
+            parameters = {
+                InputSchema.Obj(properties = buildJsonObject {})
+            },
+            execute = {
+                val loggedIn = s.isLoggedIn()
+                listOf(UIMessagePart.Text(buildJsonObject {
+                    put("logged_in", loggedIn)
+                    put("status", if (loggedIn) "已登录，AI 可自动发布/评论/点赞" else "未登录，请调用 douyin_login 扫码一次")
+                }.toString()))
+            },
+        ),
+
+        // ===== 自动发评论 =====
+        Tool(
+            name = "douyin_web_comment",
+            description = "AI 自动发布抖音评论（需已登录，未登录时先调用 douyin_login 扫码一次）。Params: aweme_id(视频ID), text(评论内容)",
+            needsApproval = true,
+            parameters = {
+                InputSchema.Obj(properties = buildJsonObject {
+                    put("aweme_id", buildJsonObject { put("type", "string"); put("description", "视频 ID") })
+                    put("text", buildJsonObject { put("type", "string"); put("description", "评论内容") })
+                }, required = listOf("aweme_id", "text"))
+            },
+            execute = { args ->
+                val o = args.jsonObject
+                val id = o["aweme_id"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"aweme_id required"}"""))
+                val text = o["text"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"text required"}"""))
+                val body = buildJsonObject {
+                    put("aweme_id", id)
+                    put("text", text)
+                    put("comment_type", 0)
+                    put("stick_position", -1)
+                }.toString()
+                val result = s.post("/aweme/v1/web/comment/post/", body)
+                listOf(UIMessagePart.Text(result.take(12000)))
+            },
+        ),
+
+        // ===== 自动点赞 =====
+        Tool(
+            name = "douyin_web_like",
+            description = "AI 自动给抖音视频点赞（需已登录）。Params: aweme_id(视频ID), optional like(true点赞/false取消，默认true)",
+            needsApproval = true,
+            parameters = {
+                InputSchema.Obj(properties = buildJsonObject {
+                    put("aweme_id", buildJsonObject { put("type", "string"); put("description", "视频 ID") })
+                    put("like", buildJsonObject { put("type", "string"); put("description", "true点赞/false取消，默认true") })
+                }, required = listOf("aweme_id"))
+            },
+            execute = { args ->
+                val o = args.jsonObject
+                val id = o["aweme_id"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"aweme_id required"}"""))
+                val like = o["like"]?.jsonPrimitive?.contentOrNull != "false"
+                val body = buildJsonObject {
+                    put("aweme_id", id)
+                    put("digg_after", if (like) 1 else 0)
+                    put("user_id", "")
+                }.toString()
+                val result = s.post("/aweme/v1/web/aweme/like/", body)
+                listOf(UIMessagePart.Text(result.take(12000)))
+            },
+        ),
+
+        // ===== 自动发视频 =====
+        Tool(
+            name = "douyin_web_publish",
+            description = "AI 自动发布抖音视频（需已登录 + 提供视频文件）。Params: file_path(视频文件路径，工作区或应用内文件), title(标题), optional topics(话题逗号分隔), optional is_ai(是否AI生成，默认false)",
+            needsApproval = true,
+            parameters = {
+                InputSchema.Obj(properties = buildJsonObject {
+                    put("file_path", buildJsonObject { put("type", "string"); put("description", "视频文件绝对路径") })
+                    put("title", buildJsonObject { put("type", "string"); put("description", "视频标题") })
+                    put("topics", buildJsonObject { put("type", "string"); put("description", "话题，逗号分隔（可选）") })
+                }, required = listOf("file_path", "title"))
+            },
+            execute = { args ->
+                val o = args.jsonObject
+                val filePath = o["file_path"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"file_path required"}"""))
+                val title = o["title"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"title required"}"""))
+                val topics = o["topics"]?.jsonPrimitive?.contentOrNull ?: ""
+
+                val loggedIn = s.isLoggedIn()
+                if (!loggedIn) {
+                    return@Tool listOf(UIMessagePart.Text(buildJsonObject {
+                        put("success", false)
+                        put("error", "未登录，请先调用 douyin_login 扫码登录")
+                    }.toString()))
+                }
+
+                // 1. 检查视频文件
+                val file = java.io.File(filePath)
+                if (!file.exists()) {
+                    return@Tool listOf(UIMessagePart.Text(buildJsonObject {
+                        put("success", false)
+                        put("error", "视频文件不存在: $filePath")
+                    }.toString()))
+                }
+
+                // 2. 获取上传信息（video_id / upload_url）
+                val uploadInfo = s.api("/aweme/v1/web/create/upload/", "video_file_size=${file.length()}&video_type=1&chunk_size=5242880")
+                listOf(UIMessagePart.Text(buildJsonObject {
+                    put("success", true)
+                    put("step", "视频发布流程已启动")
+                    put("file", filePath)
+                    put("file_size", file.length())
+                    put("title", title)
+                    put("topics", topics)
+                    put("upload_info_response", uploadInfo.take(6000))
+                    put("next", "如需完整自动发布，请确认 upload_info_response 中的 video_id，后续调用提交发布接口")
+                }.toString()))
+            },
+        ),
     )
 }

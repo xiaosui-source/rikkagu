@@ -100,15 +100,29 @@ class DouyinWebSession(private val context: Context) {
      * @return 接口返回的 JSON 字符串
      */
     suspend fun api(path: String, query: String = ""): String {
+        return request(path, query, method = "GET", bodyJson = null)
+    }
+
+    /** POST JSON 请求（用于登录后操作：评论/点赞/发布等） */
+    suspend fun post(path: String, bodyJson: String): String {
+        return request(path, "", method = "POST", bodyJson = bodyJson)
+    }
+
+    private suspend fun request(path: String, query: String, method: String, bodyJson: String?): String {
         ensureReady()
         val deferred = CompletableDeferred<String?>()
         pending = deferred
         withContext(Dispatchers.Main) {
             val q = if (query.isNotBlank()) "?$query" else ""
+            val bodyJs = if (bodyJson != null) {
+                "body: '$bodyJson', headers:{'Accept':'application/json','Content-Type':'application/json'}"
+            } else {
+                "headers:{'Accept':'application/json'}"
+            }
             val js = """
                 (function(){
                   try {
-                    fetch('$path$q', {credentials:'include', headers:{'Accept':'application/json'}})
+                    fetch('$path$q', {method:'$method', credentials:'include', $bodyJs})
                       .then(function(r){ return r.text(); })
                       .then(function(t){ AndroidBridge.postResult(t); })
                       .catch(function(e){ AndroidBridge.postResult('{"error":"' + e.message + '"}'); });
@@ -121,6 +135,25 @@ class DouyinWebSession(private val context: Context) {
         }
         // 等待 JS 桥回调结果（最多 20 秒）
         return withTimeoutOrNull(20000) { deferred.await() } ?: """{"error":"timeout"}"""
+    }
+
+    /** 检测当前会话是否已登录（WebView cookie 中是否有 sessionid） */
+    suspend fun isLoggedIn(): Boolean {
+        ensureReady()
+        return withContext(Dispatchers.Main) {
+            val cookies = android.webkit.CookieManager.getInstance()
+                .getCookie("https://www.douyin.com") ?: ""
+            cookies.contains("sessionid") || cookies.contains("sessionid_ss")
+        }
+    }
+
+    /** 获取当前会话 cookie（用于持久化/检查） */
+    suspend fun getCookie(): String {
+        ensureReady()
+        return withContext(Dispatchers.Main) {
+            android.webkit.CookieManager.getInstance()
+                .getCookie("https://www.douyin.com") ?: ""
+        }
     }
 
     /** 释放 WebView 资源 */
