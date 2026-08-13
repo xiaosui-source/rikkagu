@@ -112,6 +112,24 @@ fun buildDouyinWebTools(context: Context): List<Tool> {
             },
         ),
 
+        // ===== 热搜榜 =====
+        Tool(
+            name = "douyin_web_hot_search",
+            description = "AI 自动获取抖音热搜榜（热门搜索词）。全自动：软件内隐形 WebView 执行抖音签名抓取。Params: optional count(数量默认20)",
+            needsApproval = false,
+            parameters = {
+                InputSchema.Obj(properties = buildJsonObject {
+                    put("count", buildJsonObject { put("type", "string"); put("description", "数量，默认20") })
+                })
+            },
+            execute = { args ->
+                val o = args.jsonObject
+                val count = o["count"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: 20
+                val result = s.api("/aweme/v1/web/hot/search/list/", "detail_list=1&count=$count")
+                listOf(UIMessagePart.Text(result.take(12000)))
+            },
+        ),
+
         // ===== 登录状态检测 =====
         Tool(
             name = "douyin_web_check_login",
@@ -169,12 +187,13 @@ fun buildDouyinWebTools(context: Context): List<Tool> {
             execute = { args ->
                 val o = args.jsonObject
                 val id = o["aweme_id"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"aweme_id required"}"""))
-                // 抖音 Web 端没有点赞接口（测试 404），返回说明
-                listOf(UIMessagePart.Text(buildJsonObject {
-                    put("success", false)
+                // 抖音 Web 点赞接口位于 iesdouyin.com 域（跨域完整 URL）
+                val body = buildJsonObject {
                     put("aweme_id", id)
-                    put("error", "抖音 Web 端不提供点赞接口，无法自动点赞。可改用 douyin_web_comment 发评论互动。")
-                }.toString()))
+                    put("digg_after", 1)
+                }.toString()
+                val result = s.post("https://www.iesdouyin.com/web/api/v2/aweme/like/", body)
+                listOf(UIMessagePart.Text(result.take(12000)))
             },
         ),
 

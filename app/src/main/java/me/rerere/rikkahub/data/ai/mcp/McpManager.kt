@@ -331,7 +331,7 @@ class McpManager(
                 id = "builtin-douyin",
                 name = "抖音 MCP 🎵",
                 description = "内置抖音工具：全自动隐形WebView会话（AI自动抓取搜索/推荐/视频/用户 + 登录后自动发评论/点赞/发视频，无需用户手机操作）",
-                toolCount = 25,
+                toolCount = 26,
             ) to 1,
             me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
                 id = "builtin-12306",

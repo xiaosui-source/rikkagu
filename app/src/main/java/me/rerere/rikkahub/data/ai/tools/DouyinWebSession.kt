@@ -119,10 +119,11 @@ class DouyinWebSession(private val context: Context) {
             } else {
                 "headers:{'Accept':'application/json'}"
             }
+            val target = if (path.startsWith("http")) path else "$path$q"
             val js = """
                 (function(){
                   try {
-                    fetch('$path$q', {method:'$method', credentials:'include', $bodyJs})
+                    fetch('$target', {method:'$method', credentials:'include', $bodyJs})
                       .then(function(r){ return r.text(); })
                       .then(function(t){ AndroidBridge.postResult(t); })
                       .catch(function(e){ AndroidBridge.postResult('{"error":"' + e.message + '"}'); });
