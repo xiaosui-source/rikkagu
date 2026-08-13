@@ -86,7 +86,7 @@ object TextToolCallParser {
         }
         // 无标准 XML 标签时：尝试多种兼容格式
         if (!TOOL_START.containsMatchIn(text)) {
-            // ① <工具名>{"参数":...}</工具名> 格式（星火等输出）
+            // ① <工具名>{"参数":...}</工具名> 格式（弱模型输出）
             val tagJsonTools = parseTagJsonToolCalls(text, allowedToolNames)
             if (tagJsonTools.isNotEmpty()) {
                 val cleaned = TAG_JSON_TOOL.replace(text, "").trim()
@@ -162,7 +162,7 @@ object TextToolCallParser {
         return cleaned.toString().trim() to tools
     }
 
-    /** <工具名>{"参数":...} 格式正则（星火等弱模型输出，可无闭合标签） */
+    /** <工具名>{"参数":...} 格式正则（弱模型输出，可无闭合标签） */
     private val TAG_JSON_TOOL = Regex("""<([a-z_][a-z0-9_]*)\s*>\s*(\{[^}]*\})""", RegexOption.IGNORE_CASE)
 
     /** 解析 <工具名>{"参数":...}</工具名> 格式的工具调用 */

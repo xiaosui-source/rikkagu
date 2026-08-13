@@ -434,10 +434,10 @@ class ChatCompletionsAPI(
         return true
     }
 
-    /** 判断弱模型服务 host（xf-yun/spark/iflytek 等） */
+    /** 判断弱模型服务 host（免费/受限服务等） */
     private fun isWeakHost(host: String): Boolean {
         val h = host.lowercase()
-        return listOf("xf-yun", "spark-api", "iflytek", "pollinations", "free")
+        return listOf("pollinations", "free")
             .any { h.contains(it) }
     }
 

@@ -817,7 +817,7 @@ internal fun isWeakModel(model: Model, provider: ProviderSetting): Boolean {
     val host = (provider as? me.rerere.ai.provider.ProviderSetting.OpenAI)?.baseUrl?.lowercase() ?: ""
     val weakName = listOf("lite", "mini", "nano", "tiny", "small", "light", "compact")
         .any { id.contains(it) }
-    val weakHost = listOf("xf-yun", "spark-api", "iflytek", "pollinations", "free")
+    val weakHost = listOf("pollinations", "free")
         .any { host.contains(it) }
     return weakName || weakHost
 }
