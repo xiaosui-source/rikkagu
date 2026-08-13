@@ -870,10 +870,15 @@ private fun <T> Flow<T>.throttleLatest(periodMillis: Long): Flow<T> {
 internal fun isWeakModel(model: Model, provider: ProviderSetting): Boolean {
     val id = model.modelId.lowercase()
     val host = (provider as? me.rerere.ai.provider.ProviderSetting.OpenAI)?.baseUrl?.lowercase() ?: ""
-    val weakName = listOf("lite", "mini", "nano", "tiny", "small", "light", "compact")
-        .any { id.contains(it) }
-    val weakHost = listOf("pollinations", "free")
-        .any { host.contains(it) }
+    // 弱模型名：各种 lite/mini/nano/tiny/small 等轻量模型（不误伤 flash/turbo 等强模型）
+    val weakName = listOf(
+        "lite", "mini", "nano", "tiny", "small", "light", "compact", "micro",
+        "1.5-nano", "4-mini", "qwen-turbo", "moonshot-lite", "glm-lite",
+    ).any { id.contains(it) }
+    // 弱模型服务 host：免费/受限服务
+    val weakHost = listOf(
+        "pollinations", "free", "deepinfra", "atlas", "opencode", "groq",
+    ).any { host.contains(it) }
     return weakName || weakHost
 }
 

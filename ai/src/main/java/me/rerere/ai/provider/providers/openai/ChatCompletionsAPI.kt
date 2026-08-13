@@ -423,7 +423,7 @@ class ChatCompletionsAPI(
     /** 判断弱模型服务 host（免费/受限服务等） */
     private fun isWeakHost(host: String): Boolean {
         val h = host.lowercase()
-        return listOf("pollinations", "free")
+        return listOf("pollinations", "free", "deepinfra", "atlas", "opencode", "groq")
             .any { h.contains(it) }
     }
 
@@ -803,8 +803,10 @@ class ChatCompletionsAPI(
     /** 判断弱模型 id（lite/mini/nano/tiny/small/light/compact），用于精简工具列表 */
     private fun isWeakModelId(modelId: String): Boolean {
         val id = modelId.lowercase()
-        return listOf("lite", "mini", "nano", "tiny", "small", "light", "compact")
-            .any { id.contains(it) }
+        return listOf(
+            "lite", "mini", "nano", "tiny", "small", "light", "compact", "micro",
+            "1.5-nano", "4-mini", "qwen-turbo", "moonshot-lite", "glm-lite",
+        ).any { id.contains(it) }
     }
 
     /**
