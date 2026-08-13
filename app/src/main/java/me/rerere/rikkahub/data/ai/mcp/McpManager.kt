@@ -216,6 +216,7 @@ class McpManager(
                 }
             },
         )
+        list += me.rerere.rikkahub.data.ai.tools.buildDouyinWebTools(context)
         list += me.rerere.rikkahub.data.ai.tools.buildDouyinMcpTools(
             context = context,
             getCookie = {
@@ -329,8 +330,8 @@ class McpManager(
             me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
                 id = "builtin-douyin",
                 name = "抖音 MCP 🎵",
-                description = "内置15+抖音工具：扫码登录/搜索/视频详情/评论/用户/推荐/下载/转写/OCR（走Web API，AI展示二维码）",
-                toolCount = 17,
+                description = "内置抖音工具：全自动隐形WebView会话（AI自动执行签名抓取搜索/推荐/视频/用户，无需用户手机操作）+ 扫码登录/详情/评论/下载/转写/OCR",
+                toolCount = 21,
             ) to 1,
             me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
                 id = "builtin-12306",
