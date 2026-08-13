@@ -1280,4 +1280,6 @@
   <string name="setting_theme_page_theme_name">Theme Name</string>
 
     <string name="setting_page_preferences_desc">Theme, display, interaction, and notification settings</string>
+  <string name="setting_tts_page_default_playback_speed">Default playback speed</string>
+  <string name="setting_tts_page_default_playback_speed_description">Applied locally to every TTS provider without changing its synthesis settings.</string>
 </resources>

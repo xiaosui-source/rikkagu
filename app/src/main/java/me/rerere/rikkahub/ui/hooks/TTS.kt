@@ -46,8 +46,13 @@ fun rememberCustomTtsState(): CustomTtsState {
         )
     }
 
-    DisposableEffect(settings.selectedTTSProviderId, settings.ttsProviders) {
+    DisposableEffect(
+        settings.selectedTTSProviderId,
+        settings.ttsProviders,
+        settings.defaultTTSPlaybackSpeed,
+    ) {
         ttsState.updateProvider(settings.getSelectedTTSProvider())
+        ttsState.setSpeed(settings.defaultTTSPlaybackSpeed)
         onDispose { }
     }
 

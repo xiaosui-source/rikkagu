@@ -83,6 +83,14 @@ private fun WebView.resetState(
     }
 }
 
+private fun WebView.release(interfaces: Map<String, Any>) {
+    resetState(interfaces, clearClients = true)
+    loadUrl("about:blank")
+    clearHistory()
+    removeAllViews()
+    destroy()
+}
+
 @SuppressLint("SetJavaScriptEnabled", "JavascriptInterface")
 @Composable
 fun WebView(
@@ -130,7 +138,7 @@ fun WebView(
                 Log.d(TAG, "AndroidView: Resetting WebView")
             },
             onRelease = {
-                it.resetState(state.interfaces, clearClients = true)
+                it.release(state.interfaces)
                 if (state.webView === it) {
                     state.webView = null
                 }
