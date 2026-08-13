@@ -1761,7 +1761,7 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
     private fun truncatePreservingCode(text: String, maxChars: Int): String {
         if (text.length <= maxChars) return text
         // 优先保留代码块
-        val codeBlocks = Regex("```[\s\S]*?```").findAll(text).map { it.value }.toList()
+        val codeBlocks = Regex("""```[\s\S]*?```""").findAll(text).map { it.value }.toList()
         if (codeBlocks.isNotEmpty()) {
             val remaining = maxChars - 120
             val keptCode = StringBuilder()

@@ -308,7 +308,6 @@ fun SettingSpeechPage(vm: SettingVM = koinViewModel()) {
 }
 
 @Composable
-@Composable
 private fun TTSPlaybackSpeedSetting(
     speed: Float,
     onSpeedChange: (Float) -> Unit,
@@ -355,6 +354,7 @@ private fun TTSPlaybackSpeedSetting(
     }
 }
 
+@Composable
 private fun TTSProviderList(
     settings: Settings,
     onUpdateSettings: (Settings) -> Unit,
