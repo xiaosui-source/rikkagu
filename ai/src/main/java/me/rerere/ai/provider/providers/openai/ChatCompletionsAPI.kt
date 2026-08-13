@@ -425,13 +425,14 @@ class ChatCompletionsAPI(
     ): JsonObject {
         val host = providerSetting.baseUrl.toHttpUrl().host
 
-        // 强制工具调用: 只要传入工具就启用（原生优先，模型不支持原生时自动降级为提示词式工具调用）
+        // 强制工具调用：任何模型都必须使用工具（模型不支持原生时强制走提示词式工具调用）
         val hasTools = params.tools.isNotEmpty()
-        val useNativeTools = hasTools
-        val usePromptTools = !useNativeTools && hasTools
         // 讯飞星火等弱模型不支持原生 function calling，强制使用提示词式工具调用
         val isXfyun = host.contains("xf-yun.com") || host.contains("spark-api") || host.contains("iflytek")
-        val effectivePromptToolCalling = providerSetting.promptToolCalling || usePromptTools || isXfyun
+        // 原生优先（强模型）；星火等不支持原生的模型强制提示词式；用户手动配置也强制提示词式
+        val useNativeTools = hasTools && !isXfyun && !providerSetting.promptToolCalling
+        val usePromptTools = hasTools && (isXfyun || providerSetting.promptToolCalling)
+        val effectivePromptToolCalling = usePromptTools
 
         // 强制推理: 原生支持则用原生，否则用提示词式推理（任何模型都启用）
         val useNativeReasoning = params.reasoningLevel != ReasoningLevel.OFF &&
