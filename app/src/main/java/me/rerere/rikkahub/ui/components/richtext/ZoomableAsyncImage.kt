@@ -41,12 +41,24 @@ fun ZoomableAsyncImage(
     val context = LocalContext.current
     val placeholder = if(LocalDarkMode.current) R.drawable.placeholder_dark else R.drawable.placeholder
     val export = LocalExportContext.current
-    val coilModel = ImageRequest.Builder(context)
-        .data(model)
-        .placeholder(placeholder)
-        .crossfade(false)
-        .allowHardware(!export)
-        .build()
+    // 支持 data URI（data:image/...;base64,xxx）：解码为 ByteArray 直接交给 Coil 加载，
+    // 内存中显示，不保存到本地文件。适用于二维码等 base64 图片。
+    val coilModel = remember(model) {
+        val imageData: Any = if (model?.startsWith("data:") == true) {
+            val commaIdx = model.indexOf(",")
+            if (commaIdx > 0) {
+                runCatching {
+                    android.util.Base64.decode(model.substring(commaIdx + 1), android.util.Base64.DEFAULT)
+                }.getOrElse { model }
+            } else model
+        } else model ?: ""
+        ImageRequest.Builder(context)
+            .data(imageData)
+            .placeholder(placeholder)
+            .crossfade(false)
+            .allowHardware(!export)
+            .build()
+    }
     var loading by remember { mutableStateOf(false) }
     AsyncImage(
         model = coilModel,

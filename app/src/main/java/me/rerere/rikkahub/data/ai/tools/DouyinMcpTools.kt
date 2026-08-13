@@ -93,7 +93,8 @@ fun buildDouyinMcpTools(
 
                 if (qrUrl != null) {
                     val qrImage: String = qrUrl ?: ""
-                    // 抖音返回 qrcode 通常是 base64 的 data URI，直接作为图片展示
+                    // 抖音返回 qrcode 通常是 base64 的 data URI。
+                    // 渲染端（ChatMessage/ChatMessageTools）会解码 base64 直接在内存中显示图片。
                     parts.add(UIMessagePart.Text(buildJsonObject{
                         put("action","👉 请用手机抖音APP扫描下方二维码登录")
                         put("step1","打开手机抖音")
