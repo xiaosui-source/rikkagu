@@ -13,6 +13,8 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -87,6 +89,7 @@ class ChatCompletionsAPI(
         messages: List<UIMessage>,
         params: TextGenerationParams,
     ): MessageChunk = withContext(Dispatchers.IO) {
+        try {
         val requestBody =
             buildChatCompletionRequest(
                 messages = messages,
@@ -221,6 +224,14 @@ class ChatCompletionsAPI(
                 ),
                 usage = usage
             )
+        }
+        } catch (e: Exception) {
+            if (params.tools.isNotEmpty() && !providerSetting.promptToolCalling) {
+                Log.w(TAG, "generateText: native tools failed, retry with prompt tool calling: ${e.message}")
+                generateText(providerSetting.copy(promptToolCalling = true), messages, params)
+            } else {
+                throw e
+            }
         }
     }
 
@@ -395,6 +406,15 @@ class ChatCompletionsAPI(
         // trySend 在缓冲满时会静默丢弃 delta, 导致回复中间缺字 (#1295), 因此缓冲必须无界。
         // 与上游 rikkahub 对齐: 在 callbackFlow 上叠加 Channel.UNLIMITED 缓冲。
     }.buffer(Channel.UNLIMITED)
+        .catch { e ->
+            // 原生工具调用失败 → 自动降级为提示词式工具调用重发（适配不支持原生 function calling 的模型）
+            if (params.tools.isNotEmpty() && !providerSetting.promptToolCalling) {
+                Log.w(TAG, "streamText: native tools failed, retry with prompt tool calling: ${e.message}")
+                emitAll(streamText(providerSetting.copy(promptToolCalling = true), messages, params))
+            } else {
+                throw e
+            }
+        }
 
 
     private fun buildChatCompletionRequest(
@@ -405,12 +425,15 @@ class ChatCompletionsAPI(
     ): JsonObject {
         val host = providerSetting.baseUrl.toHttpUrl().host
 
-        // 工具调用: 模型原生支持则用原生, 否则自动降级为提示词式工具调用
-        val useNativeTools = params.model.abilities.contains(ModelAbility.TOOL) && params.tools.isNotEmpty()
-        val usePromptTools = !useNativeTools && params.tools.isNotEmpty()
-        val effectivePromptToolCalling = providerSetting.promptToolCalling || usePromptTools
+        // 强制工具调用: 只要传入工具就启用（原生优先，模型不支持原生时自动降级为提示词式工具调用）
+        val hasTools = params.tools.isNotEmpty()
+        val useNativeTools = hasTools
+        val usePromptTools = !useNativeTools && hasTools
+        // 讯飞星火等弱模型不支持原生 function calling，强制使用提示词式工具调用
+        val isXfyun = host.contains("xf-yun.com") || host.contains("spark-api") || host.contains("iflytek")
+        val effectivePromptToolCalling = providerSetting.promptToolCalling || usePromptTools || isXfyun
 
-        // 推理: 原生支持则用原生，否则用提示词式推理
+        // 强制推理: 原生支持则用原生，否则用提示词式推理（任何模型都启用）
         val useNativeReasoning = params.reasoningLevel != ReasoningLevel.OFF &&
             params.reasoningLevel.isEnabled &&
             host in setOf("open.bigmodel.cn", "api.moonshot.cn", "api.deepseek.com")
