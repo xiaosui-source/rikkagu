@@ -226,14 +226,7 @@ class ChatCompletionsAPI(
             )
         }
         } catch (e: Exception) {
-            // 原生工具调用失败 → 标记该模型不支持原生，自动降级为提示词式工具调用重试
-            if (params.tools.isNotEmpty() && !providerSetting.promptToolCalling) {
-                Log.w(TAG, "generateText: native tools failed, auto-detect unsupported, retry with prompt tool calling: ${e.message}")
-                markNativeToolsUnsupported(params.model.modelId)
-                generateText(providerSetting.copy(promptToolCalling = true), messages, params)
-            } else {
-                throw e
-            }
+            throw e
         }
     }
 
@@ -409,14 +402,7 @@ class ChatCompletionsAPI(
         // 与上游 rikkahub 对齐: 在 callbackFlow 上叠加 Channel.UNLIMITED 缓冲。
     }.buffer(Channel.UNLIMITED)
         .catch { e ->
-            // 原生工具调用失败 → 标记该模型不支持原生，自动降级为提示词式工具调用重发
-            if (params.tools.isNotEmpty() && !providerSetting.promptToolCalling) {
-                Log.w(TAG, "streamText: native tools failed, auto-detect unsupported, retry with prompt tool calling: ${e.message}")
-                markNativeToolsUnsupported(params.model.modelId)
-                emitAll(streamText(providerSetting.copy(promptToolCalling = true), messages, params))
-            } else {
-                throw e
-            }
+            throw e
         }
 
 
@@ -454,12 +440,11 @@ class ChatCompletionsAPI(
     ): JsonObject {
         val host = providerSetting.baseUrl.toHttpUrl().host
 
-        // 自动检测工具调用方式：模型支持原生则用原生，不支持（弱模型/已检测失败）自动用提示词式
+        // 强制原生工具调用：只要传入工具就用标准 tools 参数（原生 function calling）
         val hasTools = params.tools.isNotEmpty()
-        val autoSupportsNative = supportsNativeTools(params.model.modelId, host)
-        val useNativeTools = hasTools && autoSupportsNative && !providerSetting.promptToolCalling
-        val usePromptTools = hasTools && (!autoSupportsNative || providerSetting.promptToolCalling)
-        val effectivePromptToolCalling = usePromptTools
+        val useNativeTools = hasTools
+        val usePromptTools = false
+        val effectivePromptToolCalling = false
 
         // 强制推理: 原生支持则用原生，否则用提示词式推理（任何模型都启用）
         val useNativeReasoning = params.reasoningLevel != ReasoningLevel.OFF &&
