@@ -1620,16 +1620,6 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
         targetTokens: Int,
         keepRecentMessages: Int = 32
     ): Result<Unit> = runCatching {
-        val settings = settingsStore.settingsFlow.first()
-        val model = settings.findModelById(settings.compressModelId)
-            ?: settings.getCurrentChatModel()
-            ?: throw IllegalStateException("No model available for compression")
-        val provider = model.findProvider(settings.providers)
-            ?: throw IllegalStateException("Provider not found")
-
-        val providerHandler = providerManager.getProviderByType(provider)
-
-        val maxMessagesPerChunk = 256
         val allMessages = conversation.currentMessages
 
         // Split messages into those to compress and those to keep
@@ -1647,48 +1637,12 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
             messagesToKeep = emptyList()
         }
 
-        fun splitMessages(messages: List<UIMessage>): List<List<UIMessage>> {
-            if (messages.size <= maxMessagesPerChunk) return listOf(messages)
-            val mid = messages.size / 2
-            val left = splitMessages(messages.subList(0, mid))
-            val right = splitMessages(messages.subList(mid, messages.size))
-            return left + right
-        }
+        // 纯本地压缩：不调用任何 API / 本地模型，离线可用、零 token 消耗
+        val summary = localCompressMessages(messagesToCompress, targetTokens, additionalPrompt)
 
-        suspend fun compressMessages(messages: List<UIMessage>): String {
-            val contentToCompress = messages.joinToString("\n\n") { it.summaryAsText() }
-            val prompt = settings.compressPrompt.applyPlaceholders(
-                "content" to contentToCompress,
-                "target_tokens" to targetTokens.toString(),
-                "additional_context" to if (additionalPrompt.isNotBlank()) {
-                    "Additional instructions from user: $additionalPrompt"
-                } else "",
-                "locale" to Locale.getDefault().displayName
-            )
-
-            val result = providerHandler.generateText(
-                providerSetting = provider,
-                messages = listOf(UIMessage.user(prompt)),
-                params = TextGenerationParams(
-                    model = model,
-                ),
-            )
-
-            return result.choices[0].message?.toText()?.trim()
-                ?: throw IllegalStateException("Failed to generate compressed summary")
-        }
-
-        val compressedSummaries = coroutineScope {
-            splitMessages(messagesToCompress)
-                .map { chunk -> async { compressMessages(chunk) } }
-                .awaitAll()
-        }
-
-        // Create new conversation with compressed history as multiple user messages + kept messages
+        // Create new conversation with compressed history as one summary message + kept messages
         val newMessageNodes = buildList {
-            compressedSummaries.forEach { summary ->
-                add(UIMessage.user(summary).toMessageNode())
-            }
+            add(UIMessage.user(summary).toMessageNode())
             addAll(messagesToKeep.map { it.toMessageNode() })
         }
         val newConversation = conversation.copy(
@@ -1697,6 +1651,132 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
         )
 
         saveConversation(conversationId, newConversation)
+    }
+
+    /**
+     * 纯本地压缩算法：不依赖任何 API / 本地模型。
+     *
+     * 策略：
+     * 1. 按角色重要性分配 token 预算（用户消息 > 助手/工具 > 媒体占位）
+     * 2. 保留代码块完整，其余文本按预算截断
+     * 3. 工具调用保留工具名 + 关键输入/输出
+     * 4. 推理过程不保留（最占空间且不关键）
+     */
+    private fun localCompressMessages(
+        messages: List<UIMessage>,
+        targetTokens: Int,
+        additionalPrompt: String,
+    ): String {
+        // 3 字符 ≈ 1 token，最少保证 600 字符可读内容
+        val budgetChars = (targetTokens * 3).coerceAtLeast(600)
+
+        // 1. 提取每条消息的关键内容
+        data class Item(val role: String, val text: String, val importance: Int)
+        val items = mutableListOf<Item>()
+
+        messages.forEach { msg ->
+            val role = when (msg.role) {
+                MessageRole.USER -> "用户"
+                MessageRole.ASSISTANT -> "助手"
+                MessageRole.SYSTEM -> "系统"
+                MessageRole.TOOL -> "工具"
+            }
+            msg.parts.forEach { part ->
+                when (part) {
+                    is UIMessagePart.Text -> {
+                        val text = part.text.trim()
+                        if (text.isNotBlank()) {
+                            // 用户消息最重要（保留用户意图），助手消息次之
+                            val importance = if (msg.role == MessageRole.USER) 3 else 2
+                            items.add(Item(role, text, importance))
+                        }
+                    }
+
+                    is UIMessagePart.Tool -> {
+                        val outputText = part.output
+                            .filterIsInstance<UIMessagePart.Text>()
+                            .joinToString(" ") { it.text }
+                            .trim()
+                        val text = buildString {
+                            append("[工具: ${part.toolName}]")
+                            if (part.input.isNotBlank()) append(" 输入: ${part.input.take(200)}")
+                            if (outputText.isNotBlank()) append(" 结果: ${outputText.take(300)}")
+                        }
+                        items.add(Item("工具", text, 2))
+                    }
+
+                    is UIMessagePart.Reasoning -> {
+                        // 推理过程不保留，最占空间且非关键
+                    }
+
+                    is UIMessagePart.Image -> items.add(Item(role, "[图片]", 1))
+                    is UIMessagePart.Video -> items.add(Item(role, "[视频]", 1))
+                    is UIMessagePart.Audio -> items.add(Item(role, "[音频]", 1))
+                    is UIMessagePart.VoiceMessage -> {
+                        if (part.transcript.isNotBlank()) {
+                            items.add(Item(role, "[语音] ${part.transcript.take(200)}", 2))
+                        }
+                    }
+
+                    is UIMessagePart.Document -> items.add(Item(role, "[文档: ${part.fileName}]", 1))
+                    is UIMessagePart.ToolCall -> {
+                        if (part.arguments.isNotBlank()) {
+                            items.add(Item("工具调用", "[${part.toolName}] ${part.arguments.take(150)}", 2))
+                        }
+                    }
+
+                    is UIMessagePart.ToolResult -> {
+                        val text = part.content.toString().take(300)
+                        items.add(Item("工具结果", text, 2))
+                    }
+
+                    else -> {}
+                }
+            }
+        }
+
+        if (items.isEmpty()) return "（对话内容为空，无可压缩信息）"
+
+        // 2. 按重要性分配 token 预算，逐条截断输出
+        val totalImportance = items.sumOf { it.importance }.coerceAtLeast(1)
+        val sb = StringBuilder()
+        sb.appendLine("[对话摘要 - 本地压缩]")
+        if (additionalPrompt.isNotBlank()) {
+            sb.appendLine("附加要求: $additionalPrompt")
+        }
+        sb.appendLine()
+
+        items.forEach { item ->
+            val quota = (budgetChars * item.importance / totalImportance).coerceAtLeast(60)
+            val text = truncatePreservingCode(item.text, quota)
+            if (text.isNotBlank()) {
+                sb.appendLine("${item.role}: $text")
+            }
+        }
+
+        return sb.toString().trim()
+    }
+
+    /** 截断文本但尽量保留完整代码块 */
+    private fun truncatePreservingCode(text: String, maxChars: Int): String {
+        if (text.length <= maxChars) return text
+        // 优先保留代码块
+        val codeBlocks = Regex("```[\s\S]*?```").findAll(text).map { it.value }.toList()
+        if (codeBlocks.isNotEmpty()) {
+            val remaining = maxChars - 120
+            val keptCode = StringBuilder()
+            var used = 0
+            for (block in codeBlocks) {
+                if (used + block.length <= remaining) {
+                    keptCode.append(block).append('\n')
+                    used += block.length + 1
+                } else break
+            }
+            if (keptCode.isNotBlank()) {
+                return keptCode.toString().trim() + "\n（省略其余内容 ${text.length - maxChars} 字符）"
+            }
+        }
+        return text.take(maxChars) + "…"
     }
 
     // ---- 通知 ----
