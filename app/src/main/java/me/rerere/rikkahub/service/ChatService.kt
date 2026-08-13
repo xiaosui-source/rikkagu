@@ -130,6 +130,8 @@ private const val TAG = "ChatService"
 // #972 无限上下文：消息数超过阈值自动压缩历史（保留最近 N 条 + 摘要）
 private const val AUTO_COMPRESS_THRESHOLD = 200
 private const val AUTO_COMPRESS_KEEP = 50
+// 自动压缩统一目标 token 数（与手动压缩默认档位一致）
+private const val AUTO_COMPRESS_TARGET_TOKENS = 2000
 
 data class ChatError(
     val id: Uuid = Uuid.random(),
@@ -746,7 +748,7 @@ class ChatService(
                     conversationId = conversationId,
                     conversation = latestConv,
                     additionalPrompt = "",
-                    targetTokens = 2000,
+                    targetTokens = AUTO_COMPRESS_TARGET_TOKENS,
                     keepRecentMessages = AUTO_COMPRESS_KEEP,
                 )
             }
@@ -963,7 +965,7 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
                     conversationId = conversationId,
                     conversation = conversation,
                     additionalPrompt = "",
-                    targetTokens = 0,
+                    targetTokens = AUTO_COMPRESS_TARGET_TOKENS,
                     keepRecentMessages = 6
                 )
                 if (compressResult.isSuccess) {
@@ -1297,7 +1299,7 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
                     conversationId = conversationId,
                     conversation = conversation,
                     additionalPrompt = "",
-                    targetTokens = 0,
+                    targetTokens = AUTO_COMPRESS_TARGET_TOKENS,
                     keepRecentMessages = 6
                 )
                 if (compressResult.isSuccess) {
