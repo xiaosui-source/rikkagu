@@ -803,9 +803,12 @@ class ChatCompletionsAPI(
     private fun buildToolListPrompt(tools: List<Tool>, modelId: String): String = buildString {
         val weak = isWeakModelId(modelId)
         val limit = if (weak) 15 else 40
-        appendLine("你可以调用工具来完成任务。需要调用工具时，只输出以下标准 JSON（与原生工具调用格式一致，不要加任何说明文字、不要用代码块包裹）：")
+        appendLine("工具由你自己直接调用执行，绝不是告诉用户用什么命令或让用户操作！")
+        appendLine("当用户请求需要工具时，你的【完整回答】必须且只能是一个标准 JSON（不要输出任何其他文字、解释、markdown）：")
         appendLine("{\"name\":\"工具名\",\"arguments\":{\"参数名\":\"参数值\"}}")
-        appendLine("工具结果会返回给你，请基于结果继续回答。用户请求操作时必须调用工具完成，绝不能只给操作步骤。")
+        appendLine("示例：用户说\"搜索抖音美食\" → 你的回答只能是 {\"name\":\"douyin_web_search\",\"arguments\":{\"keyword\":\"美食\"}}")
+        appendLine("如果缺少必要参数（如视频链接），先简短询问用户补充，用户提供后再输出 JSON。")
+        appendLine("工具结果会返回给你，请基于结果继续回答。")
         appendLine("可用工具（部分）：")
         val prioritized = tools.sortedBy { !it.name.startsWith("douyin") }
         prioritized.take(limit).forEach { tool ->
@@ -834,8 +837,11 @@ class ChatCompletionsAPI(
     private fun buildPromptToolCallingSystem(tools: List<Tool>, modelId: String): String = buildString {
         val weak = isWeakModelId(modelId)
         val limit = if (weak) 15 else 40
-        appendLine("你可以调用工具来完成任务。需要调用工具时，只输出以下标准 JSON（与原生工具调用格式一致，不要加任何说明文字、不要用代码块包裹）：")
+        appendLine("工具由你自己直接调用执行，绝不是告诉用户用什么命令或让用户操作！")
+        appendLine("当用户请求需要工具时，你的【完整回答】必须且只能是一个标准 JSON（不要输出任何其他文字、解释、markdown）：")
         appendLine("{\"name\":\"工具名\",\"arguments\":{\"参数名\":\"参数值\"}}")
+        appendLine("示例：用户说\"搜索抖音美食\" → 你的回答只能是 {\"name\":\"douyin_web_search\",\"arguments\":{\"keyword\":\"美食\"}}")
+        appendLine("如果缺少必要参数，先简短询问用户补充，用户提供后再输出 JSON。")
         appendLine("工具结果会返回给你，请基于结果继续回答。无需调用工具时直接回答。")
         appendLine("可用工具（部分）：")
         val prioritized = tools.sortedBy { !it.name.startsWith("douyin") }
