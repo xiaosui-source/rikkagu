@@ -190,18 +190,6 @@ class McpManager(
         if ("files" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.buildFilesMcpTools()
         }
-        if ("github" in enabled) {
-            list += me.rerere.rikkahub.data.ai.tools.buildGitHubTools(
-                getToken = { settings.githubToken },
-                enabled = { settings.githubMcpEnabled },
-            )
-        }
-        if ("analyzer" in enabled) {
-            list += me.rerere.rikkahub.data.ai.tools.buildGitHubAnalyzerTools(
-                getToken = { settings.githubToken },
-                enabled = { settings.githubMcpEnabled },
-            )
-        }
         if ("shannon" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.buildShannonPentestTools(
                 workspaceRepository = workspaceRepository,
@@ -290,7 +278,7 @@ class McpManager(
         }
         if ("figma" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.buildFigmaMcpTools(
-                getToken = { settings.githubToken },
+                getToken = { null },
             )
         }
         if ("xingce" in enabled) {
@@ -305,16 +293,6 @@ class McpManager(
     /** 内置 MCP 服务器信息（用于 MCP 管理界面显示）—— 移植自 Kelivo 全部 6 个引擎 */
     fun getBuiltinServerInfos(): List<Pair<me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo, Int>> {
         val settings = settingsStore.settingsFlow.value
-        // GitHub/Fetch/Images 工具均构建于 buildGitHubTools 内，按名称前缀分别统计，
-        // 避免 GitHub 卡片工具数错误地包含 Fetch/Images 全部数量。
-        val builtinTools = me.rerere.rikkahub.data.ai.tools.buildGitHubTools(
-            getToken = { settings.githubToken },
-            enabled = { settings.githubMcpEnabled },
-        )
-        val analyzerTools = me.rerere.rikkahub.data.ai.tools.buildGitHubAnalyzerTools(
-            getToken = { settings.githubToken },
-            enabled = { settings.githubMcpEnabled },
-        )
         val shannonTools = me.rerere.rikkahub.data.ai.tools.buildShannonPentestTools(
             workspaceRepository = workspaceRepository,
             getApiKey = {
@@ -340,22 +318,7 @@ class McpManager(
                 }
             },
         )
-        val githubToolCount = builtinTools.count { it.name.startsWith("github_") }
-        val imagesToolCount = builtinTools.count { it.name.startsWith("image_") }
-        val analyzerToolCount = analyzerTools.size
         return listOf(
-            me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
-                id = "builtin-github",
-                name = "GitHub MCP",
-                description = "内置 GitHub 仓库/文件/Issue/PR/Actions/Release 管理（移植自 Kelivo）",
-                toolCount = githubToolCount,
-            ) to (if (settings.githubMcpEnabled) 1 else 0),
-            me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
-                id = "builtin-analyzer",
-                name = "GitHub 代码分析 Agent 🔍",
-                description = "内置代码安全扫描/依赖分析/Bug 检测/修复建议（自动分析 Agent）",
-                toolCount = analyzerToolCount,
-            ) to (if (settings.githubMcpEnabled) 1 else 0),
             me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
                 id = "builtin-shannon",
                 name = "Shannon AI Pentester 🛡️",

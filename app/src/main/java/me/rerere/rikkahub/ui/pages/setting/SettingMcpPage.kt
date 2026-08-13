@@ -201,9 +201,6 @@ fun SettingMcpPage(vm: SettingVM = koinViewModel()) {
                     BuiltinMcpServerCard(
                         info = info,
                         enabled = enabledFlag == 1,
-                        onConfigureGithub = {
-                            // 内置服务器无需重连，点击打开 GitHub Token 配置弹窗
-                        },
                         modifier = Modifier.animateItem(),
                     )
                 }
@@ -1043,23 +1040,13 @@ private fun McpImportModal(
 
 /**
  * 内置 MCP 服务器卡片：所有内置服务器统一显示启用开关。
- * GitHub 类服务器点击开关可打开 Token 配置弹窗。
  */
 @Composable
 private fun BuiltinMcpServerCard(
     info: me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo,
     enabled: Boolean,
-    onConfigureGithub: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val vm: SettingVM = koinViewModel()
-    val settings by vm.settings.collectAsStateWithLifecycle()
-    val scope = rememberCoroutineScope()
-    var showGithubConfig by remember { mutableStateOf(false) }
-    var githubTokenInput by remember(settings.githubToken) { mutableStateOf(settings.githubToken ?: "") }
-
-    val isGithubType = info.id == "builtin-github" || info.id == "builtin-analyzer"
-    // 非 GitHub 类服务器的本地开关状态
     var localEnabled by remember { mutableStateOf(enabled) }
 
     Card(
@@ -1099,61 +1086,9 @@ private fun BuiltinMcpServerCard(
             }
             // 所有内置服务器统一显示启用开关
             Switch(
-                checked = if (isGithubType) enabled else localEnabled,
-                onCheckedChange = { newChecked ->
-                    if (isGithubType) {
-                        // GitHub 类：开关控制 Token 配置
-                        if (!enabled && newChecked) {
-                            showGithubConfig = true
-                        } else if (enabled && !newChecked) {
-                            scope.launch {
-                                vm.updateSettings(settings.copy(
-                                    githubToken = null,
-                                    githubMcpEnabled = false,
-                                ))
-                            }
-                        }
-                    } else {
-                        // 非 GitHub 类：本地开关
-                        localEnabled = newChecked
-                    }
-                },
+                checked = localEnabled,
+                onCheckedChange = { localEnabled = it },
             )
         }
-    }
-
-    // GitHub Token 配置弹窗
-    if (showGithubConfig && isGithubType) {
-        AlertDialog(
-            onDismissRequest = { showGithubConfig = false },
-            title = { Text("GitHub MCP 配置") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("输入 GitHub Personal Access Token（需 repo/actions 权限）", style = MaterialTheme.typography.bodySmall)
-                    OutlinedTextField(
-                        value = githubTokenInput,
-                        onValueChange = { githubTokenInput = it },
-                        label = { Text("GitHub Token") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    val newToken = githubTokenInput.trim().ifEmpty { null }
-                    scope.launch {
-                        vm.updateSettings(settings.copy(
-                            githubToken = newToken,
-                            githubMcpEnabled = newToken != null,
-                        ))
-                    }
-                    showGithubConfig = false
-                }) { Text("保存") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showGithubConfig = false }) { Text("取消") }
-            },
-        )
     }
 }

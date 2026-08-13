@@ -189,8 +189,6 @@ class SettingsStore(
         val TODOS = stringPreferencesKey("todos")
 
         // 内置 GitHub MCP
-        val GITHUB_TOKEN = stringPreferencesKey("github_token")
-        val GITHUB_MCP_ENABLED = booleanPreferencesKey("github_mcp_enabled")
         val WEB_SERVER_ACCESS_PASSWORD = stringPreferencesKey("web_server_access_password")
         val WEB_SERVER_LOCALHOST_ONLY = booleanPreferencesKey("web_server_localhost_only")
 
@@ -339,8 +337,6 @@ class SettingsStore(
                     JsonInstant.decodeFromString(it)
                 } ?: SystemToolsSetting(),
                 phoneFolderUri = preferences[PHONE_FOLDER_URI],
-                githubToken = preferences[GITHUB_TOKEN],
-                githubMcpEnabled = preferences[GITHUB_MCP_ENABLED] ?: false,
                 todos = preferences[TODOS]?.let {
                     runCatching { JsonInstant.decodeFromString<List<me.rerere.rikkahub.data.ai.tools.TodoItem>>(it) }.getOrDefault(emptyList())
                 } ?: emptyList(),
@@ -543,12 +539,6 @@ class SettingsStore(
             }
             preferences[KNOWLEDGE_DOCS] = JsonInstant.encodeToString(settings.knowledgeDocs)
             preferences[TODOS] = JsonInstant.encodeToString(settings.todos)
-            if (settings.githubToken != null) {
-                preferences[GITHUB_TOKEN] = settings.githubToken
-            } else {
-                preferences.remove(GITHUB_TOKEN)
-            }
-            preferences[GITHUB_MCP_ENABLED] = settings.githubMcpEnabled
             preferences[WECHAT_BOT_SETTINGS] = JsonInstant.encodeToString(settings.wechatBotSettings)
             // 写新列表时清理旧单 bot 键, 避免后续迁移重复
             preferences.remove(WECHAT_BOT_SETTING)
@@ -695,8 +685,6 @@ data class Settings(
     val phoneFolderUri: String? = null,
     val knowledgeDocs: List<KnowledgeDoc> = emptyList(),
     val todos: List<me.rerere.rikkahub.data.ai.tools.TodoItem> = emptyList(),
-    val githubToken: String? = null,
-    val githubMcpEnabled: Boolean = false,
     val wechatBotSettings: List<WechatBotSetting> = emptyList(),
     // 默认开启保活: 切后台时 AI 生成继续运行, 不被系统回收进程
     val keepAliveEnabled: Boolean = true,
