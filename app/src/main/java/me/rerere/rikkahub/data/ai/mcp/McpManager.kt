@@ -262,6 +262,7 @@ class McpManager(
         )
         list += me.rerere.rikkahub.data.ai.tools.buildXingceMcpTools(context)
         list += me.rerere.rikkahub.data.ai.tools.buildFileSystemMcpTools(context)
+        list += me.rerere.rikkahub.data.ai.tools.buildPentagiMcpTools()
         return list
     }
 
@@ -414,6 +415,12 @@ class McpManager(
                 name = "Memory MCP",
                 description = "内置内存键值存储 MCP（会话内临时数据，移植自 Kelivo）",
                 toolCount = 4,
+            ) to 1,
+            me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
+                id = "builtin-pentagi",
+                name = "PentAGI MCP 🛡️",
+                description = "内置纯本地渗透测试工具集：URL侦察/DNS/端口扫描/HTTP探测/安全头审计/敏感路径/SQLi检测/XSS检测/技术识别/报告生成（不依赖API、本地模型、工作区）",
+                toolCount = 10,
             ) to 1,
         )
     }
