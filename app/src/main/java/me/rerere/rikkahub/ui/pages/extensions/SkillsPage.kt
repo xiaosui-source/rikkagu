@@ -142,7 +142,7 @@ fun SkillsPage() {
                 }
             }
 
-            items(skills, key = { it.skillDir.absolutePath }) { skill ->
+            items(skills, key = { it.name }) { skill ->
                 SkillCard(
                     skill = skill,
                     onClick = { navController.navigate(Screen.SkillDetail(skill.name)) },

@@ -568,12 +568,7 @@ class ChatCompletionsAPI(
                             put("type", if (!level.isEnabled) "disabled" else "enabled")
                         })
                         if (level.isEnabled && level != ReasoningLevel.AUTO) {
-                            val effort = when (level) {
-                                ReasoningLevel.MEDIUM -> "high"
-                                ReasoningLevel.XHIGH -> "max"
-                                else -> level.effort
-                            }
-                            put("reasoning_effort", effort)
+                            put("reasoning_effort", level.effort)
                         }
                     }
 
@@ -649,13 +644,7 @@ class ChatCompletionsAPI(
     }
 
     private fun isModelAllowTemperature(model: Model): Boolean {
-        val isMoonshotRestricted = ModelRegistry.KIMI_K2_5.match(model.modelId) ||
-                ModelRegistry.KIMI_K2_6.match(model.modelId) ||
-                ModelRegistry.KIMI_K3.match(model.modelId) ||
-                ModelRegistry.KIMI_K3_ALIAS.match(model.modelId)
-        return !ModelRegistry.OPENAI_O_MODELS.match(model.modelId) &&
-               !ModelRegistry.GPT_5.match(model.modelId) &&
-               !isMoonshotRestricted
+        return !ModelRegistry.OPENAI_O_MODELS.match(model.modelId) && !ModelRegistry.GPT_5.match(model.modelId)
     }
 
     private fun buildMessages(
