@@ -732,12 +732,55 @@ class ChatCompletionsAPI(
             }
         }
 
+        // 原生模式：工具列表+推理提示注入到第一条用户消息（不污染系统提示），
+        // 确保任何模型（含不支持原生 function calling 的弱模型）都能感知工具并调用
+        if (tools.isNotEmpty() && !usePromptTools) {
+            val hints = buildList {
+                if (tools.isNotEmpty()) add(buildToolListPrompt(tools))
+                if (usePromptReasoning) add(buildPromptReasoningSystem())
+            }
+            if (hints.isNotEmpty()) {
+                val hintText = hints.joinToString("\n\n")
+                val firstUserIdx = filteredMessages.indexOfFirst { it.role == MessageRole.USER }
+                if (firstUserIdx >= 0) {
+                    val msg = filteredMessages[firstUserIdx]
+                    val firstText = msg.parts.filterIsInstance<UIMessagePart.Text>().firstOrNull()
+                    val newParts = if (firstText == null) {
+                        listOf(UIMessagePart.Text(hintText)) + msg.parts
+                    } else {
+                        msg.parts.map { part ->
+                            if (part === firstText) UIMessagePart.Text(hintText + "\n\n" + firstText.text) else part
+                        }
+                    }
+                    filteredMessages = filteredMessages.toMutableList().apply {
+                        this[firstUserIdx] = msg.copy(parts = newParts)
+                    }
+                } else {
+                    filteredMessages = listOf(
+                        UIMessage(role = MessageRole.USER, parts = listOf(UIMessagePart.Text(hintText)))
+                    ) + filteredMessages
+                }
+            }
+        }
+
         filteredMessages.forEach { message ->
             if (message.role == MessageRole.ASSISTANT) {
                 addAssistantMessages(message, includeReasoning = true, supportsImage = supportsImage)
             } else {
                 addNonAssistantMessage(message, supportsImage = supportsImage)
             }
+        }
+    }
+
+    /** 精简工具列表提示：抖音优先+限制40个，注入用户消息（不污染系统提示） */
+    private fun buildToolListPrompt(tools: List<Tool>): String = buildString {
+        appendLine("你可以调用工具来完成任务。需要调用工具时，输出：")
+        appendLine("<tool_call>{\"name\":\"工具名\",\"arguments\":{...}}</tool_call>")
+        appendLine("工具结果会返回给你，请基于结果继续回答。用户请求操作时必须调用工具完成，绝不能只给操作步骤。")
+        appendLine("可用工具（部分）：")
+        val prioritized = tools.sortedBy { !it.name.startsWith("douyin") }
+        prioritized.take(40).forEach { tool ->
+            appendLine("- ${tool.name}: ${tool.description.replace("\n", " ").take(45)}")
         }
     }
 
