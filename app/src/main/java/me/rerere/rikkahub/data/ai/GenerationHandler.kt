@@ -267,7 +267,57 @@ class GenerationHandler(
                         continue
                     }
 
-                    // 纯原生：模型未返回 tool_calls 则正常结束（不模拟、不强制）
+                    // 原生体验兜底：模型未返回 tool_calls，但用户消息明确需要工具时，
+                    // 客户端补上工具执行——以 UIMessagePart.Tool（结构化工具卡片）
+                    // 展示与执行，和原生 tool_calls 完全一致
+                    val lastUserMsg = messages.lastOrNull { it.role == MessageRole.USER }
+                    val userText = lastUserMsg?.toText()?.trim() ?: ""
+                    val alreadyHasTool = messages.any { m ->
+                        m.parts.any { it is UIMessagePart.Tool }
+                    }
+                    if (userText.isNotBlank() && !alreadyHasTool) {
+                        val routed = me.rerere.rikkahub.data.ai.ToolRouter.route(userText)
+                        if (routed != null) {
+                            val (toolName, argsJson) = routed
+                            val toolDef = toolsInternal.firstOrNull { it.name == toolName }
+                            if (toolDef != null) {
+                                try {
+                                    val toolPart = UIMessagePart.Tool(
+                                        toolCallId = "auto-${System.currentTimeMillis()}",
+                                        toolName = toolName,
+                                        input = argsJson,
+                                        approvalState = me.rerere.ai.ui.ToolApprovalState.Auto,
+                                    )
+                                    // 把 Tool 追加到最后一条 assistant 消息（原生工具卡片展示）
+                                    val lastMsg = messages.last()
+                                    messages = messages.dropLast(1) + lastMsg.copy(
+                                        parts = lastMsg.parts + toolPart
+                                    )
+                                    emit(GenerationChunk.Messages(messages))
+
+                                    // 执行工具
+                                    val argsElement = json.parseToJsonElement(argsJson)
+                                    val output = toolDef.execute(argsElement)
+                                    val executed = toolPart.copy(output = output)
+
+                                    // 更新 Tool 结果
+                                    val updatedLast = messages.last()
+                                    messages = messages.dropLast(1) + updatedLast.copy(
+                                        parts = updatedLast.parts.map { part ->
+                                            if (part is UIMessagePart.Tool && part.toolCallId == executed.toolCallId) executed else part
+                                        }
+                                    )
+                                    emit(GenerationChunk.Messages(messages))
+                                    Log.i(TAG, "自动补上工具执行(原生展示): $toolName")
+                                    continue
+                                } catch (e: Exception) {
+                                    Log.w(TAG, "自动工具执行失败 $toolName: ${e.message}")
+                                }
+                            }
+                        }
+                    }
+
+                    // 无工具调用，正常结束
                     break
                 }
  
