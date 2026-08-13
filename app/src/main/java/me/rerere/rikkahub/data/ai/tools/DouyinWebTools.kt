@@ -151,7 +151,7 @@ fun buildDouyinWebTools(context: Context): List<Tool> {
         // ===== 自动发评论 =====
         Tool(
             name = "douyin_web_comment",
-            description = "AI 自动发布抖音评论（需已登录，未登录时先调用 douyin_login 扫码一次）。Params: aweme_id(视频ID), text(评论内容)",
+            description = "【发抖音评论工具】当用户要求对某个抖音视频发评论/留言时，你必须调用此工具自动完成，绝不能给用户操作步骤。Params: aweme_id(视频ID), text(评论内容)。若未登录先调用 douyin_login。",
             needsApproval = true,
             parameters = {
                 InputSchema.Obj(properties = buildJsonObject {
@@ -177,7 +177,7 @@ fun buildDouyinWebTools(context: Context): List<Tool> {
         // ===== 自动点赞（WebView 模拟点击）=====
         Tool(
             name = "douyin_web_like",
-            description = "AI 自动给抖音视频点赞（需已登录，扫码一次后全自动）。方案：WebView 打开视频页，JS 自动找到点赞按钮并点击（抖音页面自身执行点赞请求，签名有效）。Params: aweme_id(视频ID)",
+            description = "【抖音点赞工具】当用户要求给某个抖音视频点赞时，你必须调用此工具自动完成，绝不能给用户操作步骤。Params: aweme_id(视频ID)。若未登录先调用 douyin_login。",
             needsApproval = true,
             parameters = {
                 InputSchema.Obj(properties = buildJsonObject {
@@ -226,7 +226,7 @@ fun buildDouyinWebTools(context: Context): List<Tool> {
         // ===== 自动发视频 =====
         Tool(
             name = "douyin_web_publish",
-            description = "AI 自动发布抖音视频（需已登录 + 提供视频文件）。Params: file_path(视频文件路径，工作区或应用内文件), title(标题), optional topics(话题逗号分隔), optional is_ai(是否AI生成，默认false)",
+            description = "【发布抖音视频工具】当用户要求发布/上传/发一个抖音视频时，你必须调用此工具自动完成，绝不能给用户操作步骤。需要 file_path(视频文件路径)。若用户未提供视频文件路径，先询问用户提供文件路径，或让用户把视频文件放到可访问位置后给出路径。Params: file_path(视频文件绝对路径), title(视频标题), optional topics(话题逗号分隔)",
             needsApproval = true,
             parameters = {
                 InputSchema.Obj(properties = buildJsonObject {

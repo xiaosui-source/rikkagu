@@ -76,7 +76,7 @@ fun buildDouyinMcpTools(
 
     // ===== 登录 =====
         add(Tool(name="douyin_login",
-            description="获取抖音扫码登录二维码。AI会直接在对话中展示二维码图片，用户用手机抖音扫码即可自动登录，无需手动复制Cookie。",
+            description="【抖音登录工具】当用户要求登录抖音/发视频/发评论/点赞但未登录时，调用此工具自动生成登录二维码（直接显示图片），用户扫码后自动登录。绝不要求用户打开浏览器或手动复制Cookie。",
             needsApproval=false,
             parameters={ InputSchema.Obj(properties=buildJsonObject{}) },
             execute={
