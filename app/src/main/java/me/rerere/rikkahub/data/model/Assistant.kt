@@ -42,6 +42,9 @@ data class Assistant(
     val customHeaders: List<CustomHeader> = emptyList(),
     val customBodies: List<CustomBody> = emptyList(),
     val mcpServers: Set<Uuid> = emptySet(),
+    // 启用的内置 MCP 工具组 id（douyin/github/files/memory/analyzer/shannon/playwright/supabase/figma/12306/apk/http/firecrawl/context7/ticket/xingce/filesystem），
+    // 默认仅启用抖音+文件+记忆，避免工具过多导致 AI 找不到目标工具
+    val builtinMcpIds: Set<String> = setOf("douyin", "files", "memory"),
     val localTools: List<LocalToolOption> = listOf(LocalToolOption.TimeInfo),
     val workspaceId: Uuid? = null,
     val background: String? = null,

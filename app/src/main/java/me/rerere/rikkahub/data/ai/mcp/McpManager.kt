@@ -175,95 +175,130 @@ class McpManager(
     }
 
     /**
-     * 内置 MCP 服务器工具（移植自 Kelivo）：GitHub MCP + Files MCP + Memory MCP。
-     * 作为应用内置能力直接提供给 AI，无需外部配置。
+     * 内置 MCP 服务器工具。
+     * 按 assistant.builtinMcpIds 选择性注入，避免工具过多（150+）导致
+     * AI 找不到目标工具。默认仅启用 抖音+文件+记忆。
      */
-    fun getBuiltinServerTools(): List<me.rerere.ai.core.Tool> {
+    fun getBuiltinServerTools(assistant: me.rerere.rikkahub.data.model.Assistant? = null): List<me.rerere.ai.core.Tool> {
         val settings = settingsStore.settingsFlow.value
+        val enabled = assistant?.builtinMcpIds ?: setOf("douyin", "files", "memory")
         val list = mutableListOf<me.rerere.ai.core.Tool>()
-        list += me.rerere.rikkahub.data.ai.tools.buildMemoryMcpTools()
-        list += me.rerere.rikkahub.data.ai.tools.buildFilesMcpTools()
-        list += me.rerere.rikkahub.data.ai.tools.buildGitHubTools(
-            getToken = { settings.githubToken },
-            enabled = { settings.githubMcpEnabled },
-        )
-        list += me.rerere.rikkahub.data.ai.tools.buildGitHubAnalyzerTools(
-            getToken = { settings.githubToken },
-            enabled = { settings.githubMcpEnabled },
-        )
-        list += me.rerere.rikkahub.data.ai.tools.buildShannonPentestTools(
-            workspaceRepository = workspaceRepository,
-            getApiKey = {
-                val model = settings.getCurrentChatModel()
-                model?.findProvider(settings.providers)?.let { provider ->
-                    when (provider) {
-                        is me.rerere.ai.provider.ProviderSetting.OpenAI -> provider.apiKey
-                        is me.rerere.ai.provider.ProviderSetting.Google -> provider.apiKey
-                        is me.rerere.ai.provider.ProviderSetting.Claude -> provider.apiKey
-                        else -> null
+
+        if ("memory" in enabled) {
+            list += me.rerere.rikkahub.data.ai.tools.buildMemoryMcpTools()
+        }
+        if ("files" in enabled) {
+            list += me.rerere.rikkahub.data.ai.tools.buildFilesMcpTools()
+        }
+        if ("github" in enabled) {
+            list += me.rerere.rikkahub.data.ai.tools.buildGitHubTools(
+                getToken = { settings.githubToken },
+                enabled = { settings.githubMcpEnabled },
+            )
+        }
+        if ("analyzer" in enabled) {
+            list += me.rerere.rikkahub.data.ai.tools.buildGitHubAnalyzerTools(
+                getToken = { settings.githubToken },
+                enabled = { settings.githubMcpEnabled },
+            )
+        }
+        if ("shannon" in enabled) {
+            list += me.rerere.rikkahub.data.ai.tools.buildShannonPentestTools(
+                workspaceRepository = workspaceRepository,
+                getApiKey = {
+                    val model = settings.getCurrentChatModel()
+                    model?.findProvider(settings.providers)?.let { provider ->
+                        when (provider) {
+                            is me.rerere.ai.provider.ProviderSetting.OpenAI -> provider.apiKey
+                            is me.rerere.ai.provider.ProviderSetting.Google -> provider.apiKey
+                            is me.rerere.ai.provider.ProviderSetting.Claude -> provider.apiKey
+                            else -> null
+                        }
                     }
-                }
-            },
-            getBaseUrl = {
-                val model = settings.getCurrentChatModel()
-                model?.findProvider(settings.providers)?.let { provider ->
-                    when (provider) {
-                        is me.rerere.ai.provider.ProviderSetting.OpenAI -> provider.baseUrl
-                        is me.rerere.ai.provider.ProviderSetting.Google -> provider.baseUrl
-                        is me.rerere.ai.provider.ProviderSetting.Claude -> provider.baseUrl
-                        else -> null
+                },
+                getBaseUrl = {
+                    val model = settings.getCurrentChatModel()
+                    model?.findProvider(settings.providers)?.let { provider ->
+                        when (provider) {
+                            is me.rerere.ai.provider.ProviderSetting.OpenAI -> provider.baseUrl
+                            is me.rerere.ai.provider.ProviderSetting.Google -> provider.baseUrl
+                            is me.rerere.ai.provider.ProviderSetting.Claude -> provider.baseUrl
+                            else -> null
+                        }
                     }
-                }
-            },
-        )
-        list += me.rerere.rikkahub.data.ai.tools.buildDouyinWebTools(context)
-        list += me.rerere.rikkahub.data.ai.tools.buildDouyinMcpTools(
-            context = context,
-            getCookie = {
-                kotlinx.coroutines.runBlocking {
-                // 从沙箱读取抖音Cookie文件
-                try {
-                    workspaceRepository.executeCommand(
-                        "default",
-                        "cat ~/.config/douyinmcp/cookies.txt 2>/dev/null || echo ''",
-                        timeoutMillis = 5000
-                    ).stdout.trim()
-                } catch (e: Exception) { "" } }
-            },
-            workspaceRepository = workspaceRepository,
-            appEventBus = appEventBus,
-        )
-        list += me.rerere.rikkahub.data.ai.tools.buildTicket12306McpTools()
-        list += me.rerere.rikkahub.data.ai.tools.buildApkReverseMcpTools(workspaceRepository)
-        list += me.rerere.rikkahub.data.ai.tools.buildHttpExecuteMcpTools()
-        list += me.rerere.rikkahub.data.ai.tools.buildFirecrawlMcpTools(
-            getApiKey = {
-                val model = settings.getCurrentChatModel()
-                model?.findProvider(settings.providers)?.let { provider ->
-                    when (provider) {
-                        is me.rerere.ai.provider.ProviderSetting.OpenAI -> provider.apiKey
-                        is me.rerere.ai.provider.ProviderSetting.Google -> provider.apiKey
-                        is me.rerere.ai.provider.ProviderSetting.Claude -> provider.apiKey
-                        else -> null
+                },
+            )
+        }
+        if ("douyin" in enabled) {
+            list += me.rerere.rikkahub.data.ai.tools.buildDouyinWebTools(context)
+            list += me.rerere.rikkahub.data.ai.tools.buildDouyinMcpTools(
+                context = context,
+                getCookie = {
+                    kotlinx.coroutines.runBlocking {
+                        try {
+                            workspaceRepository.executeCommand(
+                                "default",
+                                "cat ~/.config/douyinmcp/cookies.txt 2>/dev/null || echo ''",
+                                timeoutMillis = 5000
+                            ).stdout.trim()
+                        } catch (e: Exception) { "" }
                     }
-                }
-            },
-        )
-        list += me.rerere.rikkahub.data.ai.tools.buildContext7McpTools()
-        list += me.rerere.rikkahub.data.ai.tools.buildPlaywrightMcpTools()
-        list += me.rerere.rikkahub.data.ai.tools.buildSupabaseMcpTools(
-            getProjectUrl = {
-                settings.externalMemories.firstOrNull { it.enabled }?.supabaseUrl
-            },
-            getApiKey = {
-                settings.externalMemories.firstOrNull { it.enabled }?.supabaseKey
-            },
-        )
-        list += me.rerere.rikkahub.data.ai.tools.buildFigmaMcpTools(
-            getToken = { settings.githubToken },
-        )
-        list += me.rerere.rikkahub.data.ai.tools.buildXingceMcpTools(context)
-        list += me.rerere.rikkahub.data.ai.tools.buildFileSystemMcpTools(context)
+                },
+                workspaceRepository = workspaceRepository,
+                appEventBus = appEventBus,
+            )
+        }
+        if ("12306" in enabled) {
+            list += me.rerere.rikkahub.data.ai.tools.buildTicket12306McpTools()
+        }
+        if ("apk" in enabled) {
+            list += me.rerere.rikkahub.data.ai.tools.buildApkReverseMcpTools(workspaceRepository)
+        }
+        if ("http" in enabled) {
+            list += me.rerere.rikkahub.data.ai.tools.buildHttpExecuteMcpTools()
+        }
+        if ("firecrawl" in enabled) {
+            list += me.rerere.rikkahub.data.ai.tools.buildFirecrawlMcpTools(
+                getApiKey = {
+                    val model = settings.getCurrentChatModel()
+                    model?.findProvider(settings.providers)?.let { provider ->
+                        when (provider) {
+                            is me.rerere.ai.provider.ProviderSetting.OpenAI -> provider.apiKey
+                            is me.rerere.ai.provider.ProviderSetting.Google -> provider.apiKey
+                            is me.rerere.ai.provider.ProviderSetting.Claude -> provider.apiKey
+                            else -> null
+                        }
+                    }
+                },
+            )
+        }
+        if ("context7" in enabled) {
+            list += me.rerere.rikkahub.data.ai.tools.buildContext7McpTools()
+        }
+        if ("playwright" in enabled) {
+            list += me.rerere.rikkahub.data.ai.tools.buildPlaywrightMcpTools()
+        }
+        if ("supabase" in enabled) {
+            list += me.rerere.rikkahub.data.ai.tools.buildSupabaseMcpTools(
+                getProjectUrl = {
+                    settings.externalMemories.firstOrNull { it.enabled }?.supabaseUrl
+                },
+                getApiKey = {
+                    settings.externalMemories.firstOrNull { it.enabled }?.supabaseKey
+                },
+            )
+        }
+        if ("figma" in enabled) {
+            list += me.rerere.rikkahub.data.ai.tools.buildFigmaMcpTools(
+                getToken = { settings.githubToken },
+            )
+        }
+        if ("xingce" in enabled) {
+            list += me.rerere.rikkahub.data.ai.tools.buildXingceMcpTools(context)
+        }
+        if ("filesystem" in enabled) {
+            list += me.rerere.rikkahub.data.ai.tools.buildFileSystemMcpTools(context)
+        }
         return list
     }
 

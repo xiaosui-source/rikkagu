@@ -830,7 +830,7 @@ class ChatService(
                     })
                     // 自定义 HTTP 请求（#602）
                     // 内置 MCP 服务器（移植自 Kelivo）：GitHub/Files/Memory
-                    addAll(mcpManager.getBuiltinServerTools())
+                    addAll(mcpManager.getBuiltinServerTools(assistant))
 addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tools.ToolInvocationContext(
     callerAssistantId = assistant.id.toString(),
     callerConversationId = conversationId.toString(),
@@ -1210,7 +1210,7 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
                     })
                     // 自定义 HTTP 请求（#602）
                     // 内置 MCP 服务器（移植自 Kelivo）：GitHub/Files/Memory
-                    addAll(mcpManager.getBuiltinServerTools())
+                    addAll(mcpManager.getBuiltinServerTools(assistant))
                     addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tools.ToolInvocationContext(
                         callerAssistantId = assistant.id.toString(),
                         callerConversationId = conversationId.toString(),
