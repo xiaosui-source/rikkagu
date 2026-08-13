@@ -15,6 +15,7 @@ import kotlinx.serialization.json.put
 import me.rerere.ai.core.InputSchema
 import me.rerere.ai.core.Tool
 import me.rerere.ai.ui.UIMessagePart
+import kotlinx.coroutines.delay
 import java.net.URLEncoder
 
 /**
@@ -317,4 +318,3 @@ private const val DOUYIN_LIKE_JS = """
   return 'not_found';
 })()
 """
-\n
