@@ -148,7 +148,7 @@ fun buildMinecraftMcpTools(context: Context): List<Tool> = listOf(
     // ===== 机器人连接服务器 =====
     Tool(
         name = "mc_bot_connect",
-        description = "AI 机器人登录 Minecraft 服务器（Java版/基岩版/网易版，AI 就是游戏里的机器人）。Params: host(服务器地址), optional port, optional version(java/bedrock/netease，默认java；netease为网易中国版), optional username(机器人名字), optional rcon_password(基岩版RCON密码)",
+        description = "AI 机器人登录 Minecraft 服务器（Java版/基岩版/网易手机版）。Params: host(服务器地址), optional port, optional version(java/bedrock/netease，默认java；netease=网易手机版基岩), optional username(机器人名字), optional rcon_password(基岩版/网易版RCON密码)",
         needsApproval = false,
         parameters = {
             InputSchema.Obj(properties = buildJsonObject {
@@ -164,7 +164,7 @@ fun buildMinecraftMcpTools(context: Context): List<Tool> = listOf(
             val host = o["host"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"host required"}"""))
             val version = o["version"]?.jsonPrimitive?.contentOrNull ?: "java"
             val port = o["port"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()
-                ?: if (version == "bedrock") 19132 else 25565
+                ?: if (version == "bedrock" || version == "netease") 19132 else 25565
             var username = o["username"]?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() } ?: "AI_Bot"
             val rconPassword = o["rcon_password"]?.jsonPrimitive?.contentOrNull ?: ""
             saveBotConfig(context, host, port, username)
@@ -176,9 +176,10 @@ fun buildMinecraftMcpTools(context: Context): List<Tool> = listOf(
                     .putString("rcon_password", rconPassword)
                     .apply()
             } else if (version == "netease") {
-                // 网易版（中国版）：Java 协议离线登录，用户名用网易账号名
+                // 网易手机版（基岩协议）：用 RCON 操作（与基岩版一致）
                 context.getSharedPreferences("minecraft_mcp", Context.MODE_PRIVATE).edit()
                     .putString("version", "netease")
+                    .putString("rcon_password", rconPassword)
                     .apply()
             } else {
                 context.getSharedPreferences("minecraft_mcp", Context.MODE_PRIVATE).edit()
@@ -186,10 +187,10 @@ fun buildMinecraftMcpTools(context: Context): List<Tool> = listOf(
                     .apply()
             }
 
-            // 网易版：不用微软 token（离线登录）；Java 版才用已保存的微软 token
+            // 网易手机版/基岩版：不用微软 token；Java 版才用已保存的微软 token
             val prefs = context.getSharedPreferences("minecraft_mcp", Context.MODE_PRIVATE)
             var msToken: String? = null
-            if (version != "netease") {
+            if (version != "netease" && version != "bedrock") {
                 msToken = prefs.getString("ms_token", null)
                 val msUsername = prefs.getString("ms_username", null)
                 if (msToken != null && msUsername != null) {
@@ -215,7 +216,7 @@ fun buildMinecraftMcpTools(context: Context): List<Tool> = listOf(
     // ===== 基岩版操作（RCON）=====
     Tool(
         name = "mc_bedrock_do",
-        description = "基岩版服务器操作（RCON 命令：移动/放置/召唤/时间/天气等）。Params: command(如 'tp @p 100 64 100'、'weather clear')",
+        description = "基岩版/网易手机版服务器操作（RCON 命令：移动/放置/召唤/时间/天气等）。Params: command(如 'tp @p 100 64 100'、'weather clear')",
         needsApproval = true,
         parameters = {
             InputSchema.Obj(properties = buildJsonObject {
