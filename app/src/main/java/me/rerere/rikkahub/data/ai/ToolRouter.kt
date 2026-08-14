@@ -61,6 +61,31 @@ object ToolRouter {
                 .take(50)
             return "douyin_web_publish" to buildArgs("file_path" to "", "title" to title)
         }
+        // ===== 12306 火车票 =====
+        if (msg.contains("火车票") || msg.contains("车次") || msg.contains("高铁") ||
+            msg.contains("列车") || msg.contains("12306") || msg.contains("查票")
+        ) {
+            val from = (Regex("(?:从|出发地)[:：\s]*([\u4e00-\u9fa5]{2,4})").find(userMessage)?.groupValues?.get(1)) ?: ""
+            val to = (Regex("(?:到|目的地)[:：\s]*([\u4e00-\u9fa5]{2,4})").find(userMessage)?.groupValues?.get(1)) ?: ""
+            return "ticket_search" to buildArgs("from" to from, "to" to to)
+        }
+        // ===== HTTP 请求 =====
+        if (msg.contains("http_execute") || msg.contains("请求") && msg.contains("http") ||
+            msg.contains("访问") && msg.contains("http") || msg.contains("抓取") && msg.contains("http")
+        ) {
+            val url = (Regex("https?://[^\s]+").find(msg)?.value) ?: ""
+            return "http_execute" to buildArgs("url" to url)
+        }
+        // ===== 记忆 =====
+        if (msg.contains("记住") || msg.contains("记忆") || msg.contains("回忆") ||
+            msg.contains("忘了") || msg.contains("记一下")
+        ) {
+            return "memory_set" to buildArgs("content" to userMessage.take(200))
+        }
+        // ===== APK 逆向 =====
+        if (msg.contains("apk") || msg.contains("逆向") || msg.contains("反编译") || msg.contains("apk工具")) {
+            return "apk_decode" to buildArgs()
+        }
         return null
     }
 
