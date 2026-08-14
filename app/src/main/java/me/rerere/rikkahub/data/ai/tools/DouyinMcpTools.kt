@@ -82,6 +82,7 @@ fun buildDouyinMcpTools(
             execute={
                 // 方案：App 内置 WebView 加载抖音登录页（抖音网页 JS 自动生成有效二维码签名），
                 // 提取二维码图片直接显示在对话中。不依赖已失效的 passport API，不落盘。
+                // 直接显示二维码图片（不打开浏览器）
                 val qrImage = extractQrFromPage(context, "$DY/login")
                 if (qrImage != null) {
                     listOf(
@@ -95,14 +96,21 @@ fun buildDouyinMcpTools(
                         UIMessagePart.Image(url = qrImage),
                     )
                 } else {
-                    // 兜底：在应用内打开抖音登录页
-                    runCatching {
-                        appEventBus.emit(me.rerere.rikkahub.data.event.AppEvent.OpenWebView("$DY/login"))
+                    // 不打开浏览器：再重试一次提取
+                    val retry = extractQrFromPage(context, "$DY/login")
+                    if (retry != null) {
+                        listOf(
+                            UIMessagePart.Text(buildJsonObject{
+                                put("action","👉 请用手机抖音APP扫描下方二维码登录")
+                                put("tip","扫码后自动登录")
+                            }.toString()),
+                            UIMessagePart.Image(url = retry),
+                        )
+                    } else {
+                        listOf(UIMessagePart.Text(
+                            "⚠️ 二维码生成失败（抖音接口暂时不可用），请稍后重试 douyin_login。"
+                        ))
                     }
-                    listOf(UIMessagePart.Text(
-                        "⚠️ 二维码提取失败，已改为在应用内打开抖音登录页。\n" +
-                        "请在打开的页面中扫码登录，登录后 Cookie 会自动保存。"
-                    ))
                 }
             },
         ))
@@ -130,14 +138,11 @@ fun buildDouyinMcpTools(
                         UIMessagePart.Image(url = qr),
                     )
                 } else {
-                    // 2. 无二维码：打开页面 + 返回提示
-                    runCatching {
-                        appEventBus.emit(me.rerere.rikkahub.data.event.AppEvent.OpenWebView(target))
-                    }
+                    // 2. 无二维码：返回提示（不打开浏览器）
                     listOf(UIMessagePart.Text(buildJsonObject{
                         put("page", target)
-                        put("status","页面无需登录，已在应用内打开")
-                        put("tip","可直接浏览页面内容")
+                        put("status","页面无需登录，未提取到二维码")
+                        put("tip","该页面可直接访问，如需登录可调用 douyin_login")
                     }.toString()))
                 }
             },
@@ -450,21 +455,32 @@ private suspend fun extractQrFromPage(context: android.content.Context, url: Str
 
             webView.webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView?, url: String?) {
-                    // 等待二维码渲染后提取
+                    // 多次尝试提取二维码（等待渲染 + 重试），提高成功率
                     view?.postDelayed({
-                        view.evaluateJavascript(DOUYIN_QR_JS) { result ->
-                            val clean = result?.removeSurrounding("\"")
-                                ?.replace("\\u002F", "/")
-                                ?.replace("\\/", "/")
-                                ?.trim()
-                            if (!clean.isNullOrBlank() && clean != "null" && (clean.startsWith("data:") || clean.startsWith("http"))) {
-                                deferred.complete(clean)
-                            } else {
-                                deferred.complete(null)
+                        var attempts = 0
+                        val tryExtract = object : Runnable {
+                            override fun run() {
+                                attempts++
+                                view.evaluateJavascript(DOUYIN_QR_JS) { result ->
+                                    val clean = result?.removeSurrounding("\"")
+                                        ?.replace("\\u002F", "/")
+                                        ?.replace("\\/", "/")
+                                        ?.trim()
+                                    if (!clean.isNullOrBlank() && clean != "null" && (clean.startsWith("data:") || clean.startsWith("http"))) {
+                                        deferred.complete(clean)
+                                        destroySafe()
+                                    } else if (attempts < 3) {
+                                        // 未提取到，2秒后重试（最多3次）
+                                        view.postDelayed(this, 2000)
+                                    } else {
+                                        deferred.complete(null)
+                                        destroySafe()
+                                    }
+                                }
                             }
-                            destroySafe()
                         }
-                    }, 6000)
+                        tryExtract.run()
+                    }, 4000)
                 }
             }
 
