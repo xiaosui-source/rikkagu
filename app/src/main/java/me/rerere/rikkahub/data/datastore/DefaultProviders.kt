@@ -77,7 +77,7 @@ val DEFAULT_PROVIDERS = listOf(
         name = "OpenAI",
         baseUrl = "https://api.openai.com/v1",
         apiKey = "",
-        builtIn = true
+        builtIn = true,
         models = listOf(
         me.rerere.ai.provider.Model(
             id = kotlin.uuid.Uuid.parse("00000000-0000-0000-6000-000000000011"),
@@ -110,7 +110,7 @@ val DEFAULT_PROVIDERS = listOf(
         name = "Gemini",
         apiKey = "",
         enabled = true,
-        builtIn = true
+        builtIn = true,
         models = listOf(
         me.rerere.ai.provider.Model(
             id = kotlin.uuid.Uuid.parse("00000000-0000-0000-6000-000000000021"),
@@ -220,7 +220,7 @@ val DEFAULT_PROVIDERS = listOf(
         baseUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1",
         apiKey = "",
         enabled = false,
-        builtIn = true
+        builtIn = true,
         models = listOf(
         me.rerere.ai.provider.Model(
             id = kotlin.uuid.Uuid.parse("00000000-0000-0000-6000-000000000051"),
@@ -254,7 +254,7 @@ val DEFAULT_PROVIDERS = listOf(
         baseUrl = "https://ark.cn-beijing.volces.com/api/v3",
         apiKey = "",
         enabled = false,
-        builtIn = true
+        builtIn = true,
         models = listOf(
         me.rerere.ai.provider.Model(
             id = kotlin.uuid.Uuid.parse("00000000-0000-0000-6000-000000000061"),
@@ -280,7 +280,7 @@ val DEFAULT_PROVIDERS = listOf(
         baseUrl = "https://open.bigmodel.cn/api/paas/v4",
         apiKey = "",
         enabled = false,
-        builtIn = true
+        builtIn = true,
         models = listOf(
         me.rerere.ai.provider.Model(
             id = kotlin.uuid.Uuid.parse("00000000-0000-0000-6000-000000000071"),
@@ -314,7 +314,7 @@ val DEFAULT_PROVIDERS = listOf(
         baseUrl = "https://api.hunyuan.cloud.tencent.com/v1",
         apiKey = "",
         enabled = false,
-        builtIn = true
+        builtIn = true,
         models = listOf(
         me.rerere.ai.provider.Model(
             id = kotlin.uuid.Uuid.parse("00000000-0000-0000-6000-000000000081"),
