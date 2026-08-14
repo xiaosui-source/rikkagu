@@ -219,6 +219,9 @@ class McpManager(
         if ("xingce" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.buildXingceMcpTools(context)
         }
+        if ("minecraft" in enabled) {
+            list += me.rerere.rikkahub.data.ai.tools.buildMinecraftMcpTools(context)
+        }
         if ("filesystem" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.buildFileSystemMcpTools(context)
         }
@@ -264,6 +267,12 @@ class McpManager(
                 name = "花生十三行测 MCP 📝",
                 description = "内置442张行测方法卡片：搜索/分类/解题引导（资料分析/数量关系/判断推理/言语理解）",
                 toolCount = 5,
+            ) to 1,
+            me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
+                id = "builtin-minecraft",
+                name = "Minecraft MCP ⛏️",
+                description = "内置Minecraft：AI指挥机器人玩任意服务器（Java/基岩版RCON）移动/放置/挖掘/召唤+进度汇报",
+                toolCount = 4,
             ) to 1,
             me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
                 id = "builtin-fetch",
