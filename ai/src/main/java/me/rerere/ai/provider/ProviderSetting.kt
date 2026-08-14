@@ -79,7 +79,8 @@ sealed class ProviderSetting {
         var enableSearch: Boolean = false,
     ) : ProviderSetting() {
         override fun addModel(model: Model): ProviderSetting {
-            return copy(models = models + model)
+            // 按 modelId 去重：同 modelId 已存在则替换（内置 + API 拉取的重复模型合并）
+            return copy(models = models.filter { it.modelId != model.modelId } + model)
         }
 
         override fun editModel(model: Model): ProviderSetting {
@@ -144,7 +145,8 @@ sealed class ProviderSetting {
         var projectId: String = "", // only for vertex AI service account
     ) : ProviderSetting() {
         override fun addModel(model: Model): ProviderSetting {
-            return copy(models = models + model)
+            // 按 modelId 去重：同 modelId 已存在则替换（内置 + API 拉取的重复模型合并）
+            return copy(models = models.filter { it.modelId != model.modelId } + model)
         }
 
         override fun editModel(model: Model): ProviderSetting {
@@ -205,7 +207,8 @@ sealed class ProviderSetting {
         var promptCacheTtl: ClaudePromptCacheTtl = ClaudePromptCacheTtl.FIVE_MINUTES,
     ) : ProviderSetting() {
         override fun addModel(model: Model): ProviderSetting {
-            return copy(models = models + model)
+            // 按 modelId 去重：同 modelId 已存在则替换（内置 + API 拉取的重复模型合并）
+            return copy(models = models.filter { it.modelId != model.modelId } + model)
         }
 
         override fun editModel(model: Model): ProviderSetting {

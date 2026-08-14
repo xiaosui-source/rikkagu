@@ -384,15 +384,15 @@ class SettingsStore(
                 providers = settings.providers.distinctBy { it.id }.map { provider ->
                     when (provider) {
                         is ProviderSetting.OpenAI -> provider.copy(
-                            models = provider.models.distinctBy { model -> model.id }
+                            models = provider.models.distinctBy { model -> model.modelId }
                         )
 
                         is ProviderSetting.Google -> provider.copy(
-                            models = provider.models.distinctBy { model -> model.id }
+                            models = provider.models.distinctBy { model -> model.modelId }
                         )
 
                         is ProviderSetting.Claude -> provider.copy(
-                            models = provider.models.distinctBy { model -> model.id }
+                            models = provider.models.distinctBy { model -> model.modelId }
                         )
 
                         else -> provider
