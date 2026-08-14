@@ -377,22 +377,6 @@ private fun SettingProviderModelPage(
 }
 
 @Composable
-/** 预置可用模型库：用户添加供应商后可直接选择（不用手动填写） */
-private val PRESET_MODEL_IDS = listOf(
-    // 讯飞星火
-    "lite", "generalv3.5", "pro-128k", "max-32k",
-    // DeepSeek
-    "deepseek-chat", "deepseek-reasoner", "deepseek-v3",
-    // OpenAI
-    "gpt-4o", "gpt-4o-mini", "gpt-4.1", "gpt-5",
-    // Gemini
-    "gemini-2.0-flash", "gemini-2.5-pro", "gemini-2.5-flash",
-    // Qwen
-    "qwen-plus", "qwen-max", "qwen-turbo",
-    // 其他
-    "kimi-k2", "glm-4", "moonshot-v1-8k", "hunyuan-turbo",
-)
-
 private fun ModelList(
     providerSetting: ProviderSetting,
     onUpdateProvider: (ProviderSetting) -> Unit
@@ -402,19 +386,16 @@ private fun ModelList(
     val toaster = LocalToaster.current
     val scope = rememberCoroutineScope()
     val modelList by produceState(emptyList(), providerSetting) {
-        // 可用模型 = 预置模型库（用户可直接选择）+ 当前配置模型 + API 拉取
-        val preset = PRESET_MODEL_IDS.map { id -> Model(modelId = id, displayName = id) } + providerSetting.models
+        // 直接从 API 获取模型（listModels：供应商 /models 接口）
         runCatching {
             println("loading models...")
-            val apiModels = providerManager.getProviderByType(providerSetting)
+            value = providerManager.getProviderByType(providerSetting)
                 .listModels(providerSetting)
-            value = (preset + apiModels)
-                .distinctBy { it.modelId }
                 .sortedBy { it.modelId }
                 .toList()
         }.onFailure {
-            // API 拉取失败（如未配 Key）：仍显示预置模型库
-            value = preset.distinctBy { it.modelId }.sortedBy { it.modelId }.toList()
+            // API 拉取失败（未配 Key 等）：显示当前已配置的模型
+            value = providerSetting.models
         }
     }
     var expanded by rememberSaveable { mutableStateOf(true) }
