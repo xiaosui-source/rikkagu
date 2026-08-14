@@ -148,13 +148,13 @@ fun buildMinecraftMcpTools(context: Context): List<Tool> = listOf(
     // ===== 机器人连接服务器 =====
     Tool(
         name = "mc_bot_connect",
-        description = "AI 机器人登录 Minecraft 服务器（Java版或基岩版，AI 就是游戏里的机器人）。Params: host(服务器地址), optional port, optional version(java/bedrock，默认java), optional username(机器人名字), optional rcon_password(基岩版RCON密码)",
+        description = "AI 机器人登录 Minecraft 服务器（Java版/基岩版/网易版，AI 就是游戏里的机器人）。Params: host(服务器地址), optional port, optional version(java/bedrock/netease，默认java；netease为网易中国版), optional username(机器人名字), optional rcon_password(基岩版RCON密码)",
         needsApproval = false,
         parameters = {
             InputSchema.Obj(properties = buildJsonObject {
                 put("host", buildJsonObject { put("type", "string"); put("description", "服务器地址，如 127.0.0.1 或 192.168.1.100") })
                 put("port", buildJsonObject { put("type", "string"); put("description", "端口：Java默认25565，基岩版默认19132/RCON 25575") })
-                put("version", buildJsonObject { put("type", "string"); put("description", "版本：java 或 bedrock，默认 java") })
+                put("version", buildJsonObject { put("type", "string"); put("description", "版本：java / bedrock / netease（网易中国版），默认 java") })
                 put("username", buildJsonObject { put("type", "string"); put("description", "机器人名字（离线模式），默认 AI_Bot") })
                 put("rcon_password", buildJsonObject { put("type", "string"); put("description", "基岩版 RCON 密码（bedrock 需要）") })
             }, required = listOf("host"))
@@ -175,18 +175,26 @@ fun buildMinecraftMcpTools(context: Context): List<Tool> = listOf(
                     .putString("version", "bedrock")
                     .putString("rcon_password", rconPassword)
                     .apply()
+            } else if (version == "netease") {
+                // 网易版（中国版）：Java 协议离线登录，用户名用网易账号名
+                context.getSharedPreferences("minecraft_mcp", Context.MODE_PRIVATE).edit()
+                    .putString("version", "netease")
+                    .apply()
             } else {
                 context.getSharedPreferences("minecraft_mcp", Context.MODE_PRIVATE).edit()
                     .putString("version", "java")
                     .apply()
             }
 
-            // 使用已保存的微软 token（mc_bot_msauth 登录）
+            // 网易版：不用微软 token（离线登录）；Java 版才用已保存的微软 token
             val prefs = context.getSharedPreferences("minecraft_mcp", Context.MODE_PRIVATE)
-            var msToken: String? = prefs.getString("ms_token", null)
-            val msUsername = prefs.getString("ms_username", null)
-            if (msToken != null && msUsername != null) {
-                username = msUsername
+            var msToken: String? = null
+            if (version != "netease") {
+                msToken = prefs.getString("ms_token", null)
+                val msUsername = prefs.getString("ms_username", null)
+                if (msToken != null && msUsername != null) {
+                    username = msUsername
+                }
             }
 
             // 断开旧连接
