@@ -135,5 +135,15 @@ val DEFAULT_PROVIDERS = listOf(
         builtIn = true,
         // 本地 OpenAI 兼容服务（Ollama/llama.cpp/vLLM 等），
         // 不用工作区、不用外部API Key，模型从本地 /models 获取
+        models = listOf(
+            me.rerere.ai.provider.Model(
+                id = kotlin.uuid.Uuid.parse("a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5e"),
+                modelId = "glm-5.2",
+                displayName = "GLM 5.2",
+                inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
+                outputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
+                abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
+            ),
+        ),
     ),
 )
