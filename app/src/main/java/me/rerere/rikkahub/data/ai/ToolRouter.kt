@@ -10,8 +10,8 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
 /**
- * 工具路由：模型未通过原生 tool_calls 调用工具时，
- * 由客户端检测用户意图并补上工具执行（展示与原生 tool_calls 完全一致）。
+ * 工具路由（纯客户端兜底）：弱模型不支持原生 tool_calls 时，
+ * 根据用户消息匹配工具并自动调用（不注入任何系统提示/消息提醒）。
  */
 object ToolRouter {
 
