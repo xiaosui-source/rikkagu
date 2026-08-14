@@ -54,7 +54,7 @@ fun buildApkReverseMcpTools(context: Context): List<Tool> = listOf(
                 put("package_name", info.packageName ?: "")
                 put("version_name", info.versionName ?: "")
                 put("version_code", info.versionCode)
-                put("app_name", pm.getApplicationLabel(info.applicationInfo).toString())
+                put("app_name", info.applicationInfo?.let { pm.getApplicationLabel(it).toString() } ?: "")
                 put("min_sdk", info.applicationInfo?.minSdkVersion ?: 0)
                 put("target_sdk", info.applicationInfo?.targetSdkVersion ?: 0)
                 put("file_size", file.length())

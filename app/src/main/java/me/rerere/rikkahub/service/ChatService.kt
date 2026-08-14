@@ -84,7 +84,6 @@ import me.rerere.rikkahub.data.ai.tools.createRegisterPollingTaskTool
 import me.rerere.rikkahub.data.ai.tools.createReadPhoneFolderTool
 import me.rerere.rikkahub.data.ai.tools.createSkillTools
 import me.rerere.rikkahub.data.ai.tools.createWorkspaceTools
-import me.rerere.rikkahub.data.ai.tools.createShannonNativeTools
 import me.rerere.rikkahub.data.files.SkillManager
 import me.rerere.rikkahub.plugin.loader.PluginLoader
 import me.rerere.rikkahub.plugin.provider.PluginToolProvider
@@ -846,7 +845,6 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
                         addAll(systemTools.getTools(systemToolsOptions, conversation.currentMessages, filesManager))
                     }
                     addAll(createWorkspaceToolsIfReady(assistant.workspaceId?.toString(), conversation.workspaceCwd))
-                    addAll(createShannonNativeTools(assistant.workspaceId?.toString(), workspaceRepository))
                     if (assistant.enabledSkills.isNotEmpty()) {
                         addAll(
                             createSkillTools(
@@ -1216,7 +1214,6 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
                         callerConversationId = conversationId.toString(),
                     )))
                     addAll(createWorkspaceToolsIfReady(assistant.workspaceId?.toString(), conversation.workspaceCwd))
-                    addAll(createShannonNativeTools(assistant.workspaceId?.toString(), workspaceRepository))
                     if (assistant.enabledSkills.isNotEmpty()) {
                         addAll(
                             createSkillTools(
