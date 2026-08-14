@@ -114,6 +114,10 @@ fun ProviderConfigure(
                 ProviderConfigureClaude(provider, onEdit)
             }
 
+            is ProviderSetting.LocalModel -> {
+                ProviderConfigureLocalModel(provider, onEdit)
+            }
+
             else -> {
                 // 其他未知类型
             }
@@ -384,6 +388,27 @@ private fun ColumnScope.ProviderConfigureOpenAI(
 }
 
 @Composable
+@Composable
+private fun ColumnScope.ProviderConfigureLocalModel(
+    provider: ProviderSetting.LocalModel,
+    onEdit: (ProviderSetting) -> Unit
+) {
+    OutlinedTextField(
+        value = provider.modelDir,
+        onValueChange = { onEdit(provider.copy(modelDir = it)) },
+        label = { Text("模型目录名（files/models/ 下）") },
+        placeholder = { Text("如 local，模型文件放 files/models/local/") },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth()
+    )
+    Text(
+        text = "本地 ONNX 模型（onnxruntime-genai），不依赖 Ollama/服务/云端。\n" +
+            "模型文件（.onnx + tokenizer.json 等）放入 App 的 files/models/{模型目录}/ 后即可使用。",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
 private fun ColumnScope.ProviderConfigureClaude(
     provider: ProviderSetting.Claude,
     onEdit: (provider: ProviderSetting.Claude) -> Unit
