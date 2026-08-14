@@ -271,8 +271,8 @@ class McpManager(
             me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
                 id = "builtin-minecraft",
                 name = "Minecraft MCP ⛏️",
-                description = "内置Minecraft：AI就是机器人，支持Java版（bot协议+微软账号）和基岩版（RCON），行动/说话/探索+进度汇报",
-                toolCount = 6,
+                description = "内置Minecraft：AI就是机器人自主通关，支持Java版（bot协议+微软账号）和基岩版（RCON），自主游玩+进度汇报",
+                toolCount = 7,
             ) to 1,
             me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
                 id = "builtin-fetch",

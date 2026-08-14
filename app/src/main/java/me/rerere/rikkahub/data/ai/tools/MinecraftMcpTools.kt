@@ -291,4 +291,28 @@ fun buildMinecraftMcpTools(context: Context): List<Tool> = listOf(
             }.toString()))
         },
     ),
+
+    // ===== AI 自主游玩通关 =====
+    Tool(
+        name = "mc_auto_play",
+        description = "【AI 自主游玩通关模式】调用此工具后，AI 自主决定玩什么、怎么玩，持续行动直到通关。AI 会自动循环：查询状态→决定下一步（探索/挖矿/建造/战斗）→执行操作→记录并汇报进度。目标：自主完成游戏内容（如建家/挖矿/打怪/击败Boss等）。",
+        needsApproval = false,
+        parameters = {
+            InputSchema.Obj(properties = buildJsonObject {
+                put("goal", buildJsonObject { put("type", "string"); put("description", "通关目标（可选，如'建一座房子'、'挖到钻石'、'击败末影龙'）") })
+            })
+        },
+        execute = { args ->
+            val o = args.jsonObject
+            val goal = o["goal"]?.jsonPrimitive?.contentOrNull ?: "自主探索并通关"
+            // 进入自主游玩模式：AI 根据 goal 持续决策执行
+            saveProgress(context, "【自主通关模式启动】目标: $goal")
+            listOf(UIMessagePart.Text(buildJsonObject {
+                put("auto_play", true)
+                put("goal", goal)
+                put("instructions", "AI 请开始自主游玩并持续汇报：每次行动后调用 mc_progress 记录进度，直到达成目标或通关")
+                put("loop", "AI 循环执行：mc_status(查状态) → mc_bot_connect/mc_bedrock_do(行动) → mc_progress(汇报) → 继续")
+            }.toString()))
+        },
+    ),
 )
