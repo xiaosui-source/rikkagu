@@ -398,17 +398,9 @@ private fun ModelList(
             value = providerSetting.models
         }
     }
-    // 有效模型（合并+内置优先）：
-    // - 内置且API有的 → 显示内置的
-    // - 内置但API没有 → 不显示（用不了）
-    // - 内置没有API有 → 显示API的（补充）
-    // API 拉取失败时显示内置模型兜底
-    val displayModels = if (modelList.isNotEmpty()) {
-        providerSetting.models.filter { m -> modelList.any { it.modelId == m.modelId } } +
-            modelList.filter { api -> providerSetting.models.none { it.modelId == api.modelId } }
-    } else {
-        providerSetting.models
-    }
+    // 可用模型：不内置任何模型，全部从 API 拉取（可用模型列表里选择）；
+    // API 拉取失败时显示已添加的模型兜底
+    val displayModels = if (modelList.isNotEmpty()) modelList else providerSetting.models
     var expanded by rememberSaveable { mutableStateOf(true) }
     // 多选模式：勾选多个模型后可批量测试 / 批量删除
     var selectionMode by rememberSaveable { mutableStateOf(false) }
