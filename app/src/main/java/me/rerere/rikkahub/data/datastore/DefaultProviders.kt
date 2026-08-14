@@ -37,15 +37,6 @@ val DEFAULT_PROVIDERS = listOf(
                 text = "NVIDIA NIM：Llama/DeepSeek/Nemotron 等模型"
             )
         },
-        models = listOf(
-            Model(
-                id = DEFAULT_NVIDIA_MODEL_ID,
-                modelId = "deepseek-ai/deepseek-v4-flash-0731",
-                displayName = "DeepSeek V4 Flash (0731)",
-                inputModalities = listOf(Modality.TEXT),
-                outputModalities = listOf(Modality.TEXT),
-                abilities = listOf(ModelAbility.TOOL, ModelAbility.REASONING),
-            ),
         ),
     ),
     ProviderSetting.OpenAI(
