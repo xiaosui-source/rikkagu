@@ -222,7 +222,7 @@ fun buildDouyinMcpTools(
                 "search_channel" to 0,"sort_type" to (o["sort_type"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()?:0),
                 "publish_time" to (o["publish_time"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()?:0),
                 "verifyFp" to "verify_","fp" to "verify_","enable_history" to "1","search_source" to "tab_search")
-            listOf(UIMessagePart.Text(s.api("/aweme/v1/web/general/search/single/", q(params))))
+            listOf(UIMessagePart.Text(s.api("/aweme/v1/web/search/item/", q(params))))
         },
     ))
 
@@ -392,7 +392,7 @@ fun buildDouyinMcpTools(
                         val params=mutableMapOf<String,Any?>("keyword" to kw,"count" to cnt,"offset" to 0,
                 "search_channel" to 0,"sort_type" to 1,"publish_time" to 0,"verifyFp" to "verify_","fp" to "verify_",
                 "enable_history" to "1","search_source" to "tab_search")
-            listOf(UIMessagePart.Text(s.api("/aweme/v1/web/general/search/single/", q(params))))
+            listOf(UIMessagePart.Text(s.api("/aweme/v1/web/search/item/", q(params))))
         },
     ))
 
