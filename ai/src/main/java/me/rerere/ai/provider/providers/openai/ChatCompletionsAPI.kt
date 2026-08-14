@@ -406,32 +406,6 @@ class ChatCompletionsAPI(
         }
 
 
-    /** 模型原生工具调用支持缓存：自动检测结果，避免每次重复探测 */
-    private val nativeToolSupportCache = java.util.concurrent.ConcurrentHashMap<String, Boolean>()
-
-    /** 判断模型是否支持原生工具调用（自动检测+缓存） */
-    private fun supportsNativeTools(modelId: String, host: String): Boolean {
-        val id = modelId.lowercase()
-        // 已知弱模型/弱 host → 不支持原生，直接用提示词式
-        if (isWeakModelId(modelId) || isWeakHost(host)) return false
-        // 缓存结果优先（自动检测过的模型记住结论）
-        nativeToolSupportCache[id]?.let { return it }
-        // 默认假设支持原生（首次尝试，失败后更新缓存为不支持）
-        return true
-    }
-
-    /** 判断弱模型服务 host（免费/受限服务等） */
-    private fun isWeakHost(host: String): Boolean {
-        val h = host.lowercase()
-        return listOf("pollinations", "free", "deepinfra", "atlas", "opencode", "groq")
-            .any { h.contains(it) }
-    }
-
-    /** 标记该模型不支持原生工具调用（请求失败时调用，后续自动用提示词式） */
-    private fun markNativeToolsUnsupported(modelId: String) {
-        nativeToolSupportCache[modelId.lowercase()] = false
-    }
-
     private fun buildChatCompletionRequest(
         messages: List<UIMessage>,
         params: TextGenerationParams,
