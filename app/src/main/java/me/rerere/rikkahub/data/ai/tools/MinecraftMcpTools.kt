@@ -13,6 +13,9 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import me.rerere.ai.core.InputSchema
+import java.io.DataInputStream
+import java.io.DataOutputStream
+import java.net.Socket
 import me.rerere.ai.core.Tool
 import me.rerere.ai.ui.UIMessagePart
 
@@ -44,6 +47,47 @@ private fun saveBotConfig(context: Context, host: String, port: Int, username: S
         .putInt("port", port)
         .putString("username", username)
         .apply()
+}
+
+/** 基岩版 RCON 命令（基岩版服务器支持 RCON over TCP） */
+private fun bedrockRconCommand(host: String, port: Int, password: String, command: String): String {
+    return try {
+        val socket = Socket(host, port)
+        socket.soTimeout = 10000
+        val input = DataInputStream(socket.getInputStream())
+        val output = DataOutputStream(socket.getOutputStream())
+        // 登录
+        val loginBody = password.toByteArray(Charsets.UTF_8)
+        val loginLen = 4 + 4 + loginBody.size + 2
+        val lb = java.io.ByteArrayOutputStream()
+        val ld = DataOutputStream(lb)
+        ld.writeInt(loginLen); ld.writeInt(1); ld.writeInt(3); ld.write(loginBody); ld.writeByte(0); ld.writeByte(0)
+        output.write(lb.toByteArray()); output.flush()
+        readRconPacket(input); readRconPacket(input)
+        // 命令
+        val cmdBody = command.toByteArray(Charsets.UTF_8)
+        val cmdLen = 4 + 4 + cmdBody.size + 2
+        val cb = java.io.ByteArrayOutputStream()
+        val cd = DataOutputStream(cb)
+        cd.writeInt(cmdLen); cd.writeInt(2); cd.writeInt(2); cd.write(cmdBody); cd.writeByte(0); cd.writeByte(0)
+        output.write(cb.toByteArray()); output.flush()
+        val resp = readRconPacket(input)
+        readRconPacket(input)
+        socket.close()
+        resp
+    } catch (e: Exception) {
+        "RCON 错误: ${e.message}"
+    }
+}
+
+private fun readRconPacket(input: DataInputStream): String {
+    val length = input.readInt()
+    if (length < 10) return ""
+    input.readInt(); input.readInt()
+    val bytes = ByteArray(length - 10)
+    input.readFully(bytes)
+    input.readByte(); input.readByte()
+    return bytes.toString(Charsets.UTF_8).trim()
 }
 
 private fun loadProgress(context: Context): String {
@@ -104,21 +148,38 @@ fun buildMinecraftMcpTools(context: Context): List<Tool> = listOf(
     // ===== 机器人连接服务器 =====
     Tool(
         name = "mc_bot_connect",
-        description = "AI 机器人登录 Minecraft 服务器（AI 就是游戏里的机器人）。Params: host(服务器地址), optional port(默认25565), username(机器人名字)",
+        description = "AI 机器人登录 Minecraft 服务器（Java版或基岩版，AI 就是游戏里的机器人）。Params: host(服务器地址), optional port, optional version(java/bedrock，默认java), optional username(机器人名字), optional rcon_password(基岩版RCON密码)",
         needsApproval = false,
         parameters = {
             InputSchema.Obj(properties = buildJsonObject {
                 put("host", buildJsonObject { put("type", "string"); put("description", "服务器地址，如 127.0.0.1 或 192.168.1.100") })
-                put("port", buildJsonObject { put("type", "string"); put("description", "服务器端口，默认 25565") })
+                put("port", buildJsonObject { put("type", "string"); put("description", "端口：Java默认25565，基岩版默认19132/RCON 25575") })
+                put("version", buildJsonObject { put("type", "string"); put("description", "版本：java 或 bedrock，默认 java") })
                 put("username", buildJsonObject { put("type", "string"); put("description", "机器人名字（离线模式），默认 AI_Bot") })
+                put("rcon_password", buildJsonObject { put("type", "string"); put("description", "基岩版 RCON 密码（bedrock 需要）") })
             }, required = listOf("host"))
         },
         execute = { args ->
             val o = args.jsonObject
             val host = o["host"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"host required"}"""))
-            val port = o["port"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: 25565
+            val version = o["version"]?.jsonPrimitive?.contentOrNull ?: "java"
+            val port = o["port"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()
+                ?: if (version == "bedrock") 19132 else 25565
             var username = o["username"]?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() } ?: "AI_Bot"
+            val rconPassword = o["rcon_password"]?.jsonPrimitive?.contentOrNull ?: ""
             saveBotConfig(context, host, port, username)
+
+            // 基岩版：保存 RCON 配置（基岩版用 RCON 操作）
+            if (version == "bedrock") {
+                context.getSharedPreferences("minecraft_mcp", Context.MODE_PRIVATE).edit()
+                    .putString("version", "bedrock")
+                    .putString("rcon_password", rconPassword)
+                    .apply()
+            } else {
+                context.getSharedPreferences("minecraft_mcp", Context.MODE_PRIVATE).edit()
+                    .putString("version", "java")
+                    .apply()
+            }
 
             // 使用已保存的微软 token（mc_bot_msauth 登录）
             val prefs = context.getSharedPreferences("minecraft_mcp", Context.MODE_PRIVATE)
@@ -139,6 +200,32 @@ fun buildMinecraftMcpTools(context: Context): List<Tool> = listOf(
                 put("connected", result.contains("登录成功") || result.contains("连接"))
                 put("result", result)
                 put("tip", "AI 已作为机器人进入服务器（离线模式服务器），可开始玩")
+            }.toString()))
+        },
+    ),
+
+    // ===== 基岩版操作（RCON）=====
+    Tool(
+        name = "mc_bedrock_do",
+        description = "基岩版服务器操作（RCON 命令：移动/放置/召唤/时间/天气等）。Params: command(如 'tp @p 100 64 100'、'weather clear')",
+        needsApproval = true,
+        parameters = {
+            InputSchema.Obj(properties = buildJsonObject {
+                put("command", buildJsonObject { put("type", "string"); put("description", "基岩版命令") })
+            }, required = listOf("command"))
+        },
+        execute = { args ->
+            val o = args.jsonObject
+            val cmd = o["command"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"command required"}"""))
+            val cfg = loadBotConfig(context)
+            val prefs = context.getSharedPreferences("minecraft_mcp", Context.MODE_PRIVATE)
+            val rconPwd = prefs.getString("rcon_password", "") ?: ""
+            val rconPort = 25575 // 基岩版 RCON 默认端口
+            val result = bedrockRconCommand(cfg.host, rconPort, rconPwd, cmd)
+            listOf(UIMessagePart.Text(buildJsonObject {
+                put("command", cmd)
+                put("response", result)
+                put("status", if (result.startsWith("RCON 错误")) "失败" else "成功")
             }.toString()))
         },
     ),
