@@ -69,6 +69,10 @@ import me.rerere.tts.provider.TTSProviderSetting
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import kotlin.uuid.Uuid
+/** 安全反序列化：失败返回默认值（类型从 default 参数推断） */
+private inline fun <reified T> String?.decodeOrNull(default: T): T =
+    this?.let { runCatching { JsonInstant.decodeFromString<T>(it) }.getOrNull() } ?: default
+
 
 private const val TAG = "PreferencesStore"
 
@@ -254,9 +258,7 @@ class SettingsStore(
                 disclaimerAccepted = preferences[DISCLAIMER_ACCEPTED] == true,
                 disclaimerAcceptedAt = preferences[DISCLAIMER_ACCEPTED_AT] ?: 0,
                 enableWebSearch = preferences[ENABLE_WEB_SEARCH] == true,
-                favoriteModels = preferences[FAVORITE_MODELS]?.let {
-                    runCatching { JsonInstant.decodeFromString(it) }.getOrNull()
-                } ?: emptyList(),
+                favoriteModels = preferences[FAVORITE_MODELS].decodeOrNull(emptyList()),
                 chatModelId = preferences[SELECT_MODEL]?.let { Uuid.parse(it) }
                     ?: DEFAULT_NVIDIA_MODEL_ID,
                 titleModelId = preferences[TITLE_MODEL]?.let { Uuid.parse(it) }
@@ -276,9 +278,7 @@ class SettingsStore(
                 compressPrompt = preferences[COMPRESS_PROMPT] ?: DEFAULT_COMPRESS_PROMPT,
                 assistantId = preferences[SELECT_ASSISTANT]?.let { Uuid.parse(it) }
                     ?: DEFAULT_ASSISTANT_ID,
-                assistantTags = preferences[ASSISTANT_TAGS]?.let {
-                    runCatching { JsonInstant.decodeFromString(it) }.getOrNull()
-                } ?: emptyList(),
+                assistantTags = preferences[ASSISTANT_TAGS].decodeOrNull(emptyList()),
                 providers = runCatching {
                     JsonInstant.decodeFromString<List<ProviderSetting>>(preferences[PROVIDERS] ?: "[]")
                 }.getOrDefault(emptyList()),
@@ -287,61 +287,35 @@ class SettingsStore(
                 }.getOrDefault(emptyList()),
                 dynamicColor = preferences[DYNAMIC_COLOR] != false,
                 themeId = preferences[THEME_ID] ?: PresetThemes[0].id,
-                customThemes = preferences[CUSTOM_THEMES]?.let {
-                    runCatching { JsonInstant.decodeFromString(it) }.getOrNull()
-                } ?: emptyList(),
+                customThemes = preferences[CUSTOM_THEMES].decodeOrNull(emptyList()),
                 developerMode = preferences[DEVELOPER_MODE] == true,
                 displaySetting = runCatching {
-                    JsonInstant.decodeFromString<me.rerere.rikkahub.data.model.DisplaySetting>(preferences[DISPLAY_SETTING] ?: "{}")
-                }.getOrDefault(me.rerere.rikkahub.data.model.DisplaySetting()),
-                searchServices = preferences[SEARCH_SERVICES]?.let {
-                    runCatching { JsonInstant.decodeFromString(it) }.getOrNull()
-                } ?: SearchServiceOptions.allDefaults(),
-                searchCommonOptions = preferences[SEARCH_COMMON]?.let {
-                    runCatching { JsonInstant.decodeFromString(it) }.getOrNull()
-                } ?: SearchCommonOptions(),
+                    JsonInstant.decodeFromString<DisplaySetting>(preferences[DISPLAY_SETTING] ?: "{}")
+                }.getOrDefault(DisplaySetting()),
+                searchServices = preferences[SEARCH_SERVICES].decodeOrNull(SearchServiceOptions.allDefaults()),
+                searchCommonOptions = preferences[SEARCH_COMMON].decodeOrNull(SearchCommonOptions()),
                 searchServiceSelected = preferences[SEARCH_SELECTED] ?: 0,
-                mcpServers = preferences[MCP_SERVERS]?.let {
-                    runCatching { JsonInstant.decodeFromString(it) }.getOrNull()
-                } ?: emptyList(),
-                webDavConfig = preferences[WEBDAV_CONFIG]?.let {
-                    runCatching { JsonInstant.decodeFromString(it) }.getOrNull()
-                } ?: WebDavConfig(),
-                s3Config = preferences[S3_CONFIG]?.let {
-                    JsonInstant.decodeFromString(it)
-                } ?: S3Config(),
-                ttsProviders = preferences[TTS_PROVIDERS]?.let {
-                    runCatching { JsonInstant.decodeFromString(it) }.getOrNull()
-                } ?: emptyList(),
+                mcpServers = preferences[MCP_SERVERS].decodeOrNull(emptyList()),
+                webDavConfig = preferences[WEBDAV_CONFIG].decodeOrNull(WebDavConfig()),
+                s3Config = preferences[S3_CONFIG].decodeOrNull(S3Config()),
+                ttsProviders = preferences[TTS_PROVIDERS].decodeOrNull(emptyList()),
                 selectedTTSProviderId = preferences[SELECTED_TTS_PROVIDER]?.let { Uuid.parse(it) }
                     ?: DEFAULT_SYSTEM_TTS_ID,
-                asrProviders = preferences[ASR_PROVIDERS]?.let {
-                    runCatching { JsonInstant.decodeFromString(it) }.getOrNull()
-                } ?: DEFAULT_ASR_PROVIDERS,
+                asrProviders = preferences[ASR_PROVIDERS].decodeOrNull(DEFAULT_ASR_PROVIDERS),
                 selectedASRProviderId = preferences[SELECTED_ASR_PROVIDER]?.let { Uuid.parse(it) }
                     ?: DEFAULT_SYSTEM_ASR_ID,
-                modeInjections = preferences[MODE_INJECTIONS]?.let {
-                    runCatching { JsonInstant.decodeFromString(it) }.getOrNull()
-                } ?: emptyList(),
-                lorebooks = preferences[LOREBOOKS]?.let {
-                    runCatching { JsonInstant.decodeFromString(it) }.getOrNull()
-                } ?: emptyList(),
-                quickMessages = preferences[QUICK_MESSAGES]?.let {
-                    runCatching { JsonInstant.decodeFromString(it) }.getOrNull()
-                } ?: emptyList(),
+                modeInjections = preferences[MODE_INJECTIONS].decodeOrNull(emptyList()),
+                lorebooks = preferences[LOREBOOKS].decodeOrNull(emptyList()),
+                quickMessages = preferences[QUICK_MESSAGES].decodeOrNull(emptyList()),
                 webServerEnabled = preferences[WEB_SERVER_ENABLED] == true,
                 webServerPort = preferences[WEB_SERVER_PORT] ?: 8080,
                 webServerJwtEnabled = preferences[WEB_SERVER_JWT_ENABLED] == true,
                 webServerAccessPassword = preferences[WEB_SERVER_ACCESS_PASSWORD] ?: "",
                 webServerLocalhostOnly = preferences[WEB_SERVER_LOCALHOST_ONLY] == true,
-                backupReminderConfig = preferences[BACKUP_REMINDER_CONFIG]?.let {
-                    runCatching { JsonInstant.decodeFromString(it) }.getOrNull()
-                } ?: BackupReminderConfig(),
+                backupReminderConfig = preferences[BACKUP_REMINDER_CONFIG].decodeOrNull(BackupReminderConfig()),
                 launchCount = preferences[LAUNCH_COUNT] ?: 0,
                 sponsorAlertDismissedAt = preferences[SPONSOR_ALERT_DISMISSED_AT] ?: 0,
-                systemToolsSetting = preferences[SYSTEM_TOOLS_SETTING]?.let {
-                    runCatching { JsonInstant.decodeFromString(it) }.getOrNull()
-                } ?: SystemToolsSetting(),
+                systemToolsSetting = preferences[SYSTEM_TOOLS_SETTING].decodeOrNull(SystemToolsSetting()),
                 phoneFolderUri = preferences[PHONE_FOLDER_URI],
                 todos = preferences[TODOS]?.let {
                     runCatching { JsonInstant.decodeFromString<List<me.rerere.rikkahub.data.ai.tools.TodoItem>>(it) }.getOrDefault(emptyList())
@@ -355,12 +329,8 @@ class SettingsStore(
                 ),
                 keepAliveEnabled = preferences[KEEP_ALIVE_ENABLED] == true,
                 offlineOcrEnabled = preferences[OFFLINE_OCR_ENABLED] != false,
-                externalMemories = preferences[EXTERNAL_MEMORIES]?.let {
-                    runCatching { JsonInstant.decodeFromString(it) }.getOrNull()
-                } ?: emptyList(),
-                miniApps = preferences[MINI_APPS]?.let {
-                    runCatching { JsonInstant.decodeFromString(it) }.getOrNull()
-                } ?: emptyList(),
+                externalMemories = preferences[EXTERNAL_MEMORIES].decodeOrNull(emptyList()),
+                miniApps = preferences[MINI_APPS].decodeOrNull(emptyList()),
                 forceConfirmToolCalls = preferences[FORCE_CONFIRM_TOOL_CALLS] != false,
                 workflowHeadlessBlockSensitive = preferences[WORKFLOW_HEADLESS_BLOCK_SENSITIVE] != false,
                 autoApproveAllTools = preferences[AUTO_APPROVE_ALL_TOOLS] == true,
