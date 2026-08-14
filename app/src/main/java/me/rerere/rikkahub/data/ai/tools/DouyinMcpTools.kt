@@ -183,19 +183,16 @@ fun buildDouyinMcpTools(
             },required=listOf("cookie")) },
             execute={ args ->
                 val c = args.jsonObject["cookie"]?.jsonPrimitive?.contentOrNull ?: error("cookie required")
-                // 保存到沙箱
+                // 保存到 App 内部存储（不依赖工作区）
                 try {
-                    workspaceRepository.executeCommand(
-                        "default",
-                        """mkdir -p ~/.config/douyinmcp && echo '$c' > ~/.config/douyinmcp/cookies.txt""",
-                        timeoutMillis = 5000
-                    )
+                    val dir = java.io.File(context.filesDir, "douyinmcp").apply { mkdirs() }
+                    java.io.File(dir, "cookies.txt").writeText(c)
                 } catch(e: Exception) {}
                 listOf(UIMessagePart.Text(buildJsonObject{
                     put("saved",true)
                     put("length",c.length)
                     put("has_sessionid",c.contains("sessionid"))
-                    put("message","Cookie已保存到沙箱")
+                    put("message","Cookie已保存")
                 }.toString()))
             },
         ))

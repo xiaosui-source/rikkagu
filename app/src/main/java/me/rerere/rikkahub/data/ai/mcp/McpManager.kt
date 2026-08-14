@@ -190,47 +190,15 @@ class McpManager(
         if ("files" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.buildFilesMcpTools()
         }
-        if ("shannon" in enabled) {
-            list += me.rerere.rikkahub.data.ai.tools.buildShannonPentestTools(
-                workspaceRepository = workspaceRepository,
-                getApiKey = {
-                    val model = settings.getCurrentChatModel()
-                    model?.findProvider(settings.providers)?.let { provider ->
-                        when (provider) {
-                            is me.rerere.ai.provider.ProviderSetting.OpenAI -> provider.apiKey
-                            is me.rerere.ai.provider.ProviderSetting.Google -> provider.apiKey
-                            is me.rerere.ai.provider.ProviderSetting.Claude -> provider.apiKey
-                            else -> null
-                        }
-                    }
-                },
-                getBaseUrl = {
-                    val model = settings.getCurrentChatModel()
-                    model?.findProvider(settings.providers)?.let { provider ->
-                        when (provider) {
-                            is me.rerere.ai.provider.ProviderSetting.OpenAI -> provider.baseUrl
-                            is me.rerere.ai.provider.ProviderSetting.Google -> provider.baseUrl
-                            is me.rerere.ai.provider.ProviderSetting.Claude -> provider.baseUrl
-                            else -> null
-                        }
-                    }
-                },
-            )
-        }
         if ("douyin" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.buildDouyinWebTools(context)
             list += me.rerere.rikkahub.data.ai.tools.buildDouyinMcpTools(
                 context = context,
                 getCookie = {
-                    kotlinx.coroutines.runBlocking {
-                        try {
-                            workspaceRepository.executeCommand(
-                                "default",
-                                "cat ~/.config/douyinmcp/cookies.txt 2>/dev/null || echo ''",
-                                timeoutMillis = 5000
-                            ).stdout.trim()
-                        } catch (e: Exception) { "" }
-                    }
+                    // 从 App 内部存储读取抖音 Cookie（不依赖工作区）
+                    try {
+                        java.io.File(context.filesDir, "douyinmcp/cookies.txt").takeIf { it.exists() }?.readText()?.trim() ?: ""
+                    } catch (e: Exception) { "" }
                 },
                 workspaceRepository = workspaceRepository,
                 appEventBus = appEventBus,
@@ -238,9 +206,6 @@ class McpManager(
         }
         if ("12306" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.buildTicket12306McpTools()
-        }
-        if ("apk" in enabled) {
-            list += me.rerere.rikkahub.data.ai.tools.buildApkReverseMcpTools(workspaceRepository)
         }
         if ("http" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.buildHttpExecuteMcpTools()
@@ -285,39 +250,8 @@ class McpManager(
     /** 内置 MCP 服务器信息（用于 MCP 管理界面显示）—— 移植自 Kelivo 全部 6 个引擎 */
     fun getBuiltinServerInfos(): List<Pair<me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo, Int>> {
         val settings = settingsStore.settingsFlow.value
-        val shannonTools = me.rerere.rikkahub.data.ai.tools.buildShannonPentestTools(
-            workspaceRepository = workspaceRepository,
-            getApiKey = {
-                val model = settings.getCurrentChatModel()
-                model?.findProvider(settings.providers)?.let { provider ->
-                    when (provider) {
-                        is me.rerere.ai.provider.ProviderSetting.OpenAI -> provider.apiKey
-                        is me.rerere.ai.provider.ProviderSetting.Google -> provider.apiKey
-                        is me.rerere.ai.provider.ProviderSetting.Claude -> provider.apiKey
-                        else -> null
-                    }
-                }
-            },
-            getBaseUrl = {
-                val model = settings.getCurrentChatModel()
-                model?.findProvider(settings.providers)?.let { provider ->
-                    when (provider) {
-                        is me.rerere.ai.provider.ProviderSetting.OpenAI -> provider.baseUrl
-                        is me.rerere.ai.provider.ProviderSetting.Google -> provider.baseUrl
-                        is me.rerere.ai.provider.ProviderSetting.Claude -> provider.baseUrl
-                        else -> null
-                    }
-                }
-            },
-        )
-        return listOf(
-            me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
-                id = "builtin-shannon",
-                name = "Shannon AI Pentester 🛡️",
-                description = "内置 AI 渗透测试：攻击面映射/OWASP漏洞扫描/利用验证/安全报告（源自 KeygraphHQ/shannon AGPL-3.0）",
-                toolCount = shannonTools.size,
-            ) to 1,
-            me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
+                return listOf(
+                        me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
                 id = "builtin-douyin",
                 name = "抖音 MCP 🎵",
                 description = "内置抖音工具：全自动隐形WebView会话（AI自动抓取搜索/推荐/视频/用户 + 登录后自动发评论/点赞/发视频，无需用户手机操作）",
@@ -329,13 +263,7 @@ class McpManager(
                 description = "内置12306查票/中转/经停站/跨站/车站代码查询（源自 Joooook/12306-mcp）",
                 toolCount = 6,
             ) to 1,
-            me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
-                id = "builtin-apk",
-                name = "APK 逆向 MCP 🔧",
-                description = "内置 apktool 解码/打包 + jadx 反编译：读 smali/Java源码/Manifest/资源/搜索/分析",
-                toolCount = 12,
-            ) to 1,
-            me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
+                        me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
                 id = "builtin-http",
                 name = "HTTP 请求 MCP 🌐",
                 description = "内置通用HTTP请求工具：支持GET/POST/PUT/DELETE/PATCH + 自定义Header/Body",
