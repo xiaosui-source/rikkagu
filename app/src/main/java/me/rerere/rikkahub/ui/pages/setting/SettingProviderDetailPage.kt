@@ -602,7 +602,10 @@ private fun ModelList(
                     Text("多选")
                 }
                 AddModelButton(
-                    models = modelList,
+                    // 合并模型列表：软件内置模型优先 + API 拉取的补充（同 modelId 去重，内置没有的用 API 的）
+                    models = providerSetting.models + modelList.filter { apiModel ->
+                        providerSetting.models.none { it.modelId == apiModel.modelId }
+                    },
                     selectedModels = providerSetting.models,
                     onAddModel = {
                         onUpdateProvider(providerSetting.addModel(it))
