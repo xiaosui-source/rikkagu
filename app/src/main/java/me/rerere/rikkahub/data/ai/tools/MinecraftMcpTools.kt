@@ -61,6 +61,32 @@ private fun saveProgress(context: Context, text: String) {
 private var botSession: MinecraftBotClient? = null
 
 fun buildMinecraftMcpTools(context: Context): List<Tool> = listOf(
+    // ===== 微软账号登录 =====
+    Tool(
+        name = "mc_bot_msauth",
+        description = "微软账号登录（online-mode 服务器需要）。生成设备码：用户打开验证页面输入代码确认后，AI 机器人即可用正版账号进服务器。",
+        needsApproval = false,
+        parameters = { InputSchema.Obj(properties = buildJsonObject { }) },
+        execute = {
+            val auth = MinecraftMicrosoftAuth()
+            val deviceCode = auth.requestDeviceCode()
+            // 保存设备码，提示用户确认
+            context.getSharedPreferences("minecraft_mcp", Context.MODE_PRIVATE).edit()
+                .putString("device_code", deviceCode.deviceCode)
+                .putLong("device_interval", deviceCode.interval)
+                .apply()
+            listOf(
+                UIMessagePart.Text(buildJsonObject {
+                    put("action", "👉 请打开微软登录页面确认")
+                    put("verification_uri", deviceCode.verificationUri)
+                    put("user_code", deviceCode.userCode)
+                    put("step", "打开上面的网址，输入代码 $ {deviceCode.userCode} 确认登录")
+                    put("tip", "确认后调用 mc_bot_connect 完成登录（自动获取正版账号）")
+                }.toString())
+            )
+        },
+    ),
+
     // ===== 机器人连接服务器 =====
     Tool(
         name = "mc_bot_connect",
@@ -77,12 +103,30 @@ fun buildMinecraftMcpTools(context: Context): List<Tool> = listOf(
             val o = args.jsonObject
             val host = o["host"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"host required"}"""))
             val port = o["port"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: 25565
-            val username = o["username"]?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() } ?: "AI_Bot"
+            var username = o["username"]?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() } ?: "AI_Bot"
             saveBotConfig(context, host, port, username)
+
+            // 尝试用微软 token（如果已设备码确认）
+            val prefs = context.getSharedPreferences("minecraft_mcp", Context.MODE_PRIVATE)
+            var msToken: String? = null
+            val deviceCode = prefs.getString("device_code", null)
+            if (deviceCode != null) {
+                try {
+                    val auth = MinecraftMicrosoftAuth()
+                    val interval = prefs.getLong("device_interval", 5)
+                    val result = auth.authenticate(deviceCode, interval)
+                    msToken = result.accessToken
+                    // 用微软账号用户名
+                    if (result.username.isNotBlank()) username = result.username
+                    prefs.edit().remove("device_code").apply()
+                } catch (e: Exception) {
+                    // token 获取失败（用户未确认），继续用离线名
+                }
+            }
 
             // 断开旧连接
             botSession?.disconnect()
-            val bot = MinecraftBotClient(host, port, username)
+            val bot = MinecraftBotClient(host, port, username, msToken)
             val result = bot.connect()
             if (result.contains("登录成功") || result.contains("连接")) {
                 botSession = bot

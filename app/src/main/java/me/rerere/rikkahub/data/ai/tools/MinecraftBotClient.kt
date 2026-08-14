@@ -24,6 +24,7 @@ class MinecraftBotClient(
     private val host: String,
     private val port: Int,
     private val username: String,
+    private val accessToken: String? = null,
 ) {
     private var socket: Socket? = null
     private var input: DataInputStream? = null
@@ -49,11 +50,17 @@ class MinecraftBotClient(
             hs.flush()
             writePacket(handshakePayload.toByteArray())
 
-            // 2. Login Start (0x00)
+            // 2. Login Start (0x00)，微软登录时带 access token
             val loginPayload = java.io.ByteArrayOutputStream()
             val ls = DataOutputStream(loginPayload)
             writeVarInt(ls, 0x00)
             writeString(ls, username)
+            ls.writeLong(0L) // timestamp (protocol 759+)
+            ls.writeLong(0L) // public key (protocol 759+)
+            writeString(ls, "") // UUID (protocol 759+)
+            if (accessToken != null) {
+                writeString(ls, accessToken) // 微软 token（online-mode 服务器校验）
+            }
             ls.flush()
             writePacket(loginPayload.toByteArray())
 
