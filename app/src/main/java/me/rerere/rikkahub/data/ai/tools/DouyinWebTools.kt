@@ -59,7 +59,8 @@ fun buildDouyinWebTools(context: Context): List<Tool> {
                     "general" -> "general_search"
                     else -> "aweme_video"
                 }
-                val query = "keyword=$enc&count=$count&search_channel=$channel&search_type=$stype&sort_type=0&publish_time=0&search_source=tab_search&query_correct_type=1&is_filter_search=0&offset=0&need_filter_settings=1"
+                // aid=6383 为抖音 web 应用标识，缺了会返回 invalid_app
+                val query = "aid=6383&device_platform=webapp&keyword=$enc&count=$count&search_channel=$channel&search_type=$stype&sort_type=0&publish_time=0&search_source=tab_search&query_correct_type=1&is_filter_search=0&offset=0&need_filter_settings=1"
                 val result = s.api("/aweme/v1/web/search/item/", query)
                 listOf(UIMessagePart.Text(result.take(12000)))
             },
@@ -78,7 +79,7 @@ fun buildDouyinWebTools(context: Context): List<Tool> {
             execute = { args ->
                 val o = args.jsonObject
                 val count = o["count"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: 10
-                val result = s.api("/aweme/v1/web/tab/feed/", "count=$count&channel=channel_pc_web")
+                val result = s.api("/aweme/v1/web/tab/feed/", "aid=6383&device_platform=webapp&count=$count&channel=channel_pc_web")
                 listOf(UIMessagePart.Text(result.take(12000)))
             },
         ),
@@ -96,7 +97,7 @@ fun buildDouyinWebTools(context: Context): List<Tool> {
             execute = { args ->
                 val o = args.jsonObject
                 val id = o["aweme_id"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"aweme_id required"}"""))
-                val result = s.api("/aweme/v1/web/aweme/detail/", "aweme_id=$id")
+                val result = s.api("/aweme/v1/web/aweme/detail/", "aid=6383&device_platform=webapp&aweme_id=$id")
                 listOf(UIMessagePart.Text(result.take(12000)))
             },
         ),
@@ -114,7 +115,7 @@ fun buildDouyinWebTools(context: Context): List<Tool> {
             execute = { args ->
                 val o = args.jsonObject
                 val uid = o["sec_user_id"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"sec_user_id required"}"""))
-                val result = s.api("/aweme/v1/web/user/profile/other/", "sec_user_id=$uid")
+                val result = s.api("/aweme/v1/web/user/profile/other/", "aid=6383&device_platform=webapp&sec_user_id=$uid")
                 listOf(UIMessagePart.Text(result.take(12000)))
             },
         ),
@@ -132,7 +133,7 @@ fun buildDouyinWebTools(context: Context): List<Tool> {
             execute = { args ->
                 val o = args.jsonObject
                 val count = o["count"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: 20
-                val result = s.api("/aweme/v1/web/hot/search/list/", "detail_list=1&count=$count")
+                val result = s.api("/aweme/v1/web/hot/search/list/", "aid=6383&device_platform=webapp&detail_list=1&count=$count")
                 listOf(UIMessagePart.Text(result.take(12000)))
             },
         ),
