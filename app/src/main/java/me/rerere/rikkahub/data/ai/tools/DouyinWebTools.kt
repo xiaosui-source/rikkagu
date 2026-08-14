@@ -53,7 +53,13 @@ fun buildDouyinWebTools(context: Context): List<Tool> {
                 val count = o["count"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: 10
                 val stype = o["search_type"]?.jsonPrimitive?.contentOrNull ?: "video"
                 val enc = URLEncoder.encode(kw, "UTF-8")
-                val query = "keyword=$enc&count=$count&search_channel=$stype&search_type=$stype&sort_type=0&publish_time=0"
+                // 对齐抖音 web 端搜索接口参数（避免 params_check）
+                val channel = when (stype) {
+                    "user" -> "aweme_user"
+                    "general" -> "general_search"
+                    else -> "aweme_video"
+                }
+                val query = "keyword=$enc&count=$count&search_channel=$channel&search_type=$stype&sort_type=0&publish_time=0&search_source=tab_search&query_correct_type=1&is_filter_search=0&offset=0&need_filter_settings=1"
                 val result = s.api("/aweme/v1/web/search/item/", query)
                 listOf(UIMessagePart.Text(result.take(12000)))
             },
