@@ -126,23 +126,4 @@ val DEFAULT_PROVIDERS = listOf(
         builtIn = true,
         // 不内置模型：模型从软件手动添加或 API(listModels) 拉取
     ),
-    me.rerere.ai.provider.ProviderSetting.LocalModel(
-        id = Uuid.parse("f0e1d2c3-b4a5-4e6f-8d7c-9b8a7f6e5d4c"),
-        name = "本地模型",
-        enabled = false,
-        builtIn = true,
-        // 软件内置 ONNX 推理（onnxruntime-genai），不依赖 Ollama/服务/云端/API Key，
-        // 模型文件放 files/models/{modelDir}/，直接用软件代码本地推理
-        modelDir = "local",
-        models = listOf(
-            me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5e"),
-                modelId = "glm-5.2",
-                displayName = "GLM 5.2",
-                inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-                outputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-                abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
-            ),
-        ),
-    ),
 )
