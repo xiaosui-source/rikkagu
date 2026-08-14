@@ -406,6 +406,15 @@ class ChatCompletionsAPI(
         }
 
 
+    /** 判断弱模型 id（lite/mini/nano/tiny/small/light/compact 等），弱模型不传原生 tools */
+    private fun isWeakModelId(modelId: String): Boolean {
+        val id = modelId.lowercase()
+        return listOf(
+            "lite", "mini", "nano", "tiny", "small", "light", "compact", "micro",
+            "1.5-nano", "4-mini", "qwen-turbo", "moonshot-lite", "glm-lite",
+        ).any { id.contains(it) }
+    }
+
     private fun buildChatCompletionRequest(
         messages: List<UIMessage>,
         params: TextGenerationParams,
@@ -415,8 +424,11 @@ class ChatCompletionsAPI(
         val host = providerSetting.baseUrl.toHttpUrl().host
 
         // 强制原生工具调用：只要传入工具就用标准 tools 参数（原生 function calling）
+        // 弱模型（lite/mini 等不支持原生）不传 tools 参数——避免模型把工具描述
+        // 当'能力列表'回复；弱模型工具由客户端兜底（ToolRouter）自动调用
         val hasTools = params.tools.isNotEmpty()
-        val useNativeTools = hasTools
+        val isWeak = isWeakModelId(params.model.modelId)
+        val useNativeTools = hasTools && !isWeak
         val usePromptTools = false
         val effectivePromptToolCalling = false
 
