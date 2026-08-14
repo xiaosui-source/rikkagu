@@ -42,11 +42,11 @@ data class Assistant(
     val customHeaders: List<CustomHeader> = emptyList(),
     val customBodies: List<CustomBody> = emptyList(),
     val mcpServers: Set<Uuid> = emptySet(),
-    // 启用的内置 MCP 工具组 id（全部默认启用）
+    // 启用的内置 MCP 工具组 id（全部默认启用，剩余 MCP 全开）
     val builtinMcpIds: Set<String> = setOf(
-        "douyin", "files", "memory", "github", "analyzer", "shannon",
-        "12306", "apk", "http", "firecrawl", "context7", "playwright",
-        "supabase", "figma", "xingce", "filesystem",
+        "douyin", "files", "memory",
+        "12306", "http", "firecrawl", "context7",
+        "supabase", "xingce", "filesystem",
     ),
     val localTools: List<LocalToolOption> = listOf(LocalToolOption.TimeInfo),
     val workspaceId: Uuid? = null,
