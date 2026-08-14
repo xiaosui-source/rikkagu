@@ -386,14 +386,19 @@ private fun ModelList(
     val toaster = LocalToaster.current
     val scope = rememberCoroutineScope()
     val modelList by produceState(emptyList(), providerSetting) {
+        // 预置模型（DefaultProviders 里的 lite 等）始终显示 + API 拉取模型合并
+        val preset = providerSetting.models
         runCatching {
             println("loading models...")
-            value = providerManager.getProviderByType(providerSetting)
+            val apiModels = providerManager.getProviderByType(providerSetting)
                 .listModels(providerSetting)
+            value = (preset + apiModels)
+                .distinctBy { it.modelId }
                 .sortedBy { it.modelId }
                 .toList()
         }.onFailure {
-            it.printStackTrace()
+            // API 拉取失败（如未配 Key）：仍显示预置模型
+            value = preset.distinctBy { it.modelId }.sortedBy { it.modelId }.toList()
         }
     }
     var expanded by rememberSaveable { mutableStateOf(true) }
