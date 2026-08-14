@@ -623,13 +623,6 @@ class GenerationHandler(
                     append(buildCodeBlockPrompt())
                 }
  
-                // 工具prompt（弱模型跳过长工具说明，避免指令回显）
-                if (!isWeakModel(model, provider)) {
-                    tools.forEach { tool ->
-                        appendLine()
-                        append(tool.systemPrompt(model, messages))
-                    }
-                }
  
                 // 插件提示词注入
                 if (pluginPromptInjections.isNotEmpty()) {
