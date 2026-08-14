@@ -398,6 +398,13 @@ private fun ModelList(
             value = providerSetting.models
         }
     }
+    // 有效模型：API 拉取成功时只显示 API 里有的（内置但 API 没有的用不了，不显示）；
+    // API 拉取失败时显示内置模型兜底
+    val displayModels = if (modelList.isNotEmpty()) {
+        providerSetting.models.filter { m -> modelList.any { it.modelId == m.modelId } }
+    } else {
+        providerSetting.models
+    }
     var expanded by rememberSaveable { mutableStateOf(true) }
     // 多选模式：勾选多个模型后可批量测试 / 批量删除
     var selectionMode by rememberSaveable { mutableStateOf(false) }
@@ -473,7 +480,7 @@ private fun ModelList(
             state = lazyListState
         ) {
             // 模型列表
-            if (providerSetting.models.isEmpty()) {
+            if (displayModels.isEmpty()) {
                 item {
                     Column(
                         modifier = Modifier
@@ -495,7 +502,7 @@ private fun ModelList(
                     }
                 }
             } else {
-                items(providerSetting.models, key = { it.id }) { item ->
+                items(displayModels, key = { it.id }) { item ->
                     ReorderableItem(
                         state = reorderableLazyListState,
                         key = item.id
