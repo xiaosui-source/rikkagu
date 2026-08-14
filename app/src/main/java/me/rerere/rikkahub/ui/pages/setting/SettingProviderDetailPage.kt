@@ -397,8 +397,12 @@ private fun ModelList(
             value = providerSetting.models
         }
     }
+    // 内置 + API 一起显示，但 API 里没有的内置模型不显示（用不了）；
+    // API 拉取失败时显示内置兜底
     val displayModels = if (modelList.isNotEmpty()) {
-        (providerSetting.models + modelList).distinctBy { it.modelId }
+        (providerSetting.models + modelList)
+            .distinctBy { it.modelId }
+            .filter { m -> modelList.any { it.modelId == m.modelId } }
     } else {
         providerSetting.models
     }
