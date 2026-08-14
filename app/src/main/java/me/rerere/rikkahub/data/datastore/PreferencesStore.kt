@@ -254,6 +254,7 @@ class SettingsStore(
                 throw exception
             }
         }.map { preferences ->
+            runCatching {
             Settings(
                 disclaimerAccepted = preferences[DISCLAIMER_ACCEPTED] == true,
                 disclaimerAcceptedAt = preferences[DISCLAIMER_ACCEPTED_AT] ?: 0,
@@ -335,6 +336,7 @@ class SettingsStore(
                 workflowHeadlessBlockSensitive = preferences[WORKFLOW_HEADLESS_BLOCK_SENSITIVE] != false,
                 autoApproveAllTools = preferences[AUTO_APPROVE_ALL_TOOLS] == true,
             )
+            }.getOrElse { Settings(providers = DEFAULT_PROVIDERS) }
         }
         .map {
             var providers = it.providers.ifEmpty { DEFAULT_PROVIDERS }.toMutableList()
