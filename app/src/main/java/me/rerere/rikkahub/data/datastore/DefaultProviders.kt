@@ -27,16 +27,7 @@ val DEFAULT_PROVIDERS = listOf(
         apiKey = "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",
         enabled = true,
         builtIn = true,
-        models = listOf(
-me.rerere.ai.provider.Model(
-            id = kotlin.uuid.Uuid.parse("6d3b9c2e-7a4f-4c8d-b2e1-9e0f1a2b3c4d"),
-            modelId = "deepseek-ai/deepseek-r1",
-            displayName = "DeepSeek R1",
-            inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-            outputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-            abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
-        ),
-        )
+        models = emptyList()
         description = {
             Text(
                 text = "NVIDIA NIM 平台，提供 Llama、DeepSeek、Nemotron、Qwen 等最新开源大模型的托管推理服务。OpenAI 兼容接口。"
@@ -54,16 +45,7 @@ me.rerere.ai.provider.Model(
         baseUrl = "https://api.openai.com/v1",
         apiKey = "",
         builtIn = true,
-        models = listOf(
-me.rerere.ai.provider.Model(
-            id = kotlin.uuid.Uuid.parse("00000000-0000-0000-6000-000000000011"),
-            modelId = "gpt-4o",
-            displayName = "GPT-4o",
-            inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-            outputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-            abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
-        ),
-        )
+        models = emptyList()
     ),
     ProviderSetting.Google(
         id = Uuid.parse("6ab18148-c138-4394-a46f-1cd8c8ceaa6d"),
@@ -71,16 +53,7 @@ me.rerere.ai.provider.Model(
         apiKey = "",
         enabled = true,
         builtIn = true,
-        models = listOf(
-me.rerere.ai.provider.Model(
-            id = kotlin.uuid.Uuid.parse("00000000-0000-0000-6000-000000000021"),
-            modelId = "gemini-2.0-flash",
-            displayName = "Gemini 2.0 Flash",
-            inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-            outputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-            abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
-        ),
-        )
+        models = emptyList()
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("56a94d29-c88b-41c5-8e09-38a7612d6cf8"),
@@ -88,16 +61,7 @@ me.rerere.ai.provider.Model(
         baseUrl = "https://api.siliconflow.cn/v1",
         apiKey = "",
         builtIn = true,
-        models = listOf(
-me.rerere.ai.provider.Model(
-            id = kotlin.uuid.Uuid.parse("00000000-0000-0000-6000-000000000031"),
-            modelId = "Qwen/Qwen2.5-72B-Instruct",
-            displayName = "Qwen2.5 72B",
-            inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-            outputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-            abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
-        ),
-        )
+        models = emptyList()
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("f099ad5b-ef03-446d-8e78-7e36787f780b"),
@@ -105,16 +69,7 @@ me.rerere.ai.provider.Model(
         baseUrl = "https://api.deepseek.com/v1",
         apiKey = "",
         builtIn = true,
-        models = listOf(
-me.rerere.ai.provider.Model(
-            id = kotlin.uuid.Uuid.parse("00000000-0000-0000-6000-000000000041"),
-            modelId = "deepseek-chat",
-            displayName = "DeepSeek Chat",
-            inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-            outputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-            abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
-        ),
-        )
+        models = emptyList()
         balanceOption = BalanceOption(
             enabled = true,
             apiPath = "/user/balance",
@@ -128,16 +83,7 @@ me.rerere.ai.provider.Model(
         apiKey = "",
         enabled = false,
         builtIn = true,
-        models = listOf(
-me.rerere.ai.provider.Model(
-            id = kotlin.uuid.Uuid.parse("00000000-0000-0000-6000-000000000051"),
-            modelId = "qwen-plus",
-            displayName = "通义千问 Plus",
-            inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-            outputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-            abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
-        ),
-        )
+        models = emptyList()
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("3dfd6f9b-f9d9-417f-80c1-ff8d77184191"),
@@ -146,16 +92,7 @@ me.rerere.ai.provider.Model(
         apiKey = "",
         enabled = false,
         builtIn = true,
-        models = listOf(
-me.rerere.ai.provider.Model(
-            id = kotlin.uuid.Uuid.parse("00000000-0000-0000-6000-000000000061"),
-            modelId = "doubao-pro-32k",
-            displayName = "豆包 Pro 32K",
-            inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-            outputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-            abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
-        ),
-        )
+        models = emptyList()
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("3bc40dc1-b11a-46fa-863b-6306971223be"),
@@ -164,16 +101,7 @@ me.rerere.ai.provider.Model(
         apiKey = "",
         enabled = false,
         builtIn = true,
-        models = listOf(
-me.rerere.ai.provider.Model(
-            id = kotlin.uuid.Uuid.parse("00000000-0000-0000-6000-000000000071"),
-            modelId = "glm-4-plus",
-            displayName = "GLM-4 Plus",
-            inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-            outputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-            abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
-        ),
-        )
+        models = emptyList()
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("ef5d149b-8e34-404b-818c-6ec242e5c3c5"),
@@ -182,16 +110,7 @@ me.rerere.ai.provider.Model(
         apiKey = "",
         enabled = false,
         builtIn = true,
-        models = listOf(
-me.rerere.ai.provider.Model(
-            id = kotlin.uuid.Uuid.parse("00000000-0000-0000-6000-000000000081"),
-            modelId = "hunyuan-turbo",
-            displayName = "混元 Turbo",
-            inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-            outputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-            abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
-        ),
-        )
+        models = emptyList()
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d"),
@@ -200,23 +119,7 @@ me.rerere.ai.provider.Model(
         apiKey = "",
         enabled = false,
         builtIn = true,
-        models = listOf(
-me.rerere.ai.provider.Model(
-            id = kotlin.uuid.Uuid.parse("00000000-0000-0000-6000-000000000091"),
-            modelId = "spark-lite",
-            displayName = "星火 Lite",
-            inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-            outputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-            abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
-        ),
-me.rerere.ai.provider.Model(
-            id = kotlin.uuid.Uuid.parse("00000000-0000-0000-6000-000000000093"),
-            modelId = "spark-max",
-            displayName = "星火 Max",
-            inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-            outputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-            abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
-        ),
+        models = emptyList()
         )
         // 内置模型：星火 Lite/Pro/Max/4.0 Ultra（Lite 为轻量模型，自动走提示词式工具调用）
     ),
