@@ -96,15 +96,18 @@ fun buildDouyinMcpTools(
                         UIMessagePart.Image(url = qrImage),
                     )
                 } else {
-                    // 不打开浏览器：再重试一次提取
-                    val retry = extractQrFromPage(context, "$DY/login")
-                    if (retry != null) {
+                    // 截图整个登录页兜底（二维码在页面里，截图后扫码）
+                    val shot = captureQrPage(context, "$DY/login")
+                    if (shot != null) {
                         listOf(
                             UIMessagePart.Text(buildJsonObject{
                                 put("action","👉 请用手机抖音APP扫描下方二维码登录")
-                                put("tip","扫码后自动登录")
+                                put("step1","打开手机抖音")
+                                put("step2","点击右上角『扫一扫』图标")
+                                put("step3","扫描下方二维码，手机确认后自动完成登录")
+                                put("tip","若二维码未在图片中显示，可再试一次")
                             }.toString()),
-                            UIMessagePart.Image(url = retry),
+                            UIMessagePart.Image(url = shot),
                         )
                     } else {
                         listOf(UIMessagePart.Text(
@@ -497,6 +500,48 @@ private suspend fun extractQrFromPage(context: android.content.Context, url: Str
             val result = withTimeoutOrNull(25000) { deferred.await() }
             destroySafe()
             result
+        }.getOrNull()
+    }
+}
+
+/** 截图抖音登录页（兜底：提取不到二维码元素时，截图整个页面显示，用户扫码截图里的二维码） */
+private suspend fun captureQrPage(context: android.content.Context, url: String): String? {
+    return withContext(Dispatchers.Main) {
+        runCatching {
+            val webView = WebView(context.applicationContext)
+            webView.settings.javaScriptEnabled = true
+            webView.settings.domStorageEnabled = true
+            webView.settings.loadWithOverviewMode = true
+            webView.settings.useWideViewPort = true
+            webView.settings.userAgentString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/122.0.0.0 Safari/537.36"
+            val width = 720
+            val height = 1000
+            webView.layout(0, 0, width, height)
+            webView.measure(
+                android.view.View.MeasureSpec.makeMeasureSpec(width, android.view.View.MeasureSpec.EXACTLY),
+                android.view.View.MeasureSpec.makeMeasureSpec(height, android.view.View.MeasureSpec.EXACTLY)
+            )
+
+            val loaded = CompletableDeferred<Boolean>()
+            webView.webViewClient = object : WebViewClient() {
+                override fun onPageFinished(view: WebView?, url: String?) {
+                    if (!loaded.isCompleted) loaded.complete(true)
+                }
+            }
+            webView.loadUrl(url)
+            withTimeoutOrNull(20000) { loaded.await() }
+
+            // 再等 5 秒让二维码渲染
+            kotlinx.coroutines.delay(5000)
+
+            val bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            webView.draw(Canvas(bmp))
+            webView.destroy()
+
+            val stream = java.io.ByteArrayOutputStream()
+            bmp.compress(Bitmap.CompressFormat.JPEG, 90, stream)
+            val bytes = stream.toByteArray()
+            "data:image/jpeg;base64," + android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP)
         }.getOrNull()
     }
 }
