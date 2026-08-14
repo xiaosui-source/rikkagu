@@ -442,6 +442,8 @@ private suspend fun extractQrFromPage(context: android.content.Context, url: Str
             webView.settings.domStorageEnabled = true
             webView.settings.loadWithOverviewMode = true
             webView.settings.useWideViewPort = true
+            // 桌面 Chrome UA：抖音对 WebView 默认 UA 不友好，登录接口会报"缺少参数/无权限"
+            webView.settings.userAgentString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
             webView.setBackgroundColor(Color.WHITE)
 
             val deferred = CompletableDeferred<String?>()
@@ -484,9 +486,14 @@ private suspend fun extractQrFromPage(context: android.content.Context, url: Str
                 }
             }
 
-            webView.loadUrl(url)
+            // 先访问抖音首页建立会话（cookie/签名），再加载目标页（登录页需要有效会话）
+            webView.loadUrl("https://www.douyin.com/")
+            // 等首页加载后跳转到目标页
+            webView.postDelayed({
+                webView.loadUrl(url)
+            }, 3000)
 
-            // 等待提取结果（最多 25 秒）
+            // 等待提取结果（最多 30 秒）
             val result = withTimeoutOrNull(25000) { deferred.await() }
             destroySafe()
             result
