@@ -29,7 +29,7 @@ val DEFAULT_PROVIDERS = listOf(
         apiKey = "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",
         enabled = true,
         builtIn = true,
-        models = emptyList()
+        models = emptyList(),
         description = {
             Text(
                 text = "NVIDIA NIM 平台，提供 Llama、DeepSeek、Nemotron、Qwen 等最新开源大模型的托管推理服务。OpenAI 兼容接口。"
@@ -47,7 +47,7 @@ val DEFAULT_PROVIDERS = listOf(
         baseUrl = "https://api.openai.com/v1",
         apiKey = "",
         builtIn = true,
-        models = emptyList()
+        models = emptyList(),
     ),
     ProviderSetting.Google(
         id = Uuid.parse("6ab18148-c138-4394-a46f-1cd8c8ceaa6d"),
@@ -55,7 +55,7 @@ val DEFAULT_PROVIDERS = listOf(
         apiKey = "",
         enabled = true,
         builtIn = true,
-        models = emptyList()
+        models = emptyList(),
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("56a94d29-c88b-41c5-8e09-38a7612d6cf8"),
@@ -63,7 +63,7 @@ val DEFAULT_PROVIDERS = listOf(
         baseUrl = "https://api.siliconflow.cn/v1",
         apiKey = "",
         builtIn = true,
-        models = emptyList()
+        models = emptyList(),
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("f099ad5b-ef03-446d-8e78-7e36787f780b"),
@@ -71,7 +71,7 @@ val DEFAULT_PROVIDERS = listOf(
         baseUrl = "https://api.deepseek.com/v1",
         apiKey = "",
         builtIn = true,
-        models = emptyList()
+        models = emptyList(),
         balanceOption = BalanceOption(
             enabled = true,
             apiPath = "/user/balance",
@@ -85,7 +85,7 @@ val DEFAULT_PROVIDERS = listOf(
         apiKey = "",
         enabled = false,
         builtIn = true,
-        models = emptyList()
+        models = emptyList(),
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("3dfd6f9b-f9d9-417f-80c1-ff8d77184191"),
@@ -94,7 +94,7 @@ val DEFAULT_PROVIDERS = listOf(
         apiKey = "",
         enabled = false,
         builtIn = true,
-        models = emptyList()
+        models = emptyList(),
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("3bc40dc1-b11a-46fa-863b-6306971223be"),
@@ -103,7 +103,7 @@ val DEFAULT_PROVIDERS = listOf(
         apiKey = "",
         enabled = false,
         builtIn = true,
-        models = emptyList()
+        models = emptyList(),
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("ef5d149b-8e34-404b-818c-6ec242e5c3c5"),
@@ -112,7 +112,7 @@ val DEFAULT_PROVIDERS = listOf(
         apiKey = "",
         enabled = false,
         builtIn = true,
-        models = emptyList()
+        models = emptyList(),
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d"),
@@ -121,7 +121,7 @@ val DEFAULT_PROVIDERS = listOf(
         apiKey = "",
         enabled = false,
         builtIn = true,
-        models = emptyList()
+        models = emptyList(),
         // 不内置任何模型：模型全部由用户自己添加（API 拉取或手动添加）
     ),
 )
