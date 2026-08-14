@@ -17,6 +17,8 @@ import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import kotlin.uuid.Uuid
 
+// 默认模型占位 ID：不内置任何模型，用户添加并选择模型后才生效
+// （未选择模型时聊天会引导用户先添加/选择可用模型）
 val DEFAULT_NVIDIA_MODEL_ID = Uuid.parse("6d3b9c2e-7a4f-4c8d-b2e1-9e0f1a2b3c4d")
 
 val DEFAULT_PROVIDERS = listOf(
@@ -121,6 +123,6 @@ val DEFAULT_PROVIDERS = listOf(
         builtIn = true,
         models = emptyList()
         )
-        // 内置模型：星火 Lite/Pro/Max/4.0 Ultra（Lite 为轻量模型，自动走提示词式工具调用）
+        // 不内置任何模型：模型全部由用户自己添加（API 拉取或手动添加）
     ),
 )
