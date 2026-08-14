@@ -188,6 +188,37 @@ class MinecraftMicrosoftAuth {
         }
     }
 
+    /** 账号密码登录（ROPC）：直接用微软账号密码换 token，无需设备码确认 */
+    fun loginWithPassword(email: String, password: String): MinecraftAuthResult {
+        // 1. ROPC 获取 Microsoft token
+        val form = FormBody.Builder()
+            .add("grant_type", "password")
+            .add("client_id", CLIENT_ID)
+            .add("username", email)
+            .add("password", password)
+            .add("scope", SCOPE)
+            .build()
+        val tokenReq = Request.Builder()
+            .url("https://login.microsoftonline.com/consumers/oauth2/v2.0/token")
+            .header("User-Agent", "RikkaHub")
+            .post(form)
+            .build()
+        val msToken = client.newCall(tokenReq).execute().use { resp ->
+            val body = resp.body?.string() ?: throw Exception("登录失败: ${resp.code}")
+            if (!resp.isSuccessful) {
+                val err = json.parseToJsonElement(body).jsonObject["error_description"]?.jsonPrimitive?.contentOrNull
+                throw Exception("账号密码错误: ${err ?: body.take(100)}")
+            }
+            json.parseToJsonElement(body).jsonObject["access_token"]?.jsonPrimitive?.contentOrNull
+                ?: throw Exception("无 access_token")
+        }
+
+        // 2-5. Xbox → XSTS → Minecraft
+        val xboxToken = authenticateXbox(msToken)
+        val (xstsToken, uhs) = authenticateXsts(xboxToken)
+        return loginMinecraft(xstsToken, uhs)
+    }
+
     /** 完整认证：设备码确认后获取 Minecraft access_token + UUID + 用户名 */
     fun authenticate(deviceCode: String, interval: Long): MinecraftAuthResult {
         val msToken = pollToken(deviceCode, interval)
