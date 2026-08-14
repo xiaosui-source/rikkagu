@@ -83,6 +83,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -384,8 +385,23 @@ private fun ModelList(
     val context = LocalContext.current
     val toaster = LocalToaster.current
     val scope = rememberCoroutineScope()
-    // 不自动拉取 API 模型：模型全部由用户手动添加（AddModelButton）
-    val displayModels = providerSetting.models
+    // API 获取的 + 软件内置的一起显示（合并去重）
+    val modelList by produceState(emptyList(), providerSetting) {
+        // 从 API 获取模型（listModels：供应商 /models 接口）
+        runCatching {
+            value = providerManager.getProviderByType(providerSetting)
+                .listModels(providerSetting)
+                .sortedBy { it.modelId }
+                .toList()
+        }.onFailure {
+            value = providerSetting.models
+        }
+    }
+    val displayModels = if (modelList.isNotEmpty()) {
+        (providerSetting.models + modelList).distinctBy { it.modelId }
+    } else {
+        providerSetting.models
+    }
     var expanded by rememberSaveable { mutableStateOf(true) }
     // 多选模式：勾选多个模型后可批量测试 / 批量删除
     var selectionMode by rememberSaveable { mutableStateOf(false) }
