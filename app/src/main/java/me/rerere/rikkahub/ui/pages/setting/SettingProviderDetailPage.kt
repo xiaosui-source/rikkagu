@@ -430,6 +430,7 @@ private fun ModelList(
             testing = true
             testResults.clear()
             val providerImpl = providerManager.getProviderByType(providerSetting)
+            val failedModels = mutableListOf<me.rerere.ai.provider.Model>()
             selected.toList().forEach { modelId ->
                 val model = providerSetting.models.firstOrNull { it.id == modelId }
                 if (model == null) return@forEach
@@ -442,13 +443,20 @@ private fun ModelList(
                     true
                 }.getOrDefault(false)
                 testResults += (model.modelId to ok)
+                if (!ok) failedModels += model
+            }
+            // 测试失败的模型自动移除（用不了的模型不保留，API 版本会补位显示）
+            if (failedModels.isNotEmpty()) {
+                var updated = providerSetting
+                failedModels.forEach { updated = updated.delModel(it) }
+                onUpdateProvider(updated)
             }
             testing = false
             val failed = testResults.count { !it.second }
             val msg = if (failed == 0) {
                 "测试完成: ${testResults.size} 个模型全部可用"
             } else {
-                "测试完成: ${testResults.size - failed} 可用, $failed 个失败"
+                "测试完成: ${testResults.size - failed} 可用, $failed 个失败（已自动移除不可用模型）"
             }
             toaster.show(msg, type = if (failed == 0) ToastType.Success else ToastType.Warning)
             selectionMode = false
