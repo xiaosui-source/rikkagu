@@ -133,31 +133,6 @@ val DEFAULT_PROVIDERS = listOf(
         apiKey = "",
         enabled = false,
         builtIn = true,
-        models = listOf(
-            me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("b1c2d3e4-5f6a-4b7c-9d0e-1f2a3b4c5d6e"),
-                modelId = "lite",
-                displayName = "Spark Lite (免费)",
-                inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-                outputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-                abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL),
-            ),
-            me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("c2d3e4f5-6a7b-4c8d-9e0f-2a3b4c5d6e7f"),
-                modelId = "generalv3.5",
-                displayName = "Spark Max (3.5)",
-                inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-                outputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-                abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
-            ),
-            me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("d3e4f5a6-7b8c-4d9e-0f1a-3b4c5d6e7f8a"),
-                modelId = "pro-128k",
-                displayName = "Spark Pro (128k)",
-                inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-                outputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-                abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
-            ),
-        ),
+        // 不内置模型：模型从软件手动添加或 API(listModels) 拉取
     ),
 )
