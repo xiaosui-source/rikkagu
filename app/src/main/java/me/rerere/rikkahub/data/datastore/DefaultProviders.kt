@@ -29,7 +29,17 @@ val DEFAULT_PROVIDERS = listOf(
         apiKey = "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",
         enabled = true,
         builtIn = true,
-        models = emptyList(),
+        // 默认模型：NVIDIA DeepSeek R1（开箱即用，其他模型用户自己选）
+        models = listOf(
+            me.rerere.ai.provider.Model(
+                id = kotlin.uuid.Uuid.parse("6d3b9c2e-7a4f-4c8d-b2e1-9e0f1a2b3c4d"),
+                modelId = "deepseek-ai/deepseek-r1",
+                displayName = "DeepSeek R1",
+                inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
+                outputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
+                abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
+            ),
+        ),
         description = {
             Text(
                 text = "NVIDIA NIM 平台，提供 Llama、DeepSeek、Nemotron、Qwen 等最新开源大模型的托管推理服务。OpenAI 兼容接口。"
