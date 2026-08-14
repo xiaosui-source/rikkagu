@@ -398,10 +398,14 @@ private fun ModelList(
             value = providerSetting.models
         }
     }
-    // 有效模型：API 拉取成功时只显示 API 里有的（内置但 API 没有的用不了，不显示）；
+    // 有效模型（合并+内置优先）：
+    // - 内置且API有的 → 显示内置的
+    // - 内置但API没有 → 不显示（用不了）
+    // - 内置没有API有 → 显示API的（补充）
     // API 拉取失败时显示内置模型兜底
     val displayModels = if (modelList.isNotEmpty()) {
-        providerSetting.models.filter { m -> modelList.any { it.modelId == m.modelId } }
+        providerSetting.models.filter { m -> modelList.any { it.modelId == m.modelId } } +
+            modelList.filter { api -> providerSetting.models.none { it.modelId == api.modelId } }
     } else {
         providerSetting.models
     }
@@ -609,9 +613,9 @@ private fun ModelList(
                     Text("多选")
                 }
                 AddModelButton(
-                    // 以 API 拉取为准：API 里没有的模型（即使内置）不显示；
-                    // API 拉取失败时才显示内置模型兜底
-                    models = if (modelList.isNotEmpty()) modelList else providerSetting.models,
+                    // 合并+内置优先：内置且API有的显示内置，内置没有的用API补充；
+                    // 内置但API没有的不显示；API失败时内置兜底
+                    models = displayModels,
                     selectedModels = providerSetting.models,
                     onAddModel = {
                         onUpdateProvider(providerSetting.addModel(it))
