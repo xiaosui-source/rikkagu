@@ -37,7 +37,6 @@ val DEFAULT_PROVIDERS = listOf(
                 text = "NVIDIA NIM：Llama/DeepSeek/Nemotron 等模型"
             )
         },
-        ),
     ),
     ProviderSetting.OpenAI(
         id = Uuid.parse("1eeea727-9ee5-4cae-93e6-6fb01a4d051e"),
