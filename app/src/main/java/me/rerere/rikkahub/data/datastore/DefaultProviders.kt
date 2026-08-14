@@ -122,7 +122,6 @@ val DEFAULT_PROVIDERS = listOf(
         enabled = false,
         builtIn = true,
         models = emptyList()
-        )
         // 不内置任何模型：模型全部由用户自己添加（API 拉取或手动添加）
     ),
 )
