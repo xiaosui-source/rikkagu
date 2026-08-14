@@ -129,12 +129,12 @@ val DEFAULT_PROVIDERS = listOf(
     ProviderSetting.OpenAI(
         id = Uuid.parse("f0e1d2c3-b4a5-4e6f-8d7c-9b8a7f6e5d4c"),
         name = "本地模型",
-        baseUrl = "http://localhost:11434/v1",
+        baseUrl = "http://127.0.0.1:8080/v1",
         apiKey = "not-needed",
         enabled = false,
         builtIn = true,
-        // 本地 OpenAI 兼容服务（Ollama/llama.cpp/vLLM 等），
-        // 不用工作区、不用外部API Key，模型从本地 /models 获取
+        // 本地 OpenAI 兼容服务（不限于 Ollama：可填 vLLM/llama.cpp/Jan/LM Studio 等
+        // 本机或局域网任何 OpenAI 兼容推理服务地址），不用工作区、不用外部API Key
         models = listOf(
             me.rerere.ai.provider.Model(
                 id = kotlin.uuid.Uuid.parse("a1b2c3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5e"),
