@@ -207,36 +207,14 @@ class McpManager(
         if ("12306" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.buildTicket12306McpTools()
         }
+        if ("apk" in enabled) {
+            list += me.rerere.rikkahub.data.ai.tools.buildApkReverseMcpTools(context)
+        }
         if ("http" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.buildHttpExecuteMcpTools()
         }
-        if ("firecrawl" in enabled) {
-            list += me.rerere.rikkahub.data.ai.tools.buildFirecrawlMcpTools(
-                getApiKey = {
-                    val model = settings.getCurrentChatModel()
-                    model?.findProvider(settings.providers)?.let { provider ->
-                        when (provider) {
-                            is me.rerere.ai.provider.ProviderSetting.OpenAI -> provider.apiKey
-                            is me.rerere.ai.provider.ProviderSetting.Google -> provider.apiKey
-                            is me.rerere.ai.provider.ProviderSetting.Claude -> provider.apiKey
-                            else -> null
-                        }
-                    }
-                },
-            )
-        }
         if ("context7" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.buildContext7McpTools()
-        }
-        if ("supabase" in enabled) {
-            list += me.rerere.rikkahub.data.ai.tools.buildSupabaseMcpTools(
-                getProjectUrl = {
-                    settings.externalMemories.firstOrNull { it.enabled }?.supabaseUrl
-                },
-                getApiKey = {
-                    settings.externalMemories.firstOrNull { it.enabled }?.supabaseKey
-                },
-            )
         }
         if ("xingce" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.buildXingceMcpTools(context)
@@ -263,31 +241,25 @@ class McpManager(
                 description = "内置12306查票/中转/经停站/跨站/车站代码查询（源自 Joooook/12306-mcp）",
                 toolCount = 6,
             ) to 1,
+            me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
+                id = "builtin-apk",
+                name = "APK 解析 🔧",
+                description = "内置APK解析：包信息/版本/权限/四大组件（Android系统解析，无需工作区/外部工具）",
+                toolCount = 2,
+            ) to 1,
                         me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
                 id = "builtin-http",
                 name = "HTTP 请求 MCP 🌐",
                 description = "内置通用HTTP请求工具：支持GET/POST/PUT/DELETE/PATCH + 自定义Header/Body",
                 toolCount = 1,
             ) to 1,
-            me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
-                id = "builtin-firecrawl",
-                name = "Firecrawl MCP 🔥",
-                description = "内置网页抓取/搜索/爬取/站点地图/AI提取（Firecrawl API，自动复用模型Key）",
-                toolCount = 5,
-            ) to 1,
-            me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
+                        me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
                 id = "builtin-context7",
                 name = "Context7 文档 MCP 📚",
                 description = "内置最新库文档查询：解析库名/获取文档（React/Vue/Kotlin/Next.js等，数据来自Context7）",
                 toolCount = 2,
             ) to 1,
-                        me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
-                id = "builtin-supabase",
-                name = "Supabase MCP 🗄️",
-                description = "内置 Supabase 数据库操作：SQL查询/表CRUD/RPC/Auth/Storage（复用外置记忆库配置）",
-                toolCount = 11,
-            ) to 1,
-                        me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
+                                                me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
                 id = "builtin-xingce",
                 name = "花生十三行测 MCP 📝",
                 description = "内置442张行测方法卡片：搜索/分类/解题引导（资料分析/数量关系/判断推理/言语理解）",
