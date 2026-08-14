@@ -415,6 +415,31 @@ class ChatCompletionsAPI(
         ).any { id.contains(it) }
     }
 
+    /** 完整工具列表提示：所有工具名+短描述，要求标准 JSON 输出（与原生 tool_calls 一致） */
+    private fun buildToolListPrompt(tools: List<Tool>): String = buildString {
+        appendLine("你拥有以下工具。需要调用工具完成任务时，你的【整个回答】只输出一个标准 JSON（不要任何解释、不要罗列工具、不要 markdown）：")
+        appendLine("{\"name\":\"工具名\",\"arguments\":{\"参数名\":\"参数值\"}}")
+        appendLine("如果缺少必要参数，先简短询问用户补充，再输出 JSON。工具结果返回后请基于结果正常回答。")
+        appendLine("可用工具：")
+        tools.forEach { tool ->
+            val desc = tool.description.replace("\n", " ").take(50)
+            appendLine("- ${tool.name}: $desc")
+        }
+    }
+
+    /** 提示词式工具调用提示：完整工具列表（弱模型走此路径） */
+    private fun buildPromptToolCallingSystem(tools: List<Tool>): String = buildString {
+        appendLine("你拥有以下工具。需要调用工具时，你的【整个回答】只输出一个标准 JSON（不要任何解释、不要罗列工具、不要 markdown）：")
+        appendLine("{\"name\":\"工具名\",\"arguments\":{\"参数名\":\"参数值\"}}")
+        appendLine("示例：用户说\"搜索抖音美食\" → {\"name\":\"douyin_web_search\",\"arguments\":{\"keyword\":\"美食\"}}")
+        appendLine("如果缺少必要参数，先简短询问用户补充，再输出 JSON。工具结果返回后请基于结果正常回答。")
+        appendLine("可用工具：")
+        tools.forEach { tool ->
+            val desc = tool.description.replace("\n", " ").take(50)
+            appendLine("- ${tool.name}: $desc")
+        }
+    }
+
     private fun buildChatCompletionRequest(
         messages: List<UIMessage>,
         params: TextGenerationParams,
@@ -694,8 +719,8 @@ class ChatCompletionsAPI(
                         } else part
                     })
                 }
-            // 提示词式工具调用已移除（由 JS 调度器 ToolRouterJs 负责）
-            val toolPrompt = null
+            // 提示词式工具调用：完整工具列表，模型输出标准 JSON（与原生 tool_calls 一致）
+            val toolPrompt = if (tools.isNotEmpty()) buildPromptToolCallingSystem(tools) else null
             val systemTexts = filteredMessages
                 .filter { it.role == MessageRole.SYSTEM }
                 .flatMap { it.parts.filterIsInstance<UIMessagePart.Text>() }
@@ -744,6 +769,27 @@ class ChatCompletionsAPI(
                 } else {
                     msg.parts.map { part ->
                         if (part === firstText) UIMessagePart.Text(reasoningHint + "\n\n" + firstText.text) else part
+                    }
+                }
+                filteredMessages = filteredMessages.toMutableList().apply {
+                    this[firstUserIdx] = msg.copy(parts = newParts)
+                }
+            }
+        }
+
+        // 原生模式：工具列表注入到第一条用户消息（提示词式兜底，所有模型都能看到工具，
+        // 模型输出标准 JSON → 客户端解析为 UIMessagePart.Tool（与原生 tool_calls 展示一致））
+        if (tools.isNotEmpty() && !usePromptTools) {
+            val toolHint = buildToolListPrompt(tools)
+            val firstUserIdx = filteredMessages.indexOfFirst { it.role == MessageRole.USER }
+            if (firstUserIdx >= 0) {
+                val msg = filteredMessages[firstUserIdx]
+                val firstText = msg.parts.filterIsInstance<UIMessagePart.Text>().firstOrNull()
+                val newParts = if (firstText == null) {
+                    listOf(UIMessagePart.Text(toolHint)) + msg.parts
+                } else {
+                    msg.parts.map { part ->
+                        if (part === firstText) UIMessagePart.Text(toolHint + "\n\n" + firstText.text) else part
                     }
                 }
                 filteredMessages = filteredMessages.toMutableList().apply {
