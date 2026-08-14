@@ -263,9 +263,6 @@ class McpManager(
         if ("context7" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.buildContext7McpTools()
         }
-        if ("playwright" in enabled) {
-            list += me.rerere.rikkahub.data.ai.tools.buildPlaywrightMcpTools()
-        }
         if ("supabase" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.buildSupabaseMcpTools(
                 getProjectUrl = {
@@ -274,11 +271,6 @@ class McpManager(
                 getApiKey = {
                     settings.externalMemories.firstOrNull { it.enabled }?.supabaseKey
                 },
-            )
-        }
-        if ("figma" in enabled) {
-            list += me.rerere.rikkahub.data.ai.tools.buildFigmaMcpTools(
-                getToken = { null },
             )
         }
         if ("xingce" in enabled) {
@@ -361,25 +353,13 @@ class McpManager(
                 description = "内置最新库文档查询：解析库名/获取文档（React/Vue/Kotlin/Next.js等，数据来自Context7）",
                 toolCount = 2,
             ) to 1,
-            me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
-                id = "builtin-playwright",
-                name = "Playwright 浏览器 MCP 🌐",
-                description = "内置浏览器自动化：导航/点击/输入/截图/执行JS/表单/快照（通过Playwright+Chromium）",
-                toolCount = 12,
-            ) to 1,
-            me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
+                        me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
                 id = "builtin-supabase",
                 name = "Supabase MCP 🗄️",
                 description = "内置 Supabase 数据库操作：SQL查询/表CRUD/RPC/Auth/Storage（复用外置记忆库配置）",
                 toolCount = 11,
             ) to 1,
-            me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
-                id = "builtin-figma",
-                name = "Figma MCP 🎨",
-                description = "内置 Figma 设计文件操作：文件/节点/组件/样式/变量/评论/导出图片（Figma API）",
-                toolCount = 9,
-            ) to 1,
-            me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
+                        me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
                 id = "builtin-xingce",
                 name = "花生十三行测 MCP 📝",
                 description = "内置442张行测方法卡片：搜索/分类/解题引导（资料分析/数量关系/判断推理/言语理解）",
