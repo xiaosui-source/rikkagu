@@ -491,7 +491,7 @@ private fun ModelList(
             state = lazyListState
         ) {
             // 模型列表
-            if (displayModels.isEmpty()) {
+            if (providerSetting.models.isEmpty()) {
                 item {
                     Column(
                         modifier = Modifier
@@ -513,7 +513,7 @@ private fun ModelList(
                     }
                 }
             } else {
-                items(displayModels, key = { it.id }) { item ->
+                items(providerSetting.models, key = { it.id }) { item ->
                     ReorderableItem(
                         state = reorderableLazyListState,
                         key = item.id
