@@ -126,4 +126,14 @@ val DEFAULT_PROVIDERS = listOf(
         builtIn = true,
         // 不内置模型：模型从软件手动添加或 API(listModels) 拉取
     ),
+    ProviderSetting.OpenAI(
+        id = Uuid.parse("f0e1d2c3-b4a5-4e6f-8d7c-9b8a7f6e5d4c"),
+        name = "本地模型",
+        baseUrl = "http://localhost:11434/v1",
+        apiKey = "not-needed",
+        enabled = false,
+        builtIn = true,
+        // 本地 OpenAI 兼容服务（Ollama/llama.cpp/vLLM 等），
+        // 不用工作区、不用外部API Key，模型从本地 /models 获取
+    ),
 )
