@@ -793,7 +793,18 @@ data class BackupReminderConfig(
     val lastBackupTime: Long = 0L,
 )
 
-fun Settings.isNotConfigured() = providers.all { it.models.isEmpty() }
+fun Settings.isNotConfigured(): Boolean {
+    // 已配置 = 任意提供商有 API Key 或有模型（不要求模型列表非空，Key 才是关键）
+    return providers.none { provider ->
+        val hasKey = when (provider) {
+            is me.rerere.ai.provider.ProviderSetting.OpenAI -> provider.apiKey.isNotBlank()
+            is me.rerere.ai.provider.ProviderSetting.Google -> provider.apiKey.isNotBlank()
+            is me.rerere.ai.provider.ProviderSetting.Claude -> provider.apiKey.isNotBlank()
+            else -> false
+        }
+        hasKey || provider.models.isNotEmpty()
+    }
+}
 
 fun Settings.findModelById(uuid: Uuid): Model? {
     return this.providers.findModelById(uuid)
