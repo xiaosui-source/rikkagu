@@ -54,6 +54,8 @@ jobs:
             --key-pass pass:android \
             --out clean.apk work/jxzl-patched-aligned.apk
 
-artifacts:
-  - name: clean-apk
-    path: clean.apk
+      - name: Upload clean APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: clean-apk
+          path: clean.apk
