@@ -1,5 +1,9 @@
 name: Android Build
 
+env:
+  PLUGIN_JAVA_VERSION: '17'
+  PLUGIN_GRADLE_VERSION: '8.5'
+
 on:
   push:
     branches: [ master ]
