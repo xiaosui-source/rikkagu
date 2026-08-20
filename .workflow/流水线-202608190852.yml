@@ -15,7 +15,11 @@ stages:
     buildToolsVersion: 35.0.1
     ndkVersion: 28.2.13676358
     commands:
-    - gradle assembleRelease
+    - curl -L -o gradle-9.4.1-bin.zip https://services.gradle.org/distributions/gradle-9.4.1-bin.zip
+    - unzip gradle-9.4.1-bin.zip -d $HOME/.gradle/wrapper/dists/
+    - yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platforms;android-37" "build-tools;35.0.1"
+    - yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;28.2.13676358"
+    - ./gradlew assembleRelease
     artifacts:
     - name: BUILD_ARTIFACT
       path:
