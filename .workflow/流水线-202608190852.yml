@@ -8,6 +8,7 @@ stages:
   trigger: auto
   steps:
   - step: build@android
+    trigger: auto
     name: ""
     displayName: Android 构建
     # 使用容器中实际存在的 JDK 17
