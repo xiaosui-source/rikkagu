@@ -20,6 +20,7 @@ stages:
         commands:
           - set -euo pipefail
           - export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
+- export ANDROID_HOME=/opt/android-sdk
           - export PATH=$JAVA_HOME/bin:$PATH
 
           # -------------------------------------------------
@@ -60,7 +61,20 @@ stages:
           # 3️⃣ 安装 Android SDK/NDK（已缓存）
           # -------------------------------------------------
           - echo "##[section]Installing Android SDK components"
-          - yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME \
+          - |
+            # Ensure Android SDK is present (download cmdline-tools if missing)
+            if [ ! -d $ANDROID_HOME ]; then
+              export ANDROID_HOME=/opt/android-sdk
+            fi
+            if [ ! -d $ANDROID_HOME/cmdline-tools/latest ]; then
+              echo "Downloading Android cmdline-tools..."
+              mkdir -p $ANDROID_HOME/cmdline-tools
+              curl -L --fail --retry 3 --max-time 600 -o cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-9123335_latest.zip &&
+              unzip -qo cmdline-tools.zip -d $ANDROID_HOME/cmdline-tools &&
+              mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest &&
+              rm -f cmdline-tools.zip
+            fi
+            yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME \
               "platforms;android-37" "build-tools;35.0.1" "ndk;28.2.13676358"
 
           # -------------------------------------------------
