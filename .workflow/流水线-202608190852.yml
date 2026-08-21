@@ -10,23 +10,33 @@ stages:
   - step: build@android
     name: ""
     displayName: Android 构建
-    jdkVersion: "21"
+    # 使用容器中实际存在的 JDK 17
+    jdkVersion: "17"
     gradleVersion: "9.0"
     buildToolsVersion: 35.0.1
     ndkVersion: 28.2.13676358
     commands:
+    - set -euo pipefail
+    - export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
+    - export PATH=$JAVA_HOME/bin:$PATH
+    - echo "##[section]Downloading Gradle 9.4.1"
     - curl -L -o gradle-9.4.1-bin.zip https://services.gradle.org/distributions/gradle-9.4.1-bin.zip
-    - unzip gradle-9.4.1-bin.zip -d $HOME/.gradle/wrapper/dists/
-    - yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platforms;android-37" "build-tools;35.0.1"
-    - yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "ndk;28.2.13676358"
-    - ./gradlew assembleRelease
+    - unzip -q gradle-9.4.1-bin.zip -d $HOME/.gradle/wrapper/dists/
+    - echo "##[section]Installing Android SDK components"
+    - yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME "platforms;android-37" "build-tools;35.0.1" "ndk;28.2.13676358"
+    - echo "##[section]Ensuring gradlew is executable"
+    - chmod +x gradlew
+    - echo "##[section]Running Gradle build"
+    - ./gradlew --no-daemon clean
+    - ./gradlew --no-daemon :app:assembleRelease --stacktrace || { echo "Gradle build failed"; exit 1; }
     artifacts:
     - name: BUILD_ARTIFACT
       path:
       - ./app/build/outputs/apk/release
       type: .tar.gz
     caches:
-    - "~/.gradle/caches"
+    - "~/.gradle"
+    - "~/.android"
     strategy:
       retry: "0"
       resource:
