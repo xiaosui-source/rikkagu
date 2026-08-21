@@ -18,14 +18,13 @@ stages:
         # 自动触发（无需手动点 Run）
         trigger: auto
         commands:
+          # 基础环境
           - set -euo pipefail
           - export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
-- export ANDROID_HOME=/opt/android-sdk
           - export PATH=$JAVA_HOME/bin:$PATH
+          - export ANDROID_HOME=/opt/android-sdk
 
-          # -------------------------------------------------
-          # 1️⃣ 先尝试从国内镜像下载 Gradle 9.4.1
-          # -------------------------------------------------
+          # 1️⃣ 下载 Gradle（优先使用国内镜像）
           - |
             echo "##[section]Downloading Gradle 9.4.1 (prefer mirror)"
             if [ -f gradle-9.4.1-bin.zip ]; then
@@ -43,9 +42,7 @@ stages:
               fi
             fi
 
-          # -------------------------------------------------
-          # 2️⃣ 解压（如果下载成功）并决定使用哪个 Gradle 命令
-          # -------------------------------------------------
+          # 2️⃣ 解压 Gradle（如果下载成功）并决定使用哪个 Gradle 命令
           - chmod +x gradlew
           - export GRADLE_CMD="gradle"          # 默认使用系统 gradle (4.4.1)
           - |
@@ -57,29 +54,31 @@ stages:
               echo "Using system gradle (4.4.1) as fallback"
             fi
 
-          # -------------------------------------------------
-          # 3️⃣ 安装 Android SDK/NDK（已缓存）
-          # -------------------------------------------------
-          - echo "##[section]Installing Android SDK components"
+          # 3️⃣ 确保 Android SDK / cmdline‑tools 存在（若缺失则自动下载）
           - |
-            # Ensure Android SDK is present (download cmdline-tools if missing)
-            if [ ! -d $ANDROID_HOME ]; then
-              export ANDROID_HOME=/opt/android-sdk
+            # If the SDK directory does not exist, create it
+            if [ ! -d "$ANDROID_HOME" ]; then
+              mkdir -p "$ANDROID_HOME"
             fi
-            if [ ! -d $ANDROID_HOME/cmdline-tools/latest ]; then
-              echo "Downloading Android cmdline-tools..."
-              mkdir -p $ANDROID_HOME/cmdline-tools
-              curl -L --fail --retry 3 --max-time 600 -o cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-9123335_latest.zip &&
-              unzip -qo cmdline-tools.zip -d $ANDROID_HOME/cmdline-tools &&
-              mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest &&
+
+            # If cmdline‑tools are missing, download them
+            if [ ! -d "$ANDROID_HOME/cmdline-tools/latest" ]; then
+              echo "Downloading Android cmdline‑tools..."
+              mkdir -p "$ANDROID_HOME/cmdline-tools"
+              curl -L --fail --retry 3 --max-time 600 -o cmdline-tools.zip \
+                https://dl.google.com/android/repository/commandlinetools-linux-9123335_latest.zip && \
+              unzip -qo cmdline-tools.zip -d "$ANDROID_HOME/cmdline-tools" && \
+              mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest" && \
               rm -f cmdline-tools.zip
             fi
-            yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_HOME \
-              "platforms;android-37" "build-tools;35.0.1" "ndk;28.2.13676358"
 
-          # -------------------------------------------------
+            # Install required platform / build‑tools / ndk
+            yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" \
+              "platforms;android-37" \
+              "build-tools;35.0.1" \
+              "ndk;28.2.13676358"
+
           # 4️⃣ 运行 Gradle 构建（统一使用 $GRADLE_CMD）
-          # -------------------------------------------------
           - echo "##[section]Running Gradle clean"
           - $GRADLE_CMD -Dorg.gradle.java.home=/usr/lib/jvm/java-17-openjdk --no-daemon clean
 
@@ -88,13 +87,11 @@ stages:
               --parallel --max-workers=4 \
               :app:assembleRelease --stacktrace \
               || { echo "Gradle build failed"; exit 1; }
-
         artifacts:
           - name: BUILD_ARTIFACT
             path:
               - ./app/build/outputs/apk/release
             type: .tar.gz
-
         caches:
           - "~/.gradle"
           - "~/.android"
@@ -107,5 +104,6 @@ triggers:
   manual: {}
 
 notify: []
+
 strategy:
   blocking: true
