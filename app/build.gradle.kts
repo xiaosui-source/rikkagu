@@ -10,7 +10,6 @@ plugins {
 android {
     namespace = "me.rerere.rikkahub"
     compileSdk = 37
-    buildToolsVersion = "33.0.2"
 
     defaultConfig {
         applicationId = "me.rerere.rikkahub"
@@ -32,9 +31,9 @@ android {
     signingConfigs {
         create("release") {
             storeFile = file("release-key.jks")
-            storePassword = System.getenv("KEYSTORE_PASSWORD")
-            keyAlias = System.getenv("KEY_ALIAS")
-            keyPassword = System.getenv("KEY_PASSWORD")
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "android"
+            keyAlias = System.getenv("KEY_ALIAS") ?: "androiddebugkey"
+            keyPassword = System.getenv("KEY_PASSWORD") ?: "android"
         }
     }
 

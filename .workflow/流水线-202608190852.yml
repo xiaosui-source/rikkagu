@@ -13,7 +13,7 @@ stages:
         # 使用容器提供的 JDK（17 或 21 均可，统一通过 JAVA_HOME 探测）
         jdkVersion: "17"
         gradleVersion: "9.0"
-        buildToolsVersion: 35.0.1
+        buildToolsVersion: 36.0.0
         ndkVersion: 28.2.13676358
         # 自动触发（无需手动点 Run）
         trigger: auto
@@ -85,7 +85,7 @@ stages:
             # 安装所需 platform / build-tools（NDK 若缺失也安装）
             yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" \
               "platforms;android-37" \
-              "build-tools;35.0.1" \
+              "build-tools;36.0.0" \
               "ndk;28.2.13676358" || echo "sdkmanager 部分组件安装失败，继续尝试构建"
 
           # ===== 4️⃣ 质量关卡：单元测试（失败则整体失败）=====
