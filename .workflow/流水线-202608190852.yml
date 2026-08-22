@@ -100,17 +100,11 @@ stages:
           - echo "##[section]3/5 Build Debug APK"
           - $GRADLE_CMD --no-daemon -Dorg.gradle.java.home=$JAVA_HOME :app:assembleDebug --stacktrace
 
-          # ===== 7️⃣ 构建 Release APK（仅当签名 Secrets 齐全时）=====
-          - |
-            echo "##[section]4/5 Check release signing credentials"
-            if [ -n "${KEYSTORE_PASSWORD:-}" ] && [ -n "${KEY_ALIAS:-}" ] && [ -n "${KEY_PASSWORD:-}" ]; then
-              echo "Release signing credentials found → building Release APK"
-              $GRADLE_CMD --no-daemon -Dorg.gradle.java.home=$JAVA_HOME :app:assembleRelease --stacktrace
-            else
-              echo "No release signing credentials → skip Release APK (Debug APK already built)"
-            fi
+          # ===== 7️⃣ 构建 Release APK（使用仓库内 release-key.jks + 默认凭据签名）=====
+          - echo "##[section]4/5 Build Release APK"
+          - $GRADLE_CMD --no-daemon -Dorg.gradle.java.home=$JAVA_HOME :app:assembleRelease --stacktrace
 
-          # ===== 8️⃣ 校验产物存在 =====
+          # ===== 8️⃣ 校验产物存在（Debug + Release 都必须有）=====
           - echo "##[section]5/5 Verify artifacts"
           - |
             if [ -f app/build/outputs/apk/debug/app-debug.apk ]; then
@@ -122,7 +116,8 @@ stages:
             if [ -f app/build/outputs/apk/release/app-release.apk ]; then
               echo "✅ Release APK exists: $(ls -lh app/build/outputs/apk/release/app-release.apk | awk '{print $5}')"
             else
-              echo "ℹ️  Release APK not built (secrets not configured) - Debug APK is the deliverable"
+              echo "❌ Release APK missing!"
+              exit 1
             fi
         artifacts:
           - name: BUILD_ARTIFACT
