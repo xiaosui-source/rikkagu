@@ -1,4 +1,4 @@
-﻿/*
+/*
  * 灵犀 Lingxi
  * 衍生自 Lingxi (https://github.com/scottwilliamavery26071994-bot/rikkahub)，原作者 RE
  * 本项目基于 GNU AGPL v3 开源，详见根目录 LICENSE 文件
@@ -51,26 +51,13 @@ interface SearchService<T : SearchServiceOptions> {
         @Suppress("UNCHECKED_CAST")
         fun <T : SearchServiceOptions> getService(options: T): SearchService<T> {
             return when (options) {
-                is SearchServiceOptions.TavilyOptions -> TavilySearchService
-                is SearchServiceOptions.ExaOptions -> ExaSearchService
-                is SearchServiceOptions.ZhipuOptions -> ZhipuSearchService
                 is SearchServiceOptions.BingLocalOptions -> BingSearchService
                 is SearchServiceOptions.DuckDuckGoOptions -> DuckDuckGoSearchService
                 is SearchServiceOptions.GoogleOptions -> GoogleSearchService
                 is SearchServiceOptions.SogouOptions -> SogouSearchService
                 is SearchServiceOptions.So360Options -> So360SearchService
                 is SearchServiceOptions.SearXNGOptions -> SearXNGService
-                is SearchServiceOptions.LinkUpOptions -> LinkUpService
-                is SearchServiceOptions.BraveOptions -> BraveSearchService
-                is SearchServiceOptions.MetasoOptions -> MetasoSearchService
                 is SearchServiceOptions.OllamaOptions -> OllamaSearchService
-                is SearchServiceOptions.PerplexityOptions -> PerplexitySearchService
-                is SearchServiceOptions.FirecrawlOptions -> FirecrawlSearchService
-                is SearchServiceOptions.JinaOptions -> JinaSearchService
-                is SearchServiceOptions.BochaOptions -> BochaSearchService
-                is SearchServiceOptions.LingxiOptions -> LingxiSearchService
-                is SearchServiceOptions.GrokOptions -> GrokSearchService
-                is SearchServiceOptions.TinyfishOptions -> TinyfishSearchService
                 is SearchServiceOptions.CustomJsOptions -> CustomJsSearchService
             } as SearchService<T>
         }
@@ -177,21 +164,8 @@ sealed class SearchServiceOptions {
             GoogleOptions::class to "Google",
             SogouOptions::class to "搜狗",
             So360Options::class to "360",
-            LingxiOptions::class to "Lingxi",
-            ZhipuOptions::class to "智谱",
-            TavilyOptions::class to "Tavily",
-            ExaOptions::class to "Exa",
             SearXNGOptions::class to "SearXNG",
-            LinkUpOptions::class to "LinkUp",
-            BraveOptions::class to "Brave",
-            MetasoOptions::class to "秘塔",
             OllamaOptions::class to "Ollama",
-            PerplexityOptions::class to "Perplexity",
-            FirecrawlOptions::class to "Firecrawl",
-            JinaOptions::class to "Jina",
-            BochaOptions::class to "博查",
-            GrokOptions::class to "Grok",
-            TinyfishOptions::class to "Tinyfish",
             CustomJsOptions::class to "Custom JS",
         )
     }
@@ -227,28 +201,6 @@ sealed class SearchServiceOptions {
     ) : SearchServiceOptions()
 
     @Serializable
-    @SerialName("zhipu")
-    data class ZhipuOptions(
-        override val id: Uuid = Uuid.random(),
-        val apiKey: String = "",
-    ) : SearchServiceOptions()
-
-    @Serializable
-    @SerialName("tavily")
-    data class TavilyOptions(
-        override val id: Uuid = Uuid.random(),
-        val apiKey: String = "",
-        val depth: String = "advanced",
-    ) : SearchServiceOptions()
-
-    @Serializable
-    @SerialName("exa")
-    data class ExaOptions(
-        override val id: Uuid = Uuid.random(),
-        val apiKey: String = "",
-    ) : SearchServiceOptions()
-
-    @Serializable
     @SerialName("searxng")
     data class SearXNGOptions(
         override val id: Uuid = Uuid.random(),
@@ -260,88 +212,8 @@ sealed class SearchServiceOptions {
     ) : SearchServiceOptions()
 
     @Serializable
-    @SerialName("linkup")
-    data class LinkUpOptions(
-        override val id: Uuid = Uuid.random(),
-        val apiKey: String = "",
-        val depth: String = "standard",
-    ) : SearchServiceOptions()
-
-    @Serializable
-    @SerialName("brave")
-    data class BraveOptions(
-        override val id: Uuid = Uuid.random(),
-        val apiKey: String = "",
-    ) : SearchServiceOptions()
-
-    @Serializable
-    @SerialName("metaso")
-    data class MetasoOptions(
-        override val id: Uuid = Uuid.random(),
-        val apiKey: String = "",
-    ) : SearchServiceOptions()
-
-    @Serializable
     @SerialName("ollama")
     data class OllamaOptions(
-        override val id: Uuid = Uuid.random(),
-        val apiKey: String = "",
-    ) : SearchServiceOptions()
-
-    @Serializable
-    @SerialName("perplexity")
-    data class PerplexityOptions(
-        override val id: Uuid = Uuid.random(),
-        val apiKey: String = "",
-        val maxTokens: Int? = null,
-        val maxTokensPerPage: Int? = null,
-    ) : SearchServiceOptions()
-
-    @Serializable
-    @SerialName("firecrawl")
-    data class FirecrawlOptions(
-        override val id: Uuid = Uuid.random(),
-        val apiKey: String = "",
-    ) : SearchServiceOptions()
-
-    @Serializable
-    @SerialName("jina")
-    data class JinaOptions(
-        override val id: Uuid = Uuid.random(),
-        val apiKey: String = "",
-        val searchUrl: String = "https://s.jina.ai/",
-        val scrapeUrl: String = "https://r.jina.ai/",
-    ) : SearchServiceOptions()
-
-    @Serializable
-    @SerialName("bocha")
-    data class BochaOptions(
-        override val id: Uuid = Uuid.random(),
-        val apiKey: String = "",
-        val summary: Boolean = true,
-    ) : SearchServiceOptions()
-
-    @Serializable
-    @SerialName("rikkahub")
-    data class LingxiOptions(
-        override val id: Uuid = Uuid.random(),
-        val apiKey: String = "",
-        val depth: String = "standard",
-    ) : SearchServiceOptions()
-
-    @Serializable
-    @SerialName("grok")
-    data class GrokOptions(
-        override val id: Uuid = Uuid.random(),
-        val apiKey: String = "",
-        val model: String = "grok-4-1-fast-non-reasoning",
-        val customUrl: String = "https://api.x.ai/v1/responses",
-        val systemPrompt: String = "You are a helpful search assistant. Search the web to find accurate and up-to-date information for the user's query. Provide a comprehensive answer with citations.",
-    ) : SearchServiceOptions()
-
-    @Serializable
-    @SerialName("tinyfish")
-    data class TinyfishOptions(
         override val id: Uuid = Uuid.random(),
         val apiKey: String = "",
     ) : SearchServiceOptions()
