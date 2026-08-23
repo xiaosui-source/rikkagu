@@ -388,6 +388,16 @@ private fun ModelList(
     // API 获取的 + 软件内置的一起显示（合并去重）
     val modelList by produceState(emptyList(), providerSetting) {
         // 从 API 获取模型（listModels：供应商 /models 接口）
+        // 必须有 API Key 才调用供应商 API：无 Key 时不请求，直接显示已添加/内置模型
+        val hasApiKey = when (providerSetting) {
+            is ProviderSetting.OpenAI -> providerSetting.apiKey.isNotBlank()
+            is ProviderSetting.Google -> providerSetting.apiKey.isNotBlank()
+            is ProviderSetting.Claude -> providerSetting.apiKey.isNotBlank()
+        }
+        if (!hasApiKey) {
+            value = providerSetting.models
+            return@produceState
+        }
         runCatching {
             value = providerManager.getProviderByType(providerSetting)
                 .listModels(providerSetting)
