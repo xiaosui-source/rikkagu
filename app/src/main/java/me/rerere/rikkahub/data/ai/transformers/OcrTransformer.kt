@@ -122,23 +122,30 @@ object OcrTransformer : InputMessageTransformer, KoinComponent {
 
         val settings = get<SettingsStore>().settingsFlow.value
 
-        // 纯本地：离线 OCR (ML Kit) 优先；无文字图片 → 本地图像标签识别（不依赖外部API）
+        // 纯本地：同时识别「图片样子」（物体/场景标签）和「图片文字」（OCR），
+        // 弱模型也能完整理解图片内容，不依赖外部 API
         if (settings.offlineOcrEnabled) {
-            val offlineText = performOfflineOcr(part)
-            if (offlineText.isNotBlank()) {
-                Log.i(TAG, "performOcr: offline ML Kit result len=${offlineText.length}")
-                val offlineResult = wrapOcrText(offlineText)
-                cache.put(part.url, offlineResult)
-                return offlineResult
-            }
-            Log.w(TAG, "performOcr: 离线识别无文字, 使用本地图像标签识别")
-            // 无文字图片 → 本地图像标签识别（准确识图，ML Kit Image Labeling）
+            // 1. 识别图片样子（ML Kit 图像标签：物体/场景/内容描述）
             val labelResult = performImageLabeling(part)
-            if (labelResult.isNotBlank()) {
-                val labelWrapped = wrapOcrText(labelResult)
-                cache.put(part.url, labelWrapped)
-                return labelWrapped
+            // 2. OCR 文字（ML Kit 中文识别）
+            val offlineText = performOfflineOcr(part)
+            // 组合：样子 + 文字（都有时都返回，让模型既看到内容也看到文字）
+            val combined = buildString {
+                if (labelResult.isNotBlank()) {
+                    Log.i(TAG, "performOcr: image labeling result: $labelResult")
+                    appendLine(labelResult)
+                }
+                if (offlineText.isNotBlank()) {
+                    Log.i(TAG, "performOcr: offline ML Kit result len=${offlineText.length}")
+                    append(wrapOcrText(offlineText))
+                }
             }
+            if (combined.isNotBlank()) {
+                cache.put(part.url, combined)
+                return combined
+            }
+            // 样子和文字都识别不出 → 兜底：本地图像分析（尺寸/色调/亮度/条码）
+            Log.w(TAG, "performOcr: 标签与OCR均无结果, 使用本地图像分析")
             // ImageLabeling 失败 → 兜底：本地图像分析
             val fallback = analyzeImageLocal(part)
             if (fallback.isNotBlank()) {
