@@ -1,144 +1,63 @@
-version: "1.0"
+version: '1.0'
 name: 构建
 displayName: 构建（质量关卡：测试+lint+APK）
 stages:
-  - name: 构建
-    displayName: 构建
-    strategy: naturally
+- name: 构建
+  displayName: 构建
+  strategy: naturally
+  trigger: auto
+  steps:
+  - step: build@android
+    name: ''
+    displayName: Android 构建
+    jdkVersion: '17'
+    gradleVersion: '9.0'
+    buildToolsVersion: 36.0.0
+    ndkVersion: 28.2.13676358
     trigger: auto
-    steps:
-      - step: build@android
-        name: ""
-        displayName: Android 构建
-        # 使用容器提供的 JDK（17 或 21 均可，统一通过 JAVA_HOME 探测）
-        jdkVersion: "17"
-        gradleVersion: "9.0"
-        buildToolsVersion: 36.0.0
-        ndkVersion: 28.2.13676358
-        # 自动触发（无需手动点 Run）
-        trigger: auto
-        commands:
-          # ===== 基础环境 =====
-          - set -euo pipefail
-          - |
-            # 动态探测可用的 JAVA_HOME（优先容器预装路径，其次从 java 命令解析）
-            if [ -d "/usr/lib/jvm/java-17-openjdk" ]; then
-              export JAVA_HOME=/usr/lib/jvm/java-17-openjdk
-            elif [ -d "/usr/lib/jvm/java-21-openjdk" ]; then
-              export JAVA_HOME=/usr/lib/jvm/java-21-openjdk
-            elif [ -d "/usr/lib/jvm/java-17-openjdk-arm64" ]; then
-              export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-arm64
-            elif [ -d "/usr/lib/jvm/java-21-openjdk-arm64" ]; then
-              export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-arm64
-            else
-              export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
-            fi
-            echo "JAVA_HOME=$JAVA_HOME"
-            export PATH=$JAVA_HOME/bin:$PATH
-            export ANDROID_HOME=${ANDROID_HOME:-/opt/android-sdk}
-            java -version
+    commands:
+    - set -euo pipefail
+    - "# 动态探测可用的 JAVA_HOME\nif [ -d \"/usr/lib/jvm/java-17-openjdk\" ]; then\n  export JAVA_HOME=/usr/lib/jvm/java-17-openjdk\nelif [ -d \"/usr/lib/jvm/java-21-openjdk\" ]; then\n  export JAVA_HOME=/usr/lib/jvm/java-21-openjdk\nelif [ -d \"/usr/lib/jvm/java-17-openjdk-arm64\" ]; then\n  export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-arm64\nelif [ -d \"/usr/lib/jvm/java-21-openjdk-arm64\" ]; then\n  export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-arm64\nelse\n  export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))\nfi\necho \"JAVA_HOME=$JAVA_HOME\"\nexport PATH=$JAVA_HOME/bin:$PATH\nexport ANDROID_HOME=${ANDROID_HOME:-/opt/android-sdk}\njava -version"
+    - "# 下载 Gradle 9.4.1（AGP 9.1.1 要求 >= 9.3.1）\necho \"##[section]Downloading Gradle 9.4.1 (required by AGP 9.1.1: >= 9.3.1)\"\nMIRROR_URL=\"https://mirrors.cloud.tencent.com/gradle/gradle-9.4.1-bin.zip\"\nHUAWEI_URL=\"https://mirrors.huaweicloud.com/gradle/gradle-9.4.1-bin.zip\"\nOFFICIAL_URL=\"https://services.gradle.org/distributions/gradle-9.4.1-bin.zip\"\nDOWNLOADED=\"\"\nfor MIRROR in \"$MIRROR_URL\" \"$HUAWEI_URL\" \"$OFFICIAL_URL\"; do\n  echo \"Trying: $MIRROR\"\n  if curl -L --fail --retry 3 --connect-timeout 15 --max-time 1200 -o gradle-9.4.1-bin.zip \"$MIRROR\"; then\n    echo \"Downloaded from $MIRROR\"\n    DOWNLOADED=\"yes\"\n    break\n  else\n    echo \"Failed: $MIRROR\"\n  fi\ndone\nif [ -z \"$DOWNLOADED\" ]; then\n  echo \"All Gradle downloads failed\"\n  exit 1\nfi"
+    - chmod +x gradlew
+    - '# 解压 Gradle 到独立目录并验证版本
 
-          # ===== 1️⃣ 下载 Gradle 9.4.1（AGP 9.1.1 要求 >= 9.3.1，系统 gradle 9.0 不满足）=====
-          - |
-            echo "##[section]Downloading Gradle 9.4.1 (required by AGP 9.1.1: >= 9.3.1)"
-            MIRROR_URL="https://mirrors.cloud.tencent.com/gradle/gradle-9.4.1-bin.zip"
-            HUAWEI_URL="https://mirrors.huaweicloud.com/gradle/gradle-9.4.1-bin.zip"
-            OFFICIAL_URL="https://services.gradle.org/distributions/gradle-9.4.1-bin.zip"
-            DOWNLOADED=""
-            for MIRROR in "$MIRROR_URL" "$HUAWEI_URL" "$OFFICIAL_URL"; do
-              echo "Trying: $MIRROR"
-              if curl -L --fail --retry 3 --connect-timeout 15 --max-time 1200 -o gradle-9.4.1-bin.zip "$MIRROR"; then
-                echo "✅ Downloaded from $MIRROR"
-                DOWNLOADED="yes"
-                break
-              else
-                echo "Failed: $MIRROR"
-              fi
-            done
-            if [ -z "$DOWNLOADED" ]; then
-              echo "❌ All Gradle downloads failed"
-              exit 1
-            fi
+      echo "Unzipping Gradle 9.4.1"
 
-          # ===== 2️⃣ 解压 Gradle 到独立目录并验证版本 =====
-          - chmod +x gradlew
-          - |
-            echo "Unzipping Gradle 9.4.1"
-            mkdir -p /opt/gradle
-            unzip -qo gradle-9.4.1-bin.zip -d /opt/gradle/
-            export GRADLE_CMD=/opt/gradle/gradle-9.4.1/bin/gradle
-            echo "GRADLE_CMD=$GRADLE_CMD"
-            $GRADLE_CMD --version | grep -E "^Gradle" || exit 1
+      mkdir -p /opt/gradle
 
-          # ===== 3️⃣ 确保 Android SDK / cmdline-tools 存在（缺失则自动下载）=====
-          - |
-            if [ ! -d "$ANDROID_HOME" ]; then
-              mkdir -p "$ANDROID_HOME"
-            fi
-            if [ ! -d "$ANDROID_HOME/cmdline-tools/latest" ]; then
-              echo "Downloading Android cmdline-tools..."
-              mkdir -p "$ANDROID_HOME/cmdline-tools"
-              curl -L --fail --retry 3 --max-time 600 -o cmdline-tools.zip \
-                https://dl.google.com/android/repository/commandlinetools-linux-9123335_latest.zip && \
-              unzip -qo cmdline-tools.zip -d "$ANDROID_HOME/cmdline-tools" && \
-              mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest" && \
-              rm -f cmdline-tools.zip
-            fi
-            # 安装所需 platform / build-tools（NDK 若缺失也安装）
-            # --channel=3: android-37 可能为预览版, 需要包含预览通道才能找到
-            yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --channel=3 --sdk_root="$ANDROID_HOME" \
-              "platforms;android-37" \
-              "build-tools;36.0.0" \
-              "ndk;28.2.13676358" || echo "sdkmanager 部分组件安装失败，继续尝试构建"
+      unzip -qo gradle-9.4.1-bin.zip -d /opt/gradle/
 
-          # ===== 4️⃣ 质量关卡：单元测试（失败则整体失败）=====
-          - echo "##[section]1/5 Unit tests"
-          - $GRADLE_CMD --no-daemon -Dorg.gradle.java.home=$JAVA_HOME :app:testDebugUnitTest --stacktrace
+      export GRADLE_CMD=/opt/gradle/gradle-9.4.1/bin/gradle
 
-          # ===== 5️⃣ 质量关卡：Lint 检查（error 级问题失败）=====
-          - echo "##[section]2/5 Lint check"
-          - $GRADLE_CMD --no-daemon -Dorg.gradle.java.home=$JAVA_HOME :app:lintDebug --stacktrace
+      echo "GRADLE_CMD=$GRADLE_CMD"
 
-          # ===== 6️⃣ 构建 Debug APK（必定产出，不依赖签名 Secrets）=====
-          - echo "##[section]3/5 Build Debug APK"
-          - $GRADLE_CMD --no-daemon -Dorg.gradle.java.home=$JAVA_HOME :app:assembleDebug --stacktrace
-
-          # ===== 7️⃣ 构建 Release APK（使用仓库内 release-key.jks + 默认凭据签名）=====
-          - echo "##[section]4/5 Build Release APK"
-          - $GRADLE_CMD --no-daemon -Dorg.gradle.java.home=$JAVA_HOME :app:assembleRelease --stacktrace
-
-          # ===== 8️⃣ 校验产物存在（Debug + Release 都必须有）=====
-          - echo "##[section]5/5 Verify artifacts"
-          - |
-            if [ -f app/build/outputs/apk/debug/app-debug.apk ]; then
-              echo "✅ Debug APK exists: $(ls -lh app/build/outputs/apk/debug/app-debug.apk | awk '{print $5}')"
-            else
-              echo "❌ Debug APK missing!"
-              exit 1
-            fi
-            if [ -f app/build/outputs/apk/release/app-release.apk ]; then
-              echo "✅ Release APK exists: $(ls -lh app/build/outputs/apk/release/app-release.apk | awk '{print $5}')"
-            else
-              echo "❌ Release APK missing!"
-              exit 1
-            fi
-        artifacts:
-          - name: BUILD_ARTIFACT
-            path:
-              - ./app/build/outputs/apk
-            type: .tar.gz
-        caches:
-          - "~/.gradle"
-          - "~/.android"
-          - "~/.m2"
-
+      $GRADLE_CMD --version | grep -E "^Gradle" || exit 1'
+    - "# 确保 Android SDK / cmdline-tools 存在（缺失则自动下载）\nif [ ! -d \"$ANDROID_HOME\" ]; then\n  mkdir -p \"$ANDROID_HOME\"\nfi\nif [ ! -d \"$ANDROID_HOME/cmdline-tools/latest\" ]; then\n  echo \"Downloading Android cmdline-tools...\"\n  mkdir -p \"$ANDROID_HOME/cmdline-tools\"\n  curl -L --fail --retry 3 --max-time 600 -o cmdline-tools.zip     https://dl.google.com/android/repository/commandlinetools-linux-9123335_latest.zip &&   unzip -qo cmdline-tools.zip -d \"$ANDROID_HOME/cmdline-tools\" &&   mv \"$ANDROID_HOME/cmdline-tools/cmdline-tools\" \"$ANDROID_HOME/cmdline-tools/latest\" &&   rm -f cmdline-tools.zip\nfi\n# 手动写入 SDK license 文件（标准 hash），否则 AGP 自动安装 SDK 组件会被拒\nmkdir -p \"$ANDROID_HOME/licenses\"\ncat > \"$ANDROID_HOME/licenses/android-sdk-license\" <<'EOF'\n24333f8a63b6825ea9c5514f83c2829b004d1fee\nEOF\ncat > \"$ANDROID_HOME/licenses/android-sdk-preview-license\" <<'EOF'\n84831b9409646a918e30573bab4c9c91346d8abd\nEOF\ncat > \"$ANDROID_HOME/licenses/android-sdk-arm-dbt-license\" <<'EOF'\n859f3175f83ef7f043ac4c22a2dd76d1e2b8e71a\nEOF\n# 接受所有 license（双保险）\nyes | \"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager\" --licenses --sdk_root=\"$ANDROID_HOME\" >/dev/null 2>&1 || true\n# 安装所需 platform / build-tools / NDK（--channel=3 包含预览版 android-37）\nyes | \"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager\" --channel=3 --sdk_root=\"$ANDROID_HOME\"   \"platforms;android-37\"   \"build-tools;36.0.0\"   \"ndk;28.2.13676358\" || echo \"sdkmanager 部分组件安装失败，AGP 将尝试自动安装\" "
+    - echo "##[section]1/5 Unit tests"
+    - $GRADLE_CMD --no-daemon -Dorg.gradle.java.home=$JAVA_HOME :app:testDebugUnitTest --stacktrace
+    - echo "##[section]2/5 Lint check"
+    - $GRADLE_CMD --no-daemon -Dorg.gradle.java.home=$JAVA_HOME :app:lintDebug --stacktrace
+    - echo "##[section]3/5 Build Debug APK"
+    - $GRADLE_CMD --no-daemon -Dorg.gradle.java.home=$JAVA_HOME :app:assembleDebug --stacktrace
+    - echo "##[section]4/5 Build Release APK"
+    - $GRADLE_CMD --no-daemon -Dorg.gradle.java.home=$JAVA_HOME :app:assembleRelease --stacktrace
+    - echo "##[section]5/5 Verify artifacts"
+    - "if [ -f app/build/outputs/apk/debug/app-debug.apk ]; then\n  echo \"Debug APK exists: $(ls -lh app/build/outputs/apk/debug/app-debug.apk | awk '{print $5}')\"\nelse\n  echo \"Debug APK missing!\"\n  exit 1\nfi\nif [ -f app/build/outputs/apk/release/app-release.apk ]; then\n  echo \"Release APK exists: $(ls -lh app/build/outputs/apk/release/app-release.apk | awk '{print $5}')\"\nelse\n  echo \"Release APK missing!\"\n  exit 1\nfi"
+    artifacts:
+    - name: BUILD_ARTIFACT
+      path:
+      - ./app/build/outputs/apk
+      type: .tar.gz
+    caches:
+    - ~/.gradle
+    - ~/.android
+    - ~/.m2
 triggers:
   push:
     branches:
-      - "**"
+    - '**'
   manual: {}
-
 notify: []
-
 strategy:
   blocking: true
