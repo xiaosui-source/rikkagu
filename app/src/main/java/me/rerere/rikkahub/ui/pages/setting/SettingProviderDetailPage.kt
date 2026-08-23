@@ -400,6 +400,8 @@ private fun ModelList(
     // 不内置任何模型：可用模型 = API 拉取的全部，用户自己选；
     // API 拉取失败时显示已添加的兜底
     val displayModels = if (modelList.isNotEmpty()) modelList else providerSetting.models
+    // 手动"从 API 获取模型"状态（一键拉取并合并到已使用列表）
+    var fetchingModels by remember { mutableStateOf(false) }
     var expanded by rememberSaveable { mutableStateOf(true) }
     // 多选模式：勾选多个模型后可批量测试 / 批量删除
     var selectionMode by rememberSaveable { mutableStateOf(false) }
@@ -610,6 +612,36 @@ private fun ModelList(
                     }
                 ) {
                     Text("多选")
+                }
+                TextButton(
+                    enabled = !fetchingModels,
+                    onClick = {
+                        scope.launch {
+                            fetchingModels = true
+                            runCatching {
+                                providerManager.getProviderByType(providerSetting)
+                                    .listModels(providerSetting)
+                            }.onSuccess { apiModels ->
+                                if (apiModels.isEmpty()) {
+                                    toaster.show("API 未返回模型", type = ToastType.Warning)
+                                } else {
+                                    // 从供应商 API 获取模型并合并到已使用列表（按 modelId 去重）
+                                    val merged = (providerSetting.models + apiModels)
+                                        .distinctBy { it.modelId }
+                                    onUpdateProvider(providerSetting.copyProvider(models = merged))
+                                    toaster.show(
+                                        "已从 API 获取 ${apiModels.size} 个模型",
+                                        type = ToastType.Success
+                                    )
+                                }
+                            }.onFailure { e ->
+                                toaster.show("从 API 获取模型失败: ${e.message}", type = ToastType.Error)
+                            }
+                            fetchingModels = false
+                        }
+                    }
+                ) {
+                    Text(if (fetchingModels) "获取中..." else "从 API 获取模型")
                 }
                 AddModelButton(
                     // 合并+内置优先：内置且API有的显示内置，内置没有的用API补充；
