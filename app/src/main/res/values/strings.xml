@@ -279,6 +279,8 @@
   <string name="chat_page_conversation_system_prompt_hint">Override the assistant\'s system prompt for this conversation</string>
   <string name="chat_page_conversation_system_prompt_save">Save</string>
   <string name="chat_page_delete">Delete</string>
+  <string name="conversation_handover">Hand over all content to new conversation</string>
+  <string name="conversation_handover_desc">Create a new conversation with all messages from this one, so the AI keeps the full context.</string>
   <string name="chat_page_dismiss_error">Dismiss error</string>
   <string name="chat_page_edit_nickname">Edit Nickname</string>
   <string name="chat_page_edit_title">Edit title</string>

@@ -276,6 +276,8 @@
   <string name="chat_page_conversation_system_prompt_hint">覆盖此对话的助手系统提示</string>
   <string name="chat_page_conversation_system_prompt_save">保存</string>
   <string name="chat_page_delete">删除</string>
+  <string name="conversation_handover">交接全部内容到新对话</string>
+  <string name="conversation_handover_desc">创建一个包含本对话全部消息的新对话，让 AI 保留完整上下文继续对话。</string>
   <string name="chat_page_dismiss_error">关闭错误</string>
   <string name="chat_page_edit_nickname">编辑昵称</string>
   <string name="chat_page_edit_title">编辑标题</string>

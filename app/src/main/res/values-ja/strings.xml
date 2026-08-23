@@ -276,6 +276,8 @@
   <string name="chat_page_conversation_system_prompt_hint">この会話でアシスタントのシステムプロンプトを上書き</string>
   <string name="chat_page_conversation_system_prompt_save">保存</string>
   <string name="chat_page_delete">削除</string>
+  <string name="conversation_handover">すべての内容を新しい会話に引き継ぐ</string>
+  <string name="conversation_handover_desc">この会話のすべてのメッセージを含む新しい会話を作成し、AIが完全なコンテキストを保持して続けられます。</string>
   <string name="chat_page_dismiss_error">エラーを閉じる</string>
   <string name="chat_page_edit_nickname">ニックネームを編集</string>
   <string name="chat_page_edit_title">タイトルを編集</string>
