@@ -291,8 +291,6 @@ class LingxiApp : Application() {
         DailySummaryService.rescheduleIfEnabled(this)
     }
 
-    }
-
     private fun createNotificationChannel() {
         val notificationManager = NotificationManagerCompat.from(this)
         val chatCompletedChannel = NotificationChannelCompat
