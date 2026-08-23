@@ -1446,7 +1446,7 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
             null
         }
 
-        val finalTitle = aiTitle
+        val finalTitle = aiTitle ?: return
         if (finalTitle.isBlank()) return
 
         val session = getOrCreateSession(conversationId)
