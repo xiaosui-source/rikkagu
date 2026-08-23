@@ -34,14 +34,8 @@ stages:
 
       $GRADLE_CMD --version | grep -E "^Gradle" || exit 1'
     - "# 确保 Android SDK / cmdline-tools 存在（缺失则自动下载）\nif [ ! -d \"$ANDROID_HOME\" ]; then\n  mkdir -p \"$ANDROID_HOME\"\nfi\nif [ ! -d \"$ANDROID_HOME/cmdline-tools/latest\" ]; then\n  echo \"Downloading Android cmdline-tools...\"\n  mkdir -p \"$ANDROID_HOME/cmdline-tools\"\n  curl -L --fail --retry 3 --max-time 600 -o cmdline-tools.zip     https://dl.google.com/android/repository/commandlinetools-linux-9123335_latest.zip &&   unzip -qo cmdline-tools.zip -d \"$ANDROID_HOME/cmdline-tools\" &&   mv \"$ANDROID_HOME/cmdline-tools/cmdline-tools\" \"$ANDROID_HOME/cmdline-tools/latest\" &&   rm -f cmdline-tools.zip\nfi\n# 手动写入 SDK license 文件（标准 hash），否则 AGP 自动安装 SDK 组件会被拒\nmkdir -p \"$ANDROID_HOME/licenses\"\ncat > \"$ANDROID_HOME/licenses/android-sdk-license\" <<'EOF'\n24333f8a63b6825ea9c5514f83c2829b004d1fee\nEOF\ncat > \"$ANDROID_HOME/licenses/android-sdk-preview-license\" <<'EOF'\n84831b9409646a918e30573bab4c9c91346d8abd\nEOF\ncat > \"$ANDROID_HOME/licenses/android-sdk-arm-dbt-license\" <<'EOF'\n859f3175f83ef7f043ac4c22a2dd76d1e2b8e71a\nEOF\n# 接受所有 license（双保险）\nyes | \"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager\" --licenses --sdk_root=\"$ANDROID_HOME\" >/dev/null 2>&1 || true\n# 安装所需 platform / build-tools / NDK（--channel=3 包含预览版 android-37）\nyes | \"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager\" --channel=3 --sdk_root=\"$ANDROID_HOME\"   \"platforms;android-37\"   \"build-tools;36.0.0\"   \"ndk;28.2.13676358\" || echo \"sdkmanager 部分组件安装失败，AGP 将尝试自动安装\" "
-    - echo "##[section]1/5 Unit tests"
-    - $GRADLE_CMD --no-daemon -Dorg.gradle.java.home=$JAVA_HOME :app:testDebugUnitTest --stacktrace
-    - echo "##[section]2/5 Lint check"
-    - $GRADLE_CMD --no-daemon -Dorg.gradle.java.home=$JAVA_HOME :app:lintDebug --stacktrace
-    - echo "##[section]3/5 Build Debug APK"
-    - $GRADLE_CMD --no-daemon -Dorg.gradle.java.home=$JAVA_HOME :app:assembleDebug --stacktrace
-    - echo "##[section]4/5 Build Release APK"
-    - $GRADLE_CMD --no-daemon -Dorg.gradle.java.home=$JAVA_HOME :app:assembleRelease --stacktrace
+    - echo "##[section]1/5 Unit tests + Lint + Build Debug/Release APK (single Gradle invocation)"
+    - $GRADLE_CMD --no-daemon -Dorg.gradle.java.home=$JAVA_HOME :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleRelease --stacktrace
     - echo "##[section]5/5 Verify artifacts"
     - "if [ -f app/build/outputs/apk/debug/app-debug.apk ]; then\n  echo \"Debug APK exists: $(ls -lh app/build/outputs/apk/debug/app-debug.apk | awk '{print $5}')\"\nelse\n  echo \"Debug APK missing!\"\n  exit 1\nfi\nif [ -f app/build/outputs/apk/release/app-release.apk ]; then\n  echo \"Release APK exists: $(ls -lh app/build/outputs/apk/release/app-release.apk | awk '{print $5}')\"\nelse\n  echo \"Release APK missing!\"\n  exit 1\nfi"
     artifacts:
