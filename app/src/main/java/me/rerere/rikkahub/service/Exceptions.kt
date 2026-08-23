@@ -4,7 +4,7 @@
  * 本项目基于 GNU AGPL v3 开源，详见根目录 LICENSE 文件
  */
 
-package me.rerere.rikkahub.web
+package me.rerere.rikkahub.service
 
 import io.ktor.http.HttpStatusCode
 

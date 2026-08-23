@@ -42,7 +42,6 @@ import me.rerere.rikkahub.data.service.DeviceEventTrackingService
 
 import me.rerere.rikkahub.data.service.SupabaseSyncService
 import me.rerere.rikkahub.service.ChatService
-import me.rerere.rikkahub.service.WebServerService
 import me.rerere.rikkahub.utils.CrashHandler
 import me.rerere.rikkahub.utils.DatabaseUtil
 import org.koin.android.ext.android.get
@@ -55,7 +54,6 @@ private const val TAG = "LingxiApp"
 
 const val CHAT_COMPLETED_NOTIFICATION_CHANNEL_ID = "chat_completed"
 const val CHAT_LIVE_UPDATE_NOTIFICATION_CHANNEL_ID = "chat_live_update"
-const val WEB_SERVER_NOTIFICATION_CHANNEL_ID = "web_server"
 const val POMODORO_NOTIFICATION_CHANNEL_ID = "pomodoro_timer"
 const val MUSIC_PLAYER_NOTIFICATION_CHANNEL_ID = "music_player"
 const val DEVICE_EVENT_NOTIFICATION_CHANNEL_ID = "device_event_tracking"
@@ -92,7 +90,6 @@ class LingxiApp : Application() {
         // 访问 chatService 的是 TriggerService(它在自己的
         // Dispatchers.IO 协程里首次访问), 就会在后台线程构造并抛
         // "addObserver must be called on the main thread" 崩溃。这里预热后, 任何
-        // 必须放在 startWebServerIfEnabled() 之前, 因为后者会间接触发 WebServerManager
         // -> chatService 解析链。
         runCatching { get<ChatService>() }.onFailure { e ->
             android.util.Log.e(TAG, "Failed to pre-warm ChatService singleton", e)
@@ -113,8 +110,6 @@ class LingxiApp : Application() {
         // sync upload files to DB
         syncManagedFiles()
 
-        // Start WebServer if enabled in settings
-        startWebServerIfEnabled()
 
         // Reschedule Supabase sync alarm if enabled
         rescheduleSupabaseSyncIfEnabled()
@@ -296,42 +291,6 @@ class LingxiApp : Application() {
         DailySummaryService.rescheduleIfEnabled(this)
     }
 
-    private fun startWebServerIfEnabled() {
-        get<AppScope>().launch {
-            runCatching {
-                delay(500)
-                val settings = get<SettingsStore>().settingsFlowRaw.first()
-                if (settings.webServerEnabled) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                        ContextCompat.checkSelfPermission(
-                            this@LingxiApp,
-                            android.Manifest.permission.POST_NOTIFICATIONS
-                        ) != PackageManager.PERMISSION_GRANTED
-                    ) {
-                        Log.w(TAG, "startWebServerIfEnabled: notification permission not granted, skipping")
-                        return@launch
-                    }
-                    if (Build.VERSION.SDK_INT >= 37 &&
-                        !settings.webServerLocalhostOnly &&
-                        ContextCompat.checkSelfPermission(
-                            this@LingxiApp,
-                            android.Manifest.permission.ACCESS_LOCAL_NETWORK
-                        ) != PackageManager.PERMISSION_GRANTED
-                    ) {
-                        Log.w(TAG, "startWebServerIfEnabled: local network permission not granted, skipping")
-                        return@launch
-                    }
-                    val intent = Intent(this@LingxiApp, WebServerService::class.java).apply {
-                        action = WebServerService.ACTION_START
-                        putExtra(WebServerService.EXTRA_PORT, settings.webServerPort)
-                        putExtra(WebServerService.EXTRA_LOCALHOST_ONLY, settings.webServerLocalhostOnly)
-                    }
-                    startForegroundService(intent)
-                }
-            }.onFailure {
-                Log.e(TAG, "startWebServerIfEnabled failed", it)
-            }
-        }
     }
 
     private fun createNotificationChannel() {
@@ -356,13 +315,6 @@ class LingxiApp : Application() {
             .build()
         notificationManager.createNotificationChannel(chatLiveUpdateChannel)
 
-        val webServerChannel = NotificationChannelCompat
-            .Builder(WEB_SERVER_NOTIFICATION_CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_LOW)
-            .setName(getString(R.string.notification_channel_web_server))
-            .setVibrationEnabled(false)
-            .setShowBadge(false)
-            .build()
-        notificationManager.createNotificationChannel(webServerChannel)
 
         val pomodoroChannel = NotificationChannelCompat
             .Builder(POMODORO_NOTIFICATION_CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_LOW)
@@ -407,7 +359,6 @@ class LingxiApp : Application() {
     override fun onTerminate() {
         super.onTerminate()
         get<AppScope>().cancel()
-        stopService(Intent(this, WebServerService::class.java))
     }
 }
 

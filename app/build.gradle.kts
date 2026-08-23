@@ -93,7 +93,6 @@ dependencies {
     implementation(project(":common"))
     implementation(project(":ai"))
     implementation(project(":material3"))
-    implementation(project(":web"))
     implementation(project(":search"))
     implementation(project(":highlight"))
     implementation(project(":speech"))

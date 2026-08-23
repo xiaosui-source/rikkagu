@@ -175,15 +175,6 @@
       android:exported="true"
       android:multiprocess="false" />
 
-    <service
-      android:name=".service.WebServerService"
-      android:exported="false"
-      android:foregroundServiceType="specialUse">
-      <property
-        android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-        android:value="local web server for LLM chat UI" />
-    </service>
-
     <!-- Notification Listener Service for system tools -->
     <service
       android:name=".data.service.RikkaNotificationListenerService"

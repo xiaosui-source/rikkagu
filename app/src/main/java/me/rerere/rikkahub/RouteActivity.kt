@@ -155,7 +155,6 @@ import me.rerere.rikkahub.ui.pages.setting.SettingProviderPage
 import me.rerere.rikkahub.ui.pages.setting.SettingSearchDetailPage
 import me.rerere.rikkahub.ui.pages.setting.SettingSearchPage
 import me.rerere.rikkahub.ui.pages.setting.SettingSpeechPage
-import me.rerere.rikkahub.ui.pages.setting.SettingWebPage
 import me.rerere.rikkahub.ui.pages.setting.SettingSystemToolsPage
 import me.rerere.rikkahub.ui.pages.setting.SettingPreferencesPage
 import me.rerere.rikkahub.ui.pages.setting.SettingPreferencesThemePage
@@ -631,10 +630,6 @@ class RouteActivity : ComponentActivity() {
                                 SettingFilesPage()
                             }
 
-                            entry<Screen.SettingWeb> {
-                                SettingWebPage()
-                            }
-
                             entry<Screen.Developer> {
                                 DeveloperPage()
                             }
@@ -1051,9 +1046,6 @@ sealed interface Screen : NavKey {
 
     @Serializable
     data object SettingFiles : Screen
-
-    @Serializable
-    data object SettingWeb : Screen
 
     @Serializable
     data object Developer : Screen

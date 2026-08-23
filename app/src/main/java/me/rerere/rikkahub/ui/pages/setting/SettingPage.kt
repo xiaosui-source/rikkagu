@@ -251,12 +251,6 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                         headlineContent = { Text(stringResource(R.string.setting_page_mcp)) },
                     )
                     item(
-                        onClick = { navController.navigate(Screen.SettingWeb) },
-                        leadingContent = { Icon(HugeIcons.ServerStack01, null) },
-                        supportingContent = { Text(stringResource(R.string.setting_page_web_server_desc)) },
-                        headlineContent = { Text(stringResource(R.string.setting_page_web_server)) },
-                    )
-                    item(
                         onClick = { navController.navigate(Screen.SettingSystemTools) },
                         leadingContent = { Icon(HugeIcons.SmartPhone01, null) },
                         supportingContent = { Text("位置、通知、日历、闹钟等系统工具") },
