@@ -744,9 +744,8 @@ class ChatService(
             ?: settings.providers.asSequence().flatMap { it.models }.firstOrNull()
             ?: return
 
-        // #972 无限上下文：基于 token 估算的主动智能压缩（消息数兜底 + token 阈值）
-        // 生成前主动压缩，任何模型窗口下都不会触发上下文限制
-        smartCompressIfNeeded(conversationId)
+        // 上下文无任何限制：不自动压缩，完整保留所有历史消息
+        // （原 smartCompressIfNeeded 已禁用）
 
         val senderName = if (assistant.useAssistantAvatar) {
             assistant.name.ifEmpty { context.getString(R.string.assistant_page_default_assistant) }
@@ -1135,8 +1134,8 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
             ?: settings.providers.asSequence().flatMap { it.models }.firstOrNull()
             ?: return
 
-        // 无限制上下文：群聊生成前同样主动智能压缩
-        smartCompressIfNeeded(conversationId)
+        // 上下文无任何限制：群聊生成前同样不自动压缩
+        // （原 smartCompressIfNeeded 已禁用）
 
         // 该 AI 可见的消息：用户消息 + 公开消息 + 自己的历史回复
         val visibleMessages = conversation.currentMessages.filter { msg ->
