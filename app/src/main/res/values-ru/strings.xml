@@ -303,8 +303,8 @@
   <string name="chat_page_search_chats">Поиск чатов</string>
   <string name="chat_page_today">Сегодня</string>
   <string name="chat_page_yesterday">Вчера</string>
-  <string name="chat_size_dialog_content">Текущее количество сообщений: %1$d. Это может привести к вылету или зависанию приложения, а также к потере данных этой беседы. Пожалуйста, создайте новый чат как можно скорее, чтобы продолжить общение.</string>
-  <string name="chat_size_dialog_title">Данные этого разговора слишком большие</string>
+  <string name="chat_size_dialog_content">Текущее количество сообщений: %1$d. Автоматическое сжатие бесконечного контекста включено, поэтому диалог можно продолжать в обычном режиме. Если приложение работает медленно, можно начать новый чат для более плавной работы.</string>
+  <string name="chat_size_dialog_title">Обнаружен длинный диалог</string>
   <string name="citations_count">%1$d цитирований</string>
   <string name="common_export">Экспорт</string>
   <string name="common_share">Поделиться</string>

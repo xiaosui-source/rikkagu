@@ -21,9 +21,9 @@ import me.rerere.ai.core.MessageRole
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.model.Conversation
 
-// 消息节点数量警告阈值
-const val MESSAGE_NODE_WARNING_THRESHOLD = 768
-const val LAST_ASSISTANT_INPUT_TOKEN_WARNING_THRESHOLD = 300_000
+// 消息节点数量警告阈值（无限上下文自动压缩会主动控制对话规模，此阈值仅作极端场景兜底）
+const val MESSAGE_NODE_WARNING_THRESHOLD = 5000
+const val LAST_ASSISTANT_INPUT_TOKEN_WARNING_THRESHOLD = 1_000_000
 
 data class ConversationSizeInfo(
     val nodeCount: Int,

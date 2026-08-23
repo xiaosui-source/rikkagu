@@ -308,8 +308,8 @@
   <string name="chat_page_search_chats">Search Chats</string>
   <string name="chat_page_today">Today</string>
   <string name="chat_page_yesterday">Yesterday</string>
-  <string name="chat_size_dialog_content">Current message count: %1$d. This may cause the application to crash or lag, or even lose this conversation data. Please create a new conversation as soon as possible to continue chatting.</string>
-  <string name="chat_size_dialog_title">This conversation data is too large</string>
+  <string name="chat_size_dialog_content">Current message count: %1$d. Infinite context auto-compression is enabled, so the conversation can continue normally. If the app feels slow, you can start a new conversation for a smoother experience.</string>
+  <string name="chat_size_dialog_title">Long conversation detected</string>
   <string name="citations_count">%1$d Citations</string>
   <string name="common_export">Export</string>
   <string name="common_share">Share</string>

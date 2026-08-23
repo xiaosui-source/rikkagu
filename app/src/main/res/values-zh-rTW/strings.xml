@@ -305,8 +305,8 @@
   <string name="chat_page_search_chats">搜尋聊天</string>
   <string name="chat_page_today">今天</string>
   <string name="chat_page_yesterday">昨天</string>
-  <string name="chat_size_dialog_content">目前訊息數：%1$d。這可能導致應用程式崩潰或延遲，甚至遺失此對話資料。請盡快建立新對話以繼續聊天。</string>
-  <string name="chat_size_dialog_title">此對話資料過大</string>
+  <string name="chat_size_dialog_content">目前訊息數：%1$d。無限上下文自動壓縮已啟用，對話可以正常繼續。若感覺應用程式卡頓，可建立新對話以獲得更流暢的體驗。</string>
+  <string name="chat_size_dialog_title">偵測到長對話</string>
   <string name="citations_count">%1$d 條引用</string>
   <string name="common_export">匯出</string>
   <string name="common_share">分享</string>
