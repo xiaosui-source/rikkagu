@@ -731,7 +731,6 @@ fun ChatDrawerContent(
     }
 }
 
-@Composable
 // 交接全部内容到新对话（复制源对话所有消息节点，保留助手/提示词/工作区等设置）
 private fun handoverConversationContent(
     src: Conversation,
@@ -766,6 +765,7 @@ private fun handoverConversationContent(
     }
 }
 
+@Composable
 private fun DrawerActions(
     navController: Navigator,
     drawerItemAlpha: Float = 1f,
