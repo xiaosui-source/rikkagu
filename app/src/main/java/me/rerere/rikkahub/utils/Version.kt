@@ -30,6 +30,8 @@ value class Version(val value: String) : Comparable<Version> {
     override fun compareTo(other: Version): Int = Version.compareImpl(value, other.value)
 
     companion object {
+        fun compare(a: String, b: String): Int = compareImpl(a, b)
+
         fun parse(v: String): ParsedVersion {
             // 去掉 + 构建号
             val base = v.split("+").first()
@@ -73,3 +75,9 @@ value class Version(val value: String) : Comparable<Version> {
         }
     }
 }
+
+/** 支持 "1.0.0" < Version("2.0.0") 这类 String 与 Version 的混合比较 */
+operator fun String.compareTo(other: Version): Int = Version.compareImpl(this, other.value)
+
+/** 支持 Version("2.0.0") > "1.0.0" 这类 Version 与 String 的混合比较 */
+operator fun Version.compareTo(other: String): Int = Version.compareImpl(value, other)
