@@ -14,6 +14,7 @@ import me.rerere.hugeicons.stroke.Pin
 import me.rerere.hugeicons.stroke.PinOff
 import me.rerere.hugeicons.stroke.Refresh01
 import me.rerere.hugeicons.stroke.Delete01
+import me.rerere.hugeicons.stroke.Copy01
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background

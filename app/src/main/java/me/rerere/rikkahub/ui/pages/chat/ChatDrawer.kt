@@ -63,6 +63,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -316,7 +317,7 @@ fun ChatDrawerContent(
                     showMoveToFolderSheet = true
                 },
                 onHandover = {
-                    handoverConversationContent(it)
+                    handoverConversationContent(it, navController, repo, scope)
                 }
             )
 
@@ -594,36 +595,6 @@ fun ChatDrawerContent(
         }
     }
 
-    // 交接全部内容到新对话（复制源对话所有消息节点，保留助手/提示词/工作区等设置）
-    fun handoverConversationContent(src: Conversation) {
-        scope.launch {
-            runCatching {
-                val full = repo.getConversationById(src.id) ?: src
-                val newConv = Conversation(
-                    id = Uuid.random(),
-                    assistantId = src.assistantId,
-                    title = (src.title.ifBlank { "新对话" }) + "（续）",
-                    messageNodes = full.messageNodes.map { node ->
-                        node.copy(
-                            id = Uuid.random(),
-                            messages = node.messages.map { it.copy(id = Uuid.random()) }
-                        )
-                    },
-                    chatSuggestions = src.chatSuggestions,
-                    customSystemPrompt = src.customSystemPrompt,
-                    workspaceCwd = src.workspaceCwd,
-                    folderId = src.folderId,
-                    assistantIds = src.assistantIds,
-                )
-                repo.insertConversation(newConv)
-                navigateToChatPage(navController, newConv.id)
-            }.onFailure { e ->
-                android.util.Log.e("ChatDrawer", "handover conversation failed", e)
-                toaster.show("交接失败: ${e.message}")
-            }
-        }
-    }
-
     // 新建文件夹对话框
     if (showCreateFolderDialog) {
         var name by remember { mutableStateOf("") }
@@ -761,6 +732,40 @@ fun ChatDrawerContent(
 }
 
 @Composable
+// 交接全部内容到新对话（复制源对话所有消息节点，保留助手/提示词/工作区等设置）
+private fun handoverConversationContent(
+    src: Conversation,
+    navigator: Navigator,
+    repo: ConversationRepository,
+    scope: CoroutineScope,
+) {
+    scope.launch {
+        runCatching {
+            val full = repo.getConversationById(src.id) ?: src
+            val newConv = Conversation(
+                id = Uuid.random(),
+                assistantId = src.assistantId,
+                title = (src.title.ifBlank { "新对话" }) + "（续）",
+                messageNodes = full.messageNodes.map { node ->
+                    node.copy(
+                        id = Uuid.random(),
+                        messages = node.messages.map { it.copy(id = Uuid.random()) }
+                    )
+                },
+                chatSuggestions = src.chatSuggestions,
+                customSystemPrompt = src.customSystemPrompt,
+                workspaceCwd = src.workspaceCwd,
+                folderId = src.folderId,
+                assistantIds = src.assistantIds,
+            )
+            repo.insertConversation(newConv)
+            navigateToChatPage(navigator, newConv.id)
+        }.onFailure { e ->
+            android.util.Log.e("ChatDrawer", "handover conversation failed", e)
+        }
+    }
+}
+
 private fun DrawerActions(
     navController: Navigator,
     drawerItemAlpha: Float = 1f,
