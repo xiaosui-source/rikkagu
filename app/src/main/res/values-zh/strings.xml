@@ -675,8 +675,6 @@
   <string name="setting_display_page_create_new_conversation_on_start_title">启动时新建对话</string>
   <string name="setting_display_page_enable_auto_scroll_desc">AI生成内容时自动滚动到底部</string>
   <string name="setting_display_page_enable_auto_scroll_title">自动滚动</string>
-  <string name="setting_display_page_force_image_ocr_title">强制图片转文字（OCR）</string>
-  <string name="setting_display_page_force_image_ocr_desc">发送前把图片全部转为文字。解决部分模型即使标注支持图片，实际也无法识别图片/截图的问题。</string>
   <string name="setting_display_page_enable_blur_effect_desc">在聊天输入栏启用模糊效果</string>
   <string name="setting_display_page_enable_blur_effect_title">启用模糊效果</string>
   <string name="setting_display_page_enable_latex_rendering_desc">使用 LaTeX 语法渲染数学表达式和公式</string>
