@@ -177,11 +177,11 @@ class McpManager(
     /**
      * 内置 MCP 服务器工具。
      * 按 assistant.builtinMcpIds 选择性注入，避免工具过多（150+）导致
-     * AI 找不到目标工具。默认仅启用 抖音+文件+记忆。
+     * AI 找不到目标工具。默认仅启用 文件+记忆（抖音已移除）。
      */
     fun getBuiltinServerTools(assistant: me.rerere.rikkahub.data.model.Assistant? = null): List<me.rerere.ai.core.Tool> {
         val settings = settingsStore.settingsFlow.value
-        val enabled = assistant?.builtinMcpIds ?: setOf("douyin", "files", "memory")
+        val enabled = assistant?.builtinMcpIds ?: setOf("files", "memory")
         val list = mutableListOf<me.rerere.ai.core.Tool>()
 
         if ("memory" in enabled) {
@@ -189,20 +189,6 @@ class McpManager(
         }
         if ("files" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.buildFilesMcpTools()
-        }
-        if ("douyin" in enabled) {
-            list += me.rerere.rikkahub.data.ai.tools.buildDouyinWebTools(context)
-            list += me.rerere.rikkahub.data.ai.tools.buildDouyinMcpTools(
-                context = context,
-                getCookie = {
-                    // 从 App 内部存储读取抖音 Cookie（不依赖工作区）
-                    try {
-                        java.io.File(context.filesDir, "douyinmcp/cookies.txt").takeIf { it.exists() }?.readText()?.trim() ?: ""
-                    } catch (e: Exception) { "" }
-                },
-                workspaceRepository = workspaceRepository,
-                appEventBus = appEventBus,
-            )
         }
         if ("12306" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.buildTicket12306McpTools()
@@ -233,12 +219,6 @@ class McpManager(
         val settings = settingsStore.settingsFlow.value
                 return listOf(
                         me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
-                id = "builtin-douyin",
-                name = "抖音 MCP 🎵",
-                description = "内置抖音工具：全自动隐形WebView会话（AI自动抓取搜索/推荐/视频/用户 + 登录后自动发评论/点赞/发视频，无需用户手机操作）",
-                toolCount = 26,
-            ) to 1,
-            me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
                 id = "builtin-12306",
                 name = "12306 火车票 🚄",
                 description = "内置12306查票/中转/经停站/跨站/车站代码查询（源自 Joooook/12306-mcp）",

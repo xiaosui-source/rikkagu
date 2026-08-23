@@ -1416,22 +1416,9 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
         if (!shouldGenerate) return
 
         val settings0 = settingsStore.settingsFlow.first()
-        // #34 走本地：标题总结默认用本地规则（不依赖网络模型、不消耗 token、完全离线）
-        if (settings0.localTitleGeneration) {
-            val localTitle = fallbackTitleFromFirstMessage(conversation)
-            if (localTitle.isNotBlank()) {
-                val session = getOrCreateSession(conversationId)
-                session.saveMutex.withLock {
-                    conversationRepo.getConversationById(conversation.id)?.let {
-                        saveConversation(conversationId, it.copy(title = localTitle))
-                    }
-                }
-            }
-            return
-        }
+        // 标题一律由 AI 生成（不依赖本地"第一句话"规则）
 
-        // 尝试 AI 总结标题；模型不可用 / 请求失败时静默回退到「用户第一句话」，
-        // 不再弹窗打扰（快速模型渠道失效时尤其常见）。
+        // 尝试 AI 总结标题；模型不可用 / 请求失败时静默跳过（不生成标题、不弹窗打扰）
         val aiTitle = runCatching {
             val settings = settingsStore.settingsFlow.first()
             val model = settings.findModelById(settings.titleModelId) ?: return@runCatching null
@@ -1455,11 +1442,11 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
             )
             result.choices[0].message?.toText()?.trim()?.takeIf { it.isNotBlank() }
         }.getOrElse { e ->
-            Log.w(TAG, "generateTitle failed, falling back to first user message: ${e.javaClass.simpleName}")
+            Log.w(TAG, "generateTitle failed, skipping title: ${e.javaClass.simpleName}")
             null
         }
 
-        val finalTitle = aiTitle ?: fallbackTitleFromFirstMessage(conversation)
+        val finalTitle = aiTitle
         if (finalTitle.isBlank()) return
 
         val session = getOrCreateSession(conversationId)
@@ -1475,19 +1462,6 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
      * 标题兜底（本地规则，无需模型）：从用户第一条消息提取首句作为标题。
      * 避免总结模型不可用时新建对话没有任何标题，且不弹错误提示。（#34 本地生成精神）
      */
-    private fun fallbackTitleFromFirstMessage(conversation: Conversation): String {
-        val firstText = conversation.currentMessages
-            .firstOrNull { it.role == MessageRole.USER }
-            ?.toText()
-            ?: return ""
-        // 提取首句（按中文/英文句号、感叹号、问号、换行切分）
-        val firstSentence = firstText
-            .split(Regex("[。！？!?\n]"))
-            .firstOrNull { it.isNotBlank() }
-            ?: firstText
-        return firstSentence.trim().take(20)
-    }
-
     // ---- 生成建议 ----
 
     suspend fun generateSuggestion(conversationId: Uuid, conversation: Conversation) {
