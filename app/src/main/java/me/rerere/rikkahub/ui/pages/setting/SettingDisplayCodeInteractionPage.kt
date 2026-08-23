@@ -157,6 +157,18 @@ fun SettingDisplayCodeInteractionPage(vm: SettingVM = koinViewModel()) {
                         )
                     }
                     item(
+                        headlineContent = { Text(stringResource(R.string.setting_display_page_force_image_ocr_title)) },
+                        supportingContent = { Text(stringResource(R.string.setting_display_page_force_image_ocr_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = displaySetting.forceImageOcr,
+                                onCheckedChange = {
+                                    updateDisplaySetting(displaySetting.copy(forceImageOcr = it))
+                                }
+                            )
+                        },
+                    )
+                    item(
                         headlineContent = { Text(stringResource(R.string.setting_display_page_enable_auto_scroll_title)) },
                         supportingContent = { Text(stringResource(R.string.setting_display_page_enable_auto_scroll_desc)) },
                         trailingContent = {

@@ -724,6 +724,8 @@
   <string name="setting_display_page_create_new_conversation_on_start_title">New chat on launch</string>
   <string name="setting_display_page_enable_auto_scroll_desc">Automatically scroll to the bottom when AI is generating content</string>
   <string name="setting_display_page_enable_auto_scroll_title">Auto Scroll</string>
+  <string name="setting_display_page_force_image_ocr_title">Force image to text (OCR)</string>
+  <string name="setting_display_page_force_image_ocr_desc">Convert all images to text before sending. Fixes models that cannot recognize images/screenshots even if they claim to support them.</string>
   <string name="setting_display_page_enable_blur_effect_desc">Enable blur effect on chat input bar</string>
   <string name="setting_display_page_enable_blur_effect_title">Enable Blur Effect</string>
   <string name="setting_display_page_enable_latex_rendering_desc">Render mathematical expressions and formulas using LaTeX syntax</string>

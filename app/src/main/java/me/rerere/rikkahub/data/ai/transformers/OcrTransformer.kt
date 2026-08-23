@@ -59,7 +59,10 @@ object OcrTransformer : InputMessageTransformer, KoinComponent {
         ctx: TransformerContext,
         messages: List<UIMessage>,
     ): List<UIMessage> {
-        if (ctx.model.inputModalities.contains(Modality.IMAGE)) {
+        // 强制图片转文字开关：开启后即使模型标注支持图片也强制 OCR，
+        // 解决部分模型实际无法识别用户发送的图片/截图的问题
+        val forceOcr = get<SettingsStore>().settingsFlow.value.displaySetting.forceImageOcr
+        if (!forceOcr && ctx.model.inputModalities.contains(Modality.IMAGE)) {
             return messages
         }
 

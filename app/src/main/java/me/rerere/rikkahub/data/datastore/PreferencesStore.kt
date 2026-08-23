@@ -746,6 +746,9 @@ data class DisplaySetting(
     val assistantBubbleImagePath: String = "",
     val bubbleCornerRadius: Float = 16f,
     val bubbleImageOverlayEnabled: Boolean = false, // 关=纯图片, 开=图片+主题色遮罩
+    // 强制图片转文字（OCR）：开启后即使模型标注支持图片也强制 OCR，
+    // 解决部分模型实际无法识别用户发送的图片/截图的问题
+    val forceImageOcr: Boolean = false,
 )
 
 @Serializable
