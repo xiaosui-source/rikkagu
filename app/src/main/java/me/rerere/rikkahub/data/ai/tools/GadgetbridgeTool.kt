@@ -22,9 +22,11 @@ import me.rerere.rikkahub.data.gadgetbridge.GadgetbridgeReader
 fun createGadgetbridgeTool(customPath: String = ""): Tool = Tool(
     name = "get_gadgetbridge_data",
     needsApproval = true,
-    description = "Get health and fitness data from Gadgetbridge (wearable device companion app). " +
-        "Returns step count, heart rate, sleep data, blood oxygen, stress, and calories. " +
-        "Reads from Gadgetbridge's auto-exported database. " +
+    description = "Get health and fitness data from the smart watch / fitness band connected via Gadgetbridge " +
+        "(compatible with ANY watch supported by Gadgetbridge: Xiaomi, Redmi, Huami, Amazfit, Huawei, Honor, PineTime, " +
+        "Bangle.js, Casio, Fossil, Samsung, etc). " +
+        "Returns step count, heart rate, sleep data, blood oxygen, stress, calories, and the list of paired watch devices. " +
+        "Reads from Gadgetbridge's auto-exported database and auto-detects the device manufacturer / table structure. " +
         "Requires storage permission and Gadgetbridge auto-export to be enabled.",
     parameters = {
         InputSchema.Obj(
@@ -33,9 +35,10 @@ fun createGadgetbridgeTool(customPath: String = ""): Tool = Tool(
                     put("type", "string")
                     put(
                         "description",
-                        "Type of health data to retrieve: 'all' (default), 'steps', 'heart_rate', 'sleep', 'daily_summary'"
+                        "Type of health data to retrieve: 'devices' (list paired watches), 'all' (default), 'steps', 'heart_rate', 'sleep', 'daily_summary'"
                     )
                     put("enum", kotlinx.serialization.json.buildJsonArray {
+                        add(kotlinx.serialization.json.JsonPrimitive("devices"))
                         add(kotlinx.serialization.json.JsonPrimitive("all"))
                         add(kotlinx.serialization.json.JsonPrimitive("steps"))
                         add(kotlinx.serialization.json.JsonPrimitive("heart_rate"))
@@ -55,12 +58,30 @@ fun createGadgetbridgeTool(customPath: String = ""): Tool = Tool(
                 return@Tool listOf(UIMessagePart.Text(
                     buildJsonObject {
                         put("success", false)
-                        put("error", "Gadgetbridge database not found. Please enable auto-export in Gadgetbridge settings. Expected path: /sdcard/Download/手环/Gadgetbridge.db")
+                        put("error", "Gadgetbridge database not found. Please pair & connect your watch in Gadgetbridge, then enable auto-export in Gadgetbridge settings. Expected path: /sdcard/Download/手环/Gadgetbridge.db")
                     }.toString()
                 ))
             }
 
             val result = when (dataType) {
+                "devices" -> {
+                    val devices = GadgetbridgeReader.listDevices(customPath)
+                    buildJsonObject {
+                        put("success", true)
+                        put("data_type", "devices")
+                        put("device_count", devices.size)
+                        put("devices", kotlinx.serialization.json.buildJsonArray {
+                            devices.forEach { d ->
+                                add(buildJsonObject {
+                                    put("name", d.name)
+                                    put("manufacturer", d.manufacturer)
+                                    put("model", d.model)
+                                    put("identifier", d.identifier)
+                                })
+                            }
+                        })
+                    }.toString()
+                }
                 "steps" -> {
                     val summaries = GadgetbridgeReader.readDailySummaries(7, customPath)
                     val today = summaries.lastOrNull()
@@ -135,10 +156,22 @@ fun createGadgetbridgeTool(customPath: String = ""): Tool = Tool(
                     val summaries = GadgetbridgeReader.readDailySummaries(7, customPath)
                     val sleepSummaries = GadgetbridgeReader.readSleepSummaries(3, customPath)
                     val (spo2, stress) = GadgetbridgeReader.readLatestSpo2AndStress(customPath)
+                    val devices = GadgetbridgeReader.listDevices(customPath)
                     val today = summaries.lastOrNull()
                     buildJsonObject {
                         put("success", true)
                         put("data_type", "all")
+                        // 已配对的设备列表（连接的手表）
+                        put("paired_watch_count", devices.size)
+                        put("paired_watches", kotlinx.serialization.json.buildJsonArray {
+                            devices.forEach { d ->
+                                add(buildJsonObject {
+                                    put("name", d.name)
+                                    put("manufacturer", d.manufacturer)
+                                    put("model", d.model)
+                                })
+                            }
+                        })
                         // Current status
                         put("current_heart_rate", latest?.heartRate ?: 0)
                         put("current_spo2", spo2 ?: 0)

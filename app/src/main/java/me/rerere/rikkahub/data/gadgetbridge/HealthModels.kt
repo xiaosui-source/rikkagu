@@ -59,6 +59,20 @@ data class HealthUiState(
     val stepsRange: StepsRange = StepsRange.SEVEN_DAYS,
 )
 
+/**
+ * Gadgetbridge 中配对的智能手表/手环设备。
+ * 读取自 Gadgetbridge 自动导出的 DEVICE 表，支持任意厂商设备。
+ */
+data class WatchDevice(
+    val name: String = "",
+    val manufacturer: String = "",
+    val model: String = "",
+    val identifier: String = "",
+) {
+    val displayName: String
+        get() = name.ifBlank { model.ifBlank { identifier.ifBlank { "Unknown Watch" } } }
+}
+
 enum class StepsRange {
     SEVEN_DAYS,
     THIRTY_DAYS,

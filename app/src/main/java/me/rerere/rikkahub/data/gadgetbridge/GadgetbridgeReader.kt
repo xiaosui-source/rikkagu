@@ -128,45 +128,99 @@ object GadgetbridgeReader {
     // ==================== 厂商路由 ====================
 
     /**
-     * 设备厂商（用于按厂商分流到不同的协议表实现）
+     * 设备厂商（用于按厂商分流到不同的协议表实现）。
+     *
+     * Gadgetbridge 支持 200+ 设备。多数设备（小米/红米/Amazfit/PineTime/Bangle.js/Casio/
+     * Fossil/Samsung 等）共用 XiaomiSampleProvider 的表结构，因此统一走小米逻辑；
+     * 华为/荣耀使用 HUAWEI_* 表结构，单独走华为逻辑。
      */
-    private enum class Manufacturer { XIAOMI, HUAWEI }
+    private enum class Manufacturer {
+        XIAOMI, HUAWEI, AMAZFIT, PINETIME, BANGLEJS, CASIO, FOSSIL, SAMSUNG, UNKNOWN
+    }
+
+    /** 扫描数据库所有表名，用于自动识别可用的厂商数据表 */
+    private fun detectTables(db: SQLiteDatabase): Set<String> {
+        val tables = mutableSetOf<String>()
+        try {
+            db.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null).use { c ->
+                while (c.moveToNext()) {
+                    tables.add(c.getString(0))
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "detectTables failed", e)
+        }
+        return tables
+    }
+
+    /** 根据表名前缀判断厂商（不依赖 DEVICE 表，作为未知厂商时的兜底） */
+    private fun detectManufacturerByTables(tables: Set<String>): Manufacturer = when {
+        tables.any { it.startsWith("HUAWEI_") } -> Manufacturer.HUAWEI
+        tables.any { it.startsWith("AMAZFIT_") } -> Manufacturer.AMAZFIT
+        tables.any { it.startsWith("PINETIME_") } -> Manufacturer.PINETIME
+        tables.any { it.startsWith("BANGLEJS_") } -> Manufacturer.BANGLEJS
+        tables.any { it.startsWith("CASIO_") } -> Manufacturer.CASIO
+        tables.any { it.startsWith("FOSSIL_") } -> Manufacturer.FOSSIL
+        tables.any { it.startsWith("SAMSUNG_") } -> Manufacturer.SAMSUNG
+        tables.any { it.startsWith("XIAOMI_") } -> Manufacturer.XIAOMI
+        else -> Manufacturer.UNKNOWN
+    }
 
     /**
      * 查询 DEVICE 表最新一条记录的 MANUFACTURER 字段判断当前设备厂商。
      *
      * - 取最新一条 DEVICE 记录（按 _id DESC，兼容老库无排序字段的情况）。
-     * - MANUFACTURER 字段不区分大小写包含 "huawei" 即判定为华为。
-     * - 查询异常 / 表不存在 / 字段为空 / 无法识别的厂商：默认走小米逻辑，保证向后兼容。
+     * - 先匹配已知厂商关键词（华为/荣耀、Amazfit/Zepp、PineTime、Bangle.js、Casio、
+     *   Fossil、Samsung、小米/红米/Huami/MiBand 等）。
+     * - 无法识别的厂商：回退到数据库表名探测（detectManufacturerByTables），
+     *   自动识别任何 Gadgetbridge 配对手表对应的表结构。
+     * - 表探测仍无法识别：默认走小米逻辑（Gadgetbridge 绝大多数设备共用
+     *   XiaomiSampleProvider 表结构），保证向后兼容。
      */
     private fun detectManufacturer(db: SQLiteDatabase): Manufacturer {
-        return try {
-            // DEVICE 表的 MANUFACTURER 字段实测值如 "Huawei"
-            val cursor = db.query(
+        // 1. 从 DEVICE 表读取厂商
+        val fromDevice = try {
+            db.query(
                 "DEVICE",
                 arrayOf("MANUFACTURER"),
                 null, null, null, null,
                 "_id DESC", "1"
-            )
-            cursor.use {
-                if (!it.moveToFirst()) {
-                    Log.w(TAG, "厂商判断: DEVICE 表为空, 默认走小米逻辑")
-                    Manufacturer.XIAOMI
-                } else {
-                    val manufacturer = it.getString(0)?.lowercase()?.trim().orEmpty()
-                    Log.d(TAG, "厂商判断: MANUFACTURER=$manufacturer")
-                    when {
-                        manufacturer.contains("huawei") -> Manufacturer.HUAWEI
-                        // 未识别的厂商一律走小米，保持向后兼容
-                        else -> Manufacturer.XIAOMI
-                    }
-                }
+            ).use { c ->
+                if (c.moveToFirst() && !c.isNull(0)) c.getString(0)?.lowercase()?.trim().orEmpty() else ""
             }
         } catch (e: Exception) {
-            // DEVICE 表不存在或字段缺失时不阻断主流程
-            Log.e(TAG, "厂商判断失败, 默认走小米逻辑", e)
-            Manufacturer.XIAOMI
+            Log.e(TAG, "厂商判断: DEVICE 表读取失败", e)
+            ""
         }
+
+        val byDevice = when {
+            fromDevice.contains("huawei") || fromDevice.contains("honor") -> Manufacturer.HUAWEI
+            fromDevice.contains("amazfit") || fromDevice.contains("zepp") -> Manufacturer.AMAZFIT
+            fromDevice.contains("pinetime") -> Manufacturer.PINETIME
+            fromDevice.contains("bangle") -> Manufacturer.BANGLEJS
+            fromDevice.contains("casio") -> Manufacturer.CASIO
+            fromDevice.contains("fossil") -> Manufacturer.FOSSIL
+            fromDevice.contains("samsung") -> Manufacturer.SAMSUNG
+            fromDevice.contains("xiaomi") || fromDevice.contains("redmi") ||
+                fromDevice.contains("huami") || fromDevice.contains("miband") ||
+                fromDevice.contains("mi band") -> Manufacturer.XIAOMI
+            else -> Manufacturer.UNKNOWN
+        }
+        if (byDevice != Manufacturer.UNKNOWN) {
+            Log.d(TAG, "厂商判断(DEVICE 表): MANUFACTURER=$fromDevice -> $byDevice")
+            return byDevice
+        }
+
+        // 2. 未知厂商 → 表名探测
+        val byTables = detectManufacturerByTables(detectTables(db))
+        Log.d(TAG, "厂商判断(表名探测): $byTables")
+        if (byTables != Manufacturer.UNKNOWN) {
+            return byTables
+        }
+
+        // 3. 仍未识别：默认小米逻辑（Gadgetbridge 多数设备共用 Xiaomi 表结构）
+        Log.w(TAG, "厂商判断: 无法识别厂商(MANUFACTURER=$fromDevice), 默认走小米通用逻辑")
+        return Manufacturer.XIAOMI
     }
 
     // ==================== 公开方法（4 个，签名保持不变，内部按厂商分流） ====================
@@ -175,7 +229,9 @@ object GadgetbridgeReader {
         return withDatabase(customPath) { db ->
             when (detectManufacturer(db)) {
                 Manufacturer.HUAWEI -> readDailySummariesHuawei(db, days)
-                Manufacturer.XIAOMI -> readDailySummariesXiaomi(db, days)
+                // 其他任何厂商（含 Amazfit/PineTime/Bangle.js/Casio/Fossil/Samsung/未知）统一走小米通用逻辑：
+                // Gadgetbridge 绝大多数设备共用 XiaomiSampleProvider 表结构
+                else -> readDailySummariesXiaomi(db, days)
             }
         }.getOrDefault(emptyList())
     }
@@ -184,7 +240,7 @@ object GadgetbridgeReader {
         return withDatabase(customPath) { db ->
             when (detectManufacturer(db)) {
                 Manufacturer.HUAWEI -> readLatestActivitySampleHuawei(db)
-                Manufacturer.XIAOMI -> readLatestActivitySampleXiaomi(db)
+                else -> readLatestActivitySampleXiaomi(db)
             }
         }.getOrDefault(null)
     }
@@ -193,7 +249,7 @@ object GadgetbridgeReader {
         return withDatabase(customPath) { db ->
             when (detectManufacturer(db)) {
                 Manufacturer.HUAWEI -> readSleepSummariesHuawei(db, days)
-                Manufacturer.XIAOMI -> readSleepSummariesXiaomi(db, days)
+                else -> readSleepSummariesXiaomi(db, days)
             }
         }.getOrDefault(emptyList())
     }
@@ -203,8 +259,47 @@ object GadgetbridgeReader {
             when (detectManufacturer(db)) {
                 Manufacturer.HUAWEI -> readLatestSpo2AndStressHuawei(db)
                 Manufacturer.XIAOMI -> readLatestSpo2AndStressXiaomi(db)
+                // 其他厂商（Amazfit/PineTime/Bangle.js 等）尝试小米通用逻辑
+                else -> readLatestSpo2AndStressXiaomi(db)
             }
         }.getOrDefault(null to null)
+    }
+
+    /**
+     * 列出 Gadgetbridge 中配对的所有智能手表/手环设备。
+     *
+     * 读取 DEVICE 表（Gadgetbridge 标准表，任意厂商设备都会写入），
+     * 返回设备名称、厂商、型号与唯一标识符。
+     */
+    fun listDevices(customPath: String = ""): List<WatchDevice> {
+        return withDatabase(customPath) { db ->
+            val devices = mutableListOf<WatchDevice>()
+            try {
+                db.query("DEVICE", null, null, null, null, null, null).use { c ->
+                    while (c.moveToNext()) {
+                        devices.add(
+                            WatchDevice(
+                                name = getString(c, "NAME"),
+                                manufacturer = getString(c, "MANUFACTURER"),
+                                model = getString(c, "MODEL"),
+                                identifier = getString(c, "IDENTIFIER"),
+                            )
+                        )
+                    }
+                }
+                Log.d(TAG, "listDevices: 找到 ${devices.size} 个设备")
+            } catch (e: Exception) {
+                Log.e(TAG, "listDevices failed", e)
+            }
+            devices
+        }.getOrDefault(emptyList())
+    }
+
+    private fun getString(cursor: android.database.Cursor, column: String): String {
+        return try {
+            val idx = cursor.getColumnIndex(column)
+            if (idx >= 0 && !cursor.isNull(idx)) cursor.getString(idx) ?: "" else ""
+        } catch (_: Exception) { "" }
     }
 
     // ==================== 小米实现（原样保留，一行未改） ====================
