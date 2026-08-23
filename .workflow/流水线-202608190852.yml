@@ -38,49 +38,37 @@ stages:
             export ANDROID_HOME=${ANDROID_HOME:-/opt/android-sdk}
             java -version
 
-          # ===== 1️⃣ 选择 Gradle：优先插件自带系统 gradle，下载仅作兜底 =====
+          # ===== 1️⃣ 下载 Gradle 9.4.1（AGP 9.1.1 要求 >= 9.3.1，系统 gradle 9.0 不满足）=====
           - |
-            echo "##[section]Locating Gradle"
-            if command -v gradle >/dev/null 2>&1; then
-              SYSTEM_VERSION=$(gradle --version 2>/dev/null | grep -E "^Gradle" | awk '{print $2}')
-              echo "System gradle found: $SYSTEM_VERSION"
-              # AGP 9.1.1 要求 Gradle >= 8.13；9.x 均可
-              if [ -n "$SYSTEM_VERSION" ] && [ "$(echo "$SYSTEM_VERSION" | cut -d. -f1)" -ge 9 ]; then
-                echo "Using system gradle $SYSTEM_VERSION (no download needed)"
-                export GRADLE_CMD="gradle"
-                touch /tmp/gradle_ready
+            echo "##[section]Downloading Gradle 9.4.1 (required by AGP 9.1.1: >= 9.3.1)"
+            MIRROR_URL="https://mirrors.cloud.tencent.com/gradle/gradle-9.4.1-bin.zip"
+            HUAWEI_URL="https://mirrors.huaweicloud.com/gradle/gradle-9.4.1-bin.zip"
+            OFFICIAL_URL="https://services.gradle.org/distributions/gradle-9.4.1-bin.zip"
+            DOWNLOADED=""
+            for MIRROR in "$MIRROR_URL" "$HUAWEI_URL" "$OFFICIAL_URL"; do
+              echo "Trying: $MIRROR"
+              if curl -L --fail --retry 3 --connect-timeout 15 --max-time 1200 -o gradle-9.4.1-bin.zip "$MIRROR"; then
+                echo "✅ Downloaded from $MIRROR"
+                DOWNLOADED="yes"
+                break
+              else
+                echo "Failed: $MIRROR"
               fi
-            fi
-            if [ ! -f /tmp/gradle_ready ]; then
-              echo "System gradle not usable → downloading Gradle 9.4.1 from mirror"
-              MIRROR_URL="https://mirrors.cloud.tencent.com/gradle/gradle-9.4.1-bin.zip"
-              HUAWEI_URL="https://mirrors.huaweicloud.com/gradle/gradle-9.4.1-bin.zip"
-              OFFICIAL_URL="https://services.gradle.org/distributions/gradle-9.4.1-bin.zip"
-              for MIRROR in "$MIRROR_URL" "$HUAWEI_URL" "$OFFICIAL_URL"; do
-                echo "Trying: $MIRROR"
-                if curl -L --fail --retry 3 --connect-timeout 15 --max-time 1200 -o gradle-9.4.1-bin.zip "$MIRROR"; then
-                  echo "Downloaded from $MIRROR"
-                  export GRADLE_CMD="./gradlew"
-                  touch /tmp/gradle_ready
-                  break
-                else
-                  echo "Failed: $MIRROR"
-                fi
-              done
-              if [ ! -f /tmp/gradle_ready ]; then
-                echo "❌ All Gradle downloads failed"
-                exit 1
-              fi
+            done
+            if [ -z "$DOWNLOADED" ]; then
+              echo "❌ All Gradle downloads failed"
+              exit 1
             fi
 
-          # ===== 2️⃣ 若下载了 zip 则解压供 wrapper 使用 =====
+          # ===== 2️⃣ 解压 Gradle 到独立目录并验证版本 =====
           - chmod +x gradlew
           - |
-            if [ -f gradle-9.4.1-bin.zip ] && [ ! -d $HOME/.gradle/wrapper/dists/gradle-9.4.1-bin ]; then
-              echo "Unzipping Gradle 9.4.1"
-              mkdir -p $HOME/.gradle/wrapper/dists
-              unzip -qo gradle-9.4.1-bin.zip -d $HOME/.gradle/wrapper/dists/
-            fi
+            echo "Unzipping Gradle 9.4.1"
+            mkdir -p /opt/gradle
+            unzip -qo gradle-9.4.1-bin.zip -d /opt/gradle/
+            export GRADLE_CMD=/opt/gradle/gradle-9.4.1/bin/gradle
+            echo "GRADLE_CMD=$GRADLE_CMD"
+            $GRADLE_CMD --version | grep -E "^Gradle" || exit 1
 
           # ===== 3️⃣ 确保 Android SDK / cmdline-tools 存在（缺失则自动下载）=====
           - |
@@ -97,7 +85,8 @@ stages:
               rm -f cmdline-tools.zip
             fi
             # 安装所需 platform / build-tools（NDK 若缺失也安装）
-            yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" \
+            # --channel=3: android-37 可能为预览版, 需要包含预览通道才能找到
+            yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --channel=3 --sdk_root="$ANDROID_HOME" \
               "platforms;android-37" \
               "build-tools;36.0.0" \
               "ndk;28.2.13676358" || echo "sdkmanager 部分组件安装失败，继续尝试构建"
