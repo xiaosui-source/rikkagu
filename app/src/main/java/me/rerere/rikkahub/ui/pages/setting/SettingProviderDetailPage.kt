@@ -473,8 +473,34 @@ private fun ModelList(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             state = lazyListState
         ) {
-            // 模型列表
-            if (providerSetting.models.isEmpty()) {
+            // 模型列表：未填 API Key 时不显示预置模型，填入有效 Key 后才显示
+            val apiKeyConfigured = when (providerSetting) {
+                is ProviderSetting.OpenAI -> providerSetting.apiKey.isNotBlank()
+                is ProviderSetting.Google -> providerSetting.apiKey.isNotBlank()
+                is ProviderSetting.Claude -> providerSetting.apiKey.isNotBlank()
+            }
+            if (!apiKeyConfigured) {
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillParentMaxHeight(0.8f)
+                            .fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "填写 API Key 后显示可用模型",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "在上方输入该提供商的 API Key，保存后模型列表才会显示",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    }
+                }
+            } else if (providerSetting.models.isEmpty()) {
                 item {
                     Column(
                         modifier = Modifier
