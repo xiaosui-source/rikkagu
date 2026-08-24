@@ -832,7 +832,7 @@ class WorkspaceRepository(
             appendLine("echo '=== DONE ==='")
             appendLine("echo '工作目录: $workDir'")
             appendLine("echo '· 无壳/明文dex：直接用 jadx/apktool 反编译 extracted/ 即可'")
-            appendLine("echo '· 有壳(免root优先)：python3 unpack_unicorn.py <加固so路径>，模拟执行JNI_OnLoad自动dump dex；"')
+            appendLine("echo '· 有壳(免root优先)：python3 unpack_unicorn.py <加固so路径>，模拟执行JNI_OnLoad自动dump dex；')
             appendLine("echo '   强壳按脚本提示用 capstone 定位解密函数、hook memcpy、或提取RC4/AES密钥静态解密'")
             appendLine("echo '· 全程在 proot 用户态沙箱内完成，无需 root 真机'")
         }
