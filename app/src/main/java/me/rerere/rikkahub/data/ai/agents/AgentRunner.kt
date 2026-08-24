@@ -39,9 +39,6 @@ class AgentRunner(
     ): String {
         val assistant = settings.assistants.firstOrNull { it.id == agent.assistantId }
             ?: return "【转交失败】智能体「${agent.name}」未绑定任何助手配置，请在设置中重新绑定。"
-        if (assistant.enabled == false) {
-            return "【转交失败】智能体「${agent.name}」绑定的助手「${assistant.name}」已被禁用。"
-        }
 
         val modelId = assistant.chatModelId ?: settings.chatModelId
         val model = settings.providers
