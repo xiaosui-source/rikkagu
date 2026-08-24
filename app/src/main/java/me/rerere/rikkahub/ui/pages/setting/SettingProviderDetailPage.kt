@@ -80,6 +80,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -405,10 +406,13 @@ private fun ModelList(
             keyChecking = false
         } else {
             keyChecking = true
-            keyValidated = runCatching {
+            keyValidated = try {
                 providerManager.getProviderByType(providerSetting)
                     .listModels(providerSetting)
-            }.isSuccess
+                true
+            } catch (e: Exception) {
+                false
+            }
             keyChecking = false
         }
     }
