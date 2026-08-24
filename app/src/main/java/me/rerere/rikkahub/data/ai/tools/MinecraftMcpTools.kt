@@ -18,6 +18,10 @@ import java.io.DataOutputStream
 import java.net.Socket
 import me.rerere.ai.core.Tool
 import me.rerere.ai.ui.UIMessagePart
+import android.content.Intent
+import android.net.Uri
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Minecraft MCP：AI 就是机器人（bot）——直接以机器人身份登录 Minecraft
@@ -105,41 +109,86 @@ private fun saveProgress(context: Context, text: String) {
 private var botSession: MinecraftBotClient? = null
 
 fun buildMinecraftMcpTools(context: Context): List<Tool> = listOf(
-    // ===== 微软账号登录 =====
+    // ===== 微软网页授权登录（PCL2 同款：设备码流程）=====
     Tool(
         name = "mc_bot_msauth",
-        description = "微软账号登录（online-mode 服务器需要）。直接用账号密码登录，AI 自动完成认证。Params: email(微软账号邮箱), password(密码)",
+        description = "微软正版登录（online-mode 服务器需要）。PCL2 同款方式：自动打开浏览器微软登录页，用户在浏览器里登录并输入代码授权，无需提供账号密码。调用后返回 user_code，用户去浏览器完成授权，再调用 mc_bot_auth_check 完成登录。",
         needsApproval = false,
         parameters = {
-            InputSchema.Obj(properties = buildJsonObject {
-                put("email", buildJsonObject { put("type", "string"); put("description", "微软账号邮箱") })
-                put("password", buildJsonObject { put("type", "string"); put("description", "微软账号密码") })
-            }, required = listOf("email", "password"))
+            InputSchema.Obj(properties = buildJsonObject { })
         },
-        execute = { args ->
-            val o = args.jsonObject
-            val email = o["email"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"email required"}"""))
-            val password = o["password"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"password required"}"""))
+        execute = {
             try {
                 val auth = MinecraftMicrosoftAuth()
-                val result = auth.loginWithPassword(email, password)
-                // 保存登录结果（token + 用户名）
+                val device = auth.requestDeviceCode()
+                // 保存设备码，供 mc_bot_auth_check 轮询
                 context.getSharedPreferences("minecraft_mcp", Context.MODE_PRIVATE).edit()
+                    .putString("device_code", device.deviceCode)
+                    .putLong("device_interval", device.interval)
+                    .putString("device_uri", device.verificationUri)
+                    .putString("device_user_code", device.userCode)
+                    .apply()
+                // 打开浏览器让用户登录授权（PCL2 同款体验）
+                runCatching {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(device.verificationUri))
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    context.startActivity(intent)
+                }
+                listOf(UIMessagePart.Text(buildJsonObject {
+                    put("success", true)
+                    put("message", "已打开微软登录页面（PCL2 同款方式）。请在浏览器里登录微软账号并输入代码：${device.userCode}")
+                    put("user_code", device.userCode)
+                    put("verification_uri", device.verificationUri)
+                    put("next", "用户授权完成后，调用 mc_bot_auth_check 完成登录")
+                }.toString()))
+            } catch (e: Exception) {
+                listOf(UIMessagePart.Text(buildJsonObject {
+                    put("success", false)
+                    put("error", e.message ?: "发起登录失败")
+                }.toString()))
+            }
+        },
+    ),
+
+    // ===== 检查/完成微软登录（用户浏览器授权后调用）=====
+    Tool(
+        name = "mc_bot_auth_check",
+        description = "完成微软账号登录（配合 mc_bot_msauth：用户已在浏览器输入代码并授权后调用）。登录成功后可调用 mc_bot_connect(auth=microsoft) 进正版服务器。若用户还没授权完会提示稍后再试。",
+        needsApproval = false,
+        parameters = {
+            InputSchema.Obj(properties = buildJsonObject { })
+        },
+        execute = {
+            val prefs = context.getSharedPreferences("minecraft_mcp", Context.MODE_PRIVATE)
+            val deviceCode = prefs.getString("device_code", null)
+            if (deviceCode.isNullOrBlank()) {
+                return@Tool listOf(UIMessagePart.Text(buildJsonObject {
+                    put("error", "没有待完成的登录，请先调用 mc_bot_msauth 发起微软登录")
+                }.toString()))
+            }
+            try {
+                val interval = prefs.getLong("device_interval", 5)
+                val auth = MinecraftMicrosoftAuth()
+                val result = withContext(Dispatchers.IO) { auth.authenticate(deviceCode, interval) }
+                // 保存登录结果（token + 用户名）
+                prefs.edit()
                     .putString("ms_token", result.accessToken)
                     .putString("ms_username", result.username)
                     .putString("ms_uuid", result.uuid)
+                    .remove("device_code")
                     .apply()
                 listOf(UIMessagePart.Text(buildJsonObject {
                     put("success", true)
                     put("username", result.username)
                     put("uuid", result.uuid)
-                    put("message", "微软账号登录成功！AI 机器人将以此账号进服务器")
-                    put("next", "调用 mc_bot_connect 连接服务器")
+                    put("message", "微软账号登录成功！可调用 mc_bot_connect(auth=microsoft) 进正版服务器")
+                    put("next", "mc_bot_connect(host=..., auth=microsoft)")
                 }.toString()))
             } catch (e: Exception) {
                 listOf(UIMessagePart.Text(buildJsonObject {
                     put("success", false)
-                    put("error", e.message ?: "登录失败")
+                    put("pending", true)
+                    put("message", "用户还没完成授权（${e.message ?: "等待中"}）。请让用户先在浏览器完成微软登录，然后重试 mc_bot_auth_check")
                 }.toString()))
             }
         },
@@ -194,8 +243,8 @@ fun buildMinecraftMcpTools(context: Context): List<Tool> = listOf(
                     val msUsername = prefs.getString("ms_username", null)
                     if (msToken.isNullOrBlank()) {
                         return@Tool listOf(UIMessagePart.Text(buildJsonObject {
-                            put("error", "未找到微软账号登录信息，请先调用 mc_bot_msauth 用微软账号密码登录")
-                            put("next", "mc_bot_msauth(email=..., password=...)")
+                            put("error", "未找到微软账号登录信息，请先完成微软网页授权登录：mc_bot_msauth → 浏览器授权 → mc_bot_auth_check")
+                            put("next", "mc_bot_msauth 然后 mc_bot_auth_check")
                         }.toString()))
                     }
                     if (!msUsername.isNullOrBlank()) username = msUsername
