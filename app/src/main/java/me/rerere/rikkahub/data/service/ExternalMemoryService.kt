@@ -10,6 +10,7 @@ import android.util.Log
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
@@ -251,6 +252,7 @@ class ExternalMemoryService(
     }
 }
 
+@Serializable
 data class ExternalMemoryMessage(
     val id: Int = 0,
     val assistantId: String = "",
@@ -260,6 +262,7 @@ data class ExternalMemoryMessage(
     val createdAt: String = "",
 )
 
+@Serializable
 data class ExternalMemorySummary(
     val id: Int = 0,
     val assistantId: String = "",
