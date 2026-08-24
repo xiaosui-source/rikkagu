@@ -188,26 +188,6 @@
 
 
 
-    <!-- Supabase Sync Service -->
-    <service
-      android:name=".data.service.SupabaseSyncService"
-      android:exported="false"
-      android:foregroundServiceType="specialUse">
-      <property
-        android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-        android:value="supabase data sync" />
-    </service>
-
-    <!-- Device Event Tracking Service (realtime screen on/off + boot push to Supabase) -->
-    <service
-      android:name=".data.service.DeviceEventTrackingService"
-      android:exported="false"
-      android:foregroundServiceType="specialUse">
-      <property
-        android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-        android:value="device boot/screen event tracking for supabase sync" />
-    </service>
-
 
     <!-- Scheduled Message Service -->
     <service
@@ -225,16 +205,6 @@
       android:exported="false">
       <intent-filter>
         <action android:name="${applicationId}.SCHEDULED_MESSAGE" />
-      </intent-filter>
-    </receiver>
-
-    <!-- Supabase Sync Receiver -->
-    <receiver
-      android:name=".data.service.SupabaseSyncReceiver"
-      android:exported="true">
-      <intent-filter>
-        <action android:name="me.rerere.lingxi.SUPABASE_SYNC" />
-        <action android:name="android.intent.action.BOOT_COMPLETED" />
       </intent-filter>
     </receiver>
 

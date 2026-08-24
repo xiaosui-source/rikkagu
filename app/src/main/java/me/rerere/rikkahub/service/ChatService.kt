@@ -835,10 +835,6 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
 )))
                     // System tools (location, notifications, calendar, alarm, camera)
                     val systemToolsOptions = settings.systemToolsSetting.getEnabledOptions().toMutableSet()
-                    // 如果存在启用的外置记忆库，始终启用 supabase_query 工具
-                    if (settings.externalMemories.any { it.enabled }) {
-                        systemToolsOptions.add(me.rerere.rikkahub.data.ai.tools.SystemToolOption.SupabaseQuery)
-                    }
                     if (systemToolsOptions.isNotEmpty()) {
                         val systemTools = SystemTools(context, settings)
                         addAll(systemTools.getTools(systemToolsOptions, conversation.currentMessages, filesManager))

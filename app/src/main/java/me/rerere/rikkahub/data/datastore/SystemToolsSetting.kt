@@ -33,14 +33,6 @@ data class SystemToolsSetting(
     // Feature 6: Camera OCR
     val cameraOcrEnabled: Boolean = false,
 
-    val supabaseApiKey: String = "",
-    val supabaseUrl: String = "",
-    val supabaseEnabled: Boolean = false,
-    val supabaseTableName: String = "device_data",
-
-    // Feature 22: Boot/Screen event tracking (realtime push to Supabase)
-    val deviceEventTrackingEnabled: Boolean = false,
-
     // Feature 14: Gadgetbridge health data
     val gadgetbridgeEnabled: Boolean = false,
     val gadgetbridgeDbPath: String = "",
@@ -97,7 +89,6 @@ data class SystemToolsSetting(
         if (batteryEnabled) options.add(me.rerere.rikkahub.data.ai.tools.SystemToolOption.Battery)
         if (musicEnabled) options.add(me.rerere.rikkahub.data.ai.tools.SystemToolOption.Music)
         if (smsEnabled) options.add(me.rerere.rikkahub.data.ai.tools.SystemToolOption.Sms)
-        // SupabaseQuery 现在由外置记忆库配置驱动
         if (torchEnabled) options.add(me.rerere.rikkahub.data.ai.tools.SystemToolOption.Torch)
         if (toastEnabled) options.add(me.rerere.rikkahub.data.ai.tools.SystemToolOption.Toast)
         if (vibrateEnabled) options.add(me.rerere.rikkahub.data.ai.tools.SystemToolOption.Vibrate)
