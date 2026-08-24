@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.model.ExternalMemory
 import me.rerere.rikkahub.data.sync.webdav.WebDavClient
@@ -139,13 +140,13 @@ class ExternalMemoryService(
         assistantId: String,
         content: String,
         embedding: List<Float>? = null,
-        dateStr: String,
+        targetDate: String,
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             val path = summariesPath(assistantId)
             val list = parseList<ExternalMemorySummary>(readRemote(path)).toMutableList()
             // 同一天已存在则覆盖，否则追加
-            val existingIndex = list.indexOfLast { it.createdAt.startsWith(dateStr) }
+            val existingIndex = list.indexOfLast { it.createdAt.startsWith(targetDate) }
             val sdf = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
             val summary = ExternalMemorySummary(
                 id = list.size + 1,
