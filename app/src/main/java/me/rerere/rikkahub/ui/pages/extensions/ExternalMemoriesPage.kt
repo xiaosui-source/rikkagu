@@ -134,8 +134,7 @@ fun ExternalMemoriesPage(vm: ExternalMemoriesVM = koinViewModel()) {
             onConfirm = { memory ->
                 vm.addExternalMemory(
                     name = memory.name,
-                    supabaseUrl = memory.supabaseUrl,
-                    supabaseKey = memory.supabaseKey,
+                    webdavPath = memory.webdavPath,
                     tableName = memory.tableName,
                     summariesTableName = memory.summariesTableName,
                     autoSaveMessages = memory.autoSaveMessages,
@@ -207,7 +206,7 @@ private fun ExternalMemoryItem(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    text = memory.supabaseUrl,
+                    text = memory.webdavPath.ifBlank { "WebDAV 默认目录" },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
@@ -281,8 +280,7 @@ private fun ExternalMemoryEditDialog(
     onConfirm: (ExternalMemory) -> Unit,
 ) {
     var name by rememberSaveable { mutableStateOf(memory?.name ?: "") }
-    var supabaseUrl by rememberSaveable { mutableStateOf(memory?.supabaseUrl ?: "") }
-    var supabaseKey by rememberSaveable { mutableStateOf(memory?.supabaseKey ?: "") }
+    var webdavPath by rememberSaveable { mutableStateOf(memory?.webdavPath ?: "") }
     var tableName by rememberSaveable { mutableStateOf(memory?.tableName ?: "chat_messages") }
     var summariesTableName by rememberSaveable { mutableStateOf(memory?.summariesTableName ?: "memory_summaries") }
     var autoSaveMessages by rememberSaveable { mutableStateOf(memory?.autoSaveMessages ?: true) }
@@ -311,18 +309,10 @@ private fun ExternalMemoryEditDialog(
                 }
                 item {
                     OutlinedTextField(
-                        value = supabaseUrl,
-                        onValueChange = { supabaseUrl = it },
-                        label = { Text("Supabase URL") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-                item {
-                    OutlinedTextField(
-                        value = supabaseKey,
-                        onValueChange = { supabaseKey = it },
-                        label = { Text("Supabase Key") },
+                        value = webdavPath,
+                        onValueChange = { webdavPath = it },
+                        label = { Text("WebDAV 目录路径（可选）") },
+                        placeholder = { Text("如 memories/mybot，空则用默认目录") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -364,7 +354,7 @@ private fun ExternalMemoryEditDialog(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text("Supabase 端生成日记摘要")
+                        Text("日记摘要存储到 WebDAV 外置记忆库")
                         Switch(
                             checked = autoSaveDiarySummary,
                             onCheckedChange = { autoSaveDiarySummary = it }
@@ -406,8 +396,7 @@ private fun ExternalMemoryEditDialog(
                     onConfirm(
                         ExternalMemory(
                             name = name,
-                            supabaseUrl = supabaseUrl,
-                            supabaseKey = supabaseKey,
+                            webdavPath = webdavPath.trim(),
                             tableName = tableName.ifBlank { "chat_messages" },
                             summariesTableName = summariesTableName.ifBlank { "memory_summaries" },
                             autoSaveMessages = autoSaveMessages,
@@ -417,7 +406,7 @@ private fun ExternalMemoryEditDialog(
                         )
                     )
                 },
-                enabled = name.isNotBlank() && supabaseUrl.isNotBlank() && supabaseKey.isNotBlank()
+                enabled = name.isNotBlank()
             ) {
                 Text("保存")
             }

@@ -11,12 +11,15 @@ import kotlin.uuid.Uuid
 
 /**
  * 外置记忆库配置（进阶记忆）
- * 每个记忆库对应一个 Supabase 数据库
+ * 每个记忆库对应 WebDAV 服务器上的一个目录（设置 → 备份 → WebDAV 配置全局复用）
  */
 @Serializable
 data class ExternalMemory(
     val id: Uuid = Uuid.random(),
     val name: String = "",
+    /** WebDAV 下的目录路径（相对 WebDAV path 根），空则用 external_memories/<id> */
+    val webdavPath: String = "",
+    /** 已废弃：旧版 Supabase 字段，保留兼容旧配置 */
     val supabaseUrl: String = "",
     val supabaseKey: String = "",
     val tableName: String = "chat_messages",

@@ -24,8 +24,7 @@ class ExternalMemoriesVM(
 
     fun addExternalMemory(
         name: String,
-        supabaseUrl: String,
-        supabaseKey: String,
+        webdavPath: String,
         tableName: String,
         summariesTableName: String,
         autoSaveMessages: Boolean,
@@ -36,8 +35,7 @@ class ExternalMemoriesVM(
         updateExternalMemories(
             settings.value.externalMemories + ExternalMemory(
                 name = name,
-                supabaseUrl = supabaseUrl,
-                supabaseKey = supabaseKey,
+                webdavPath = webdavPath,
                 tableName = tableName.ifBlank { "chat_messages" },
                 summariesTableName = summariesTableName.ifBlank { "memory_summaries" },
                 autoSaveMessages = autoSaveMessages,
