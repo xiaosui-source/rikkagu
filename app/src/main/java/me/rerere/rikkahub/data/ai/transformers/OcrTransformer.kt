@@ -65,16 +65,44 @@ object OcrTransformer : InputMessageTransformer, KoinComponent {
 
         // 检测消息中是否包含图片: 既检查最外层 parts, 也检查 Tool.output 里的图片
         // (camera_capture 等工具返回的图片存放在 Tool.output 中, 不在最外层 parts)
-        val hasImages = messages.any { message ->
-            message.parts.any { part ->
+        val imageParts = messages.flatMap { message ->
+            message.parts.flatMap { part ->
                 when (part) {
-                    is UIMessagePart.Image -> part.url.startsWith("file:")
-                    is UIMessagePart.Tool -> part.output.any { it is UIMessagePart.Image && it.url.startsWith("file:") }
-                    else -> false
+                    is UIMessagePart.Image -> listOf(part)
+                    is UIMessagePart.Tool -> part.output.filterIsInstance<UIMessagePart.Image>()
+                    else -> emptyList()
                 }
             }
+        }.filter { it.url.startsWith("file:") }
+        if (imageParts.isEmpty()) return messages
+
+        // 所有图片都已识别过（命中缓存）：静默用缓存结果替换，不进入识别流程。
+        // 这样历史消息带图、后续纯文字对话时不会每次都强制"正在识别图片..."
+        if (imageParts.all { cache.get(it.url) != null }) {
+            return messages.map { message ->
+                message.copy(
+                    parts = message.parts.map { part ->
+                        when {
+                            part is UIMessagePart.Image && part.url.startsWith("file:") -> {
+                                UIMessagePart.Text(cache.get(part.url) ?: performOcr(part))
+                            }
+                            part is UIMessagePart.Tool -> {
+                                part.copy(
+                                    output = part.output.map { outputPart ->
+                                        if (outputPart is UIMessagePart.Image && outputPart.url.startsWith("file:")) {
+                                            UIMessagePart.Text(cache.get(outputPart.url) ?: performOcr(outputPart))
+                                        } else {
+                                            outputPart
+                                        }
+                                    }
+                                )
+                            }
+                            else -> part
+                        }
+                    }
+                )
+            }
         }
-        if (!hasImages) return messages
 
         return withContext(Dispatchers.IO) {
             try {
