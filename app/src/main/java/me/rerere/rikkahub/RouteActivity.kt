@@ -1098,10 +1098,14 @@ sealed interface Screen : NavKey {
     data object SettingAgents : Screen
 
     @Serializable
+    data object SettingApiExplorer : Screen
+
+    @Serializable
+    data object SettingGomoku : Screen
+
     @Serializable
     data object SettingWeixinBot : Screen
 
-    @Serializable
     @Serializable
     data object Health : Screen
 

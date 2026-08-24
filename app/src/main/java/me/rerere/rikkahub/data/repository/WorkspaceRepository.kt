@@ -508,9 +508,9 @@ class WorkspaceRepository(
                     "if ! which gradle >/dev/null 2>&1; then " +
                         "mkdir -p /opt/gradle && cd /tmp && " +
                         "(curl -sL --retry 2 -o gradle.zip " +
-                        "\\"https://services.gradle.org/distributions/gradle-9.4.1-bin.zip\\" || " +
+                        "\"https://services.gradle.org/distributions/gradle-9.4.1-bin.zip\\" || " +
                         "curl -sL --retry 2 -o gradle.zip " +
-                        "\\"https://mirrors.cloud.tencent.com/gradle/gradle-9.4.1-bin.zip\\") && " +
+                        "\"https://mirrors.cloud.tencent.com/gradle/gradle-9.4.1-bin.zip") && " +
                         "unzip -qo gradle.zip -d /opt/gradle && " +
                         "ln -sf /opt/gradle/gradle-9.4.1/bin/gradle /usr/local/bin/gradle; fi",
                     timeoutMillis = 900_000,
@@ -735,7 +735,7 @@ class WorkspaceRepository(
             appendLine("# 免root脱壳：用 Unicorn 模拟执行加固 so 的 JNI_OnLoad，dump 解密后的 dex/内存")
             appendLine("# 用法: python3 unpack_unicorn.py <libjiagu.so>")
             appendLine("# 原理: 模拟器里跑 so 的 JNI_OnLoad，hook FindClass/RegisterNatives，")
-            appendLine("#       捕获解密流程写入内存的 dex 头(\x64\x65\x78\x0a magic 'dex')")
+            appendLine("#       捕获解密流程写入内存的 dex 头(\\x64\\x65\\x78\\x0a magic 'dex')")
             appendLine("import sys, struct")
             appendLine("from unicorn import *")
             appendLine("from unicorn.arm64_const import *")

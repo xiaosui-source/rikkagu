@@ -298,7 +298,8 @@ fun WorkspaceDetailPage(id: String) {
                     when {
                         loading -> CircularProgressIndicator()
                         imageBytes != null -> {
-                            val bmp = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+                            val bytes = imageBytes
+                            val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
                             if (bmp != null) {
                                 Image(
                                     bitmap = bmp.asImageBitmap(),
