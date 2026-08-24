@@ -510,7 +510,7 @@ class WorkspaceRepository(
                         "(curl -sL --retry 2 -o gradle.zip " +
                         "\"https://services.gradle.org/distributions/gradle-9.4.1-bin.zip\" || " +
                         "curl -sL --retry 2 -o gradle.zip " +
-                        "\"https://mirrors.cloud.tencent.com/gradle/gradle-9.4.1-bin.zip") && " +
+                        "\"https://mirrors.cloud.tencent.com/gradle/gradle-9.4.1-bin.zip\") && " +
                         "unzip -qo gradle.zip -d /opt/gradle && " +
                         "ln -sf /opt/gradle/gradle-9.4.1/bin/gradle /usr/local/bin/gradle; fi",
                     timeoutMillis = 900_000,
