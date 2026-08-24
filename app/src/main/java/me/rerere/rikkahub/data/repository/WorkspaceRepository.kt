@@ -634,6 +634,119 @@ class WorkspaceRepository(
         return executeCommand(id, cmd, timeoutMillis = 1_800_000)
     }
 
+    /**
+     * APK 脱壳：壳检测 + 明文 dex 提取 + 生成 Frida 脱壳脚本。
+     *
+     * proot 内能做的：识别加固厂商、提取未加密的 dex/assets、生成 Frida dump 脚本供真机(root)使用；
+     * 强壳(360v7/腾讯等)需真机 Frida/BlackDex，脚本会一并生成。
+     */
+    suspend fun unpackApk(
+        id: String,
+        apkPath: String,
+        onProgress: (String) -> Unit = {},
+    ): WorkspaceCommandResult {
+        val workspace = dao.getById(id) ?: error("Workspace not found: $id")
+        installReverseTools(id, onProgress)
+        installAndroidBuildEnv(id, onProgress)
+
+        onProgress("准备脱壳工具链 (frida-tools)...")
+        // 尽量装 frida-tools（失败不阻塞）
+        executeCommand(id, "pip3 install -q frida-tools 2>/dev/null || pip3 install -q frida 2>/dev/null || true", timeoutMillis = 600_000)
+
+        onProgress("开始脱壳分析：$apkPath ...")
+        val base = apkPath.substringAfterLast('/').substringBeforeLast('.').ifBlank { "app" }
+        val workDir = "/workspace/apk_unpack/$base"
+        val cmd = buildString {
+            appendLine("export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64")
+            appendLine("export PATH=\${'$'}JAVA_HOME/bin:/opt/android-sdk/platform-tools:\${'$'}PATH")
+            appendLine("mkdir -p $workDir/extracted")
+            appendLine("cd $workDir")
+            appendLine("cp $apkPath input.apk")
+            appendLine("cd extracted && unzip -qo ../input.apk 2>/dev/null; cd ..")
+            appendLine("echo '=== 1. 原生库 (so) ==='")
+            appendLine("find extracted -name '*.so' 2>/dev/null | xargs -I{} basename {} | sort -u")
+            appendLine("echo '=== 2. assets 目录 ==='")
+            appendLine("ls extracted/assets/ 2>/dev/null | head -30")
+            appendLine("echo '=== 3. 明文 dex ==='")
+            appendLine("find extracted -name '*.dex' -o -name 'classes*.apk' 2>/dev/null | head -20")
+            appendLine("echo '=== 4. 壳检测 ==='")
+            appendLine("python3 - <<'PYEOF'")
+            appendLine("import os, re")
+            appendLine("root = 'extracted'")
+            appendLine("sos = []")
+            appendLine("for dp, dn, fn in os.walk(root):")
+            appendLine("    for f in fn:")
+            appendLine("        if f.endswith('.so'): sos.append(f)")
+            appendLine("sos = set(sos)")
+            appendLine("shell = None")
+            appendLine("if any('jiagu' in s for s in sos): shell = '360加固 (libjiagu.so)'")
+            appendLine("elif any('DexHelper' in s or 'shell' in s or 'tprt' in s for s in sos): shell = '腾讯乐固 (libDexHelper/libshell)'")
+            appendLine("elif any('nqshield' in s or 'nesec' in s for s in sos): shell = '梆梆加固 (libnqshield)'")
+            appendLine("elif any('ddog' in s or 'dexprotect' in s for s in sos): shell = '爱加密 (libddog)'")
+            appendLine("elif any('chaosvmp' in s or 'vmp' in s.lower() for s in sos): shell = '娜迦/混淆VMP'")
+            appendLine("elif any('secneo' in s for s in sos): shell = 'SecNeo'")
+            appendLine("assets = os.listdir('extracted/assets') if os.path.isdir('extracted/assets') else []")
+            appendLine("if shell is None:")
+            appendLine("    if any('jiagu' in a or 'secData' in a for a in assets): shell = '360加固 (assets特征)'")
+            appendLine("    elif any('libprotect' in a for a in assets): shell = '加固（libprotectClass）'")
+            appendLine("print('加固类型:', shell if shell else '未检测到常见壳（可能无壳，可直接反编译）')")
+            appendLine("print('so 列表:', sorted(sos))")
+            appendLine("PYEOF")
+            appendLine("echo '=== 5. 生成脱壳脚本 ==='")
+            appendLine("cat > frida_dump.py <<'FRIEOF'")
+            appendLine("#!/usr/bin/env python3")
+            appendLine("# Frida 内存脱壳脚本（需 root 手机 + frida-server 与 App 同架构）")
+            appendLine("# 用法: frida -U -f <包名> -l frida_dump.py --no-pause")
+            appendLine("import frida, sys, os")
+            appendLine("")
+            appendLine("def on_message(message, data):")
+            appendLine("    if message['type'] == 'send':")
+            appendLine("        path = message['payload']")
+            appendLine("        print('[DEX] dumped ->', path)")
+            appendLine("")
+            appendLine("JS = r"""")
+            appendLine("Java.perform(function () {")
+            appendLine("    var cl = Java.use('java.lang.ClassLoader');")
+            appendLine("    var d = Java.use('dalvik.system.DexFile');")
+            appendLine("    var fos = Java.use('java.io.FileOutputStream');")
+            appendLine("    Java.enumerateClassLoaders({")
+            appendLine("        onMatch: function (loader) {")
+            appendLine("            try {")
+            appendLine("                var dex = Java.use('dalvik.system.DexFile').load(loader);")
+            appendLine("            } catch (e) {}")
+            appendLine("        },")
+            appendLine("        onComplete: function () { send('done'); }")
+            appendLine("    });")
+            appendLine("});")
+            appendLine(""""")
+            appendLine("")
+            appendLine("def main():")
+            appendLine("    if len(sys.argv) < 2:")
+            appendLine("        print('usage: python frida_dump.py <package>')")
+            appendLine("        sys.exit(1)")
+            appendLine("    device = frida.get_usb_device()")
+            appendLine("    pid = device.spawn([sys.argv[1]])")
+            appendLine("    session = device.attach(pid)")
+            appendLine("    script = session.create_script(JS)")
+            appendLine("    script.on('message', on_message)")
+            appendLine("    script.load()")
+            appendLine("    device.resume(pid)")
+            appendLine("    input('按回车退出...')")
+            appendLine("")
+            appendLine("if __name__ == '__main__':")
+            appendLine("    main()")
+            appendLine("FRIEOF")
+            appendLine("echo '=== 6. 明文 dex 复制到当前目录（若存在）==='")
+            appendLine("find extracted -name '*.dex' -exec cp {} . \\; 2>/dev/null")
+            appendLine("ls -lh *.dex 2>/dev/null | head -10")
+            appendLine("echo '=== DONE ==='")
+            appendLine("echo '工作目录: $workDir'")
+            appendLine("echo '· 无壳/明文dex：直接用 jadx/apktool 反编译 extracted/ 即可'")
+            appendLine("echo '· 有壳：真机(root)+frida 跑 frida_dump.py <包名>，或使用 BlackDex；强壳(360v7/腾讯)需结合 so 分析'")
+        }
+        return executeCommand(id, cmd, timeoutMillis = 1_800_000)
+    }
+
     suspend fun delete(id: String): Boolean {
         val workspace = dao.getById(id) ?: return false
         dao.deleteById(id)

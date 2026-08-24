@@ -35,6 +35,7 @@ val WorkspaceToolDefaultApprovals: Map<String, Boolean> = mapOf(
     "workspace_shell" to true,
     "workspace_build_apk" to true,
     "workspace_apk_rework" to true,
+    "workspace_apk_unpack" to true,
 )
  
 fun resolveWorkspaceToolApproval(name: String, overrides: Map<String, Boolean>): Boolean =
@@ -59,6 +60,7 @@ suspend fun createWorkspaceTools(
         createWebBrowseTool(workspaceId, workspaceRepository),
         createBuildApkTool(workspaceId, needsApproval("workspace_build_apk"), workspaceRepository),
         createApkReworkTool(workspaceId, needsApproval("workspace_apk_rework"), workspaceRepository),
+        createApkUnpackTool(workspaceId, needsApproval("workspace_apk_unpack"), workspaceRepository),
     )
 }
  
@@ -627,6 +629,47 @@ private fun createApkReworkTool(
                     result.exitCode == 0 -> "二改完成！APK 在 /workspace/apk_rework/$outputName"
                     else -> "失败，查看 log 定位（常见：APK 损坏/路径不对/环境未装好会自动重试）"
                 }
+            )
+        }.toString()))
+    },
+)
+
+
+/** APK 脱壳：壳检测 + 明文dex提取 + Frida脱壳脚本生成 */
+private fun createApkUnpackTool(
+    workspaceId: String,
+    needsApproval: Boolean,
+    workspaceRepository: WorkspaceRepository,
+) = Tool(
+    name = "workspace_apk_unpack",
+    description = "在 proot 工作区里对 APK 脱壳：检测加固厂商(360/腾讯乐固/梆梆/爱加密等)、提取明文dex、生成Frida脱壳脚本。" +
+        "Params: apk_path(工作区内APK路径，如 /workspace/app.apk)",
+    needsApproval = needsApproval,
+    parameters = {
+        InputSchema.Obj(
+            properties = buildJsonObject {
+                put("apk_path", buildJsonObject {
+                    put("type", "string")
+                    put("description", "APK 路径（工作区内，如 /workspace/app.apk）")
+                })
+            },
+            required = listOf("apk_path")
+        )
+    },
+    execute = { args ->
+        val obj = args.jsonObject
+        val apkPath = obj["apk_path"]?.jsonPrimitive?.contentOrNull
+            ?: return@Tool listOf(UIMessagePart.Text("""{"error":"apk_path required"}"""))
+        val result = workspaceRepository.unpackApk(workspaceId, apkPath)
+        val log = (result.stdout + "\n" + result.stderr).trim()
+        listOf(UIMessagePart.Text(buildJsonObject {
+            put("exit_code", result.exitCode)
+            put("timed_out", result.timedOut)
+            put("log", log.take(30000))
+            put(
+                "tip",
+                if (result.exitCode == 0) "脱壳分析完成。看 log 中的【加固类型】判断：无壳直接用 workspace_apk_rework 反编译；有壳按提示用 frida_dump.py 真机脱壳"
+                else "分析失败，查看 log"
             )
         }.toString()))
     },
