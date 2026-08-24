@@ -266,6 +266,12 @@ object ModelRegistry {
         toolReasoningAbility()
     }
 
+    private val DEEPSEEK_V4_FLASH_VISION_EXP = defineModel {
+        tokens("deepseek", "v", "4", "flash", "vision", "exp")
+        visionInput()
+        toolReasoningAbility()
+    }
+
     private val DEEPSEEK_V4_PRO = defineModel {
         tokens("deepseek", "v", "4", "pro")
         toolReasoningAbility()
