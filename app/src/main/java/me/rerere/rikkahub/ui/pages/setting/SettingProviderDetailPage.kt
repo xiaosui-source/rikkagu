@@ -496,37 +496,8 @@ private fun ModelList(
             state = lazyListState
         ) {
             // 模型列表：仅当 API Key 有效时才显示预置模型（自动验证，无需手动操作）
-            if (keyChecking) {
-                item {
-                    Text(
-                        text = "正在验证 API Key...",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(24.dp)
-                    )
-                }
-            } else if (keyValidated != true) {
-                item {
-                    Column(
-                        modifier = Modifier
-                            .fillParentMaxHeight(0.8f)
-                            .fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = if (apiKey.isBlank()) "未填写 API Key" else "API Key 无效",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = if (apiKey.isBlank()) "在上方输入该提供商的 API Key，保存后自动验证" else "Key 验证失败，请检查后重试",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                        )
-                    }
-                }
-            } else if (providerSetting.models.isEmpty()) {
+            if (keyValidated == true) {
+                if (providerSetting.models.isEmpty()) {
                 item {
                     Column(
                         modifier = Modifier
@@ -613,6 +584,7 @@ private fun ModelList(
                 }
             }
         }
+            }
         HorizontalFloatingToolbar(
             expanded = expanded,
             modifier = Modifier
