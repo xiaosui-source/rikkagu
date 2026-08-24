@@ -148,14 +148,15 @@ fun buildMinecraftMcpTools(context: Context): List<Tool> = listOf(
     // ===== 机器人连接服务器 =====
     Tool(
         name = "mc_bot_connect",
-        description = "AI 机器人登录 Minecraft 服务器（Java版或基岩版，AI 就是游戏里的机器人）。Params: host(服务器地址), optional port, optional version(java/bedrock，默认java), optional username(机器人名字), optional rcon_password(基岩版RCON密码)",
+        description = "AI 机器人登录 Minecraft 服务器（Java版或基岩版，AI 就是游戏里的机器人）。Params: host(服务器地址), optional port, optional version(java/bedrock，默认java), optional auth(登录方式：offline=离线模式，microsoft=微软正版，默认offline), optional username(机器人名字，离线模式用), optional rcon_password(基岩版RCON密码)",
         needsApproval = false,
         parameters = {
             InputSchema.Obj(properties = buildJsonObject {
                 put("host", buildJsonObject { put("type", "string"); put("description", "服务器地址，如 127.0.0.1 或 192.168.1.100") })
                 put("port", buildJsonObject { put("type", "string"); put("description", "端口：Java默认25565，基岩版默认19132/RCON 25575") })
                 put("version", buildJsonObject { put("type", "string"); put("description", "版本：java 或 bedrock，默认 java") })
-                put("username", buildJsonObject { put("type", "string"); put("description", "机器人名字（离线模式），默认 AI_Bot") })
+                put("auth", buildJsonObject { put("type", "string"); put("description", "登录方式：offline=离线模式(无需正版)，microsoft=微软正版(需先 mc_bot_msauth 登录)，默认 offline") })
+                put("username", buildJsonObject { put("type", "string"); put("description", "机器人名字（离线模式用），默认 AI_Bot") })
                 put("rcon_password", buildJsonObject { put("type", "string"); put("description", "基岩版 RCON 密码（bedrock 需要）") })
             }, required = listOf("host"))
         },
@@ -163,6 +164,7 @@ fun buildMinecraftMcpTools(context: Context): List<Tool> = listOf(
             val o = args.jsonObject
             val host = o["host"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"host required"}"""))
             val version = o["version"]?.jsonPrimitive?.contentOrNull ?: "java"
+            val auth = o["auth"]?.jsonPrimitive?.contentOrNull ?: "offline"
             val port = o["port"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()
                 ?: if (version == "bedrock") 19132 else 25565
             var username = o["username"]?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() } ?: "AI_Bot"
@@ -174,19 +176,34 @@ fun buildMinecraftMcpTools(context: Context): List<Tool> = listOf(
                 context.getSharedPreferences("minecraft_mcp", Context.MODE_PRIVATE).edit()
                     .putString("version", "bedrock")
                     .putString("rcon_password", rconPassword)
+                    .putString("auth", auth)
                     .apply()
             } else {
                 context.getSharedPreferences("minecraft_mcp", Context.MODE_PRIVATE).edit()
                     .putString("version", "java")
+                    .putString("auth", auth)
                     .apply()
             }
 
-            // 使用已保存的微软 token（mc_bot_msauth 登录）
+            // 登录方式选择：offline（离线）或 microsoft（微软正版）
             val prefs = context.getSharedPreferences("minecraft_mcp", Context.MODE_PRIVATE)
-            var msToken: String? = prefs.getString("ms_token", null)
-            val msUsername = prefs.getString("ms_username", null)
-            if (msToken != null && msUsername != null) {
-                username = msUsername
+            var msToken: String? = null
+            when (auth) {
+                "microsoft" -> {
+                    msToken = prefs.getString("ms_token", null)
+                    val msUsername = prefs.getString("ms_username", null)
+                    if (msToken.isNullOrBlank()) {
+                        return@Tool listOf(UIMessagePart.Text(buildJsonObject {
+                            put("error", "未找到微软账号登录信息，请先调用 mc_bot_msauth 用微软账号密码登录")
+                            put("next", "mc_bot_msauth(email=..., password=...)")
+                        }.toString()))
+                    }
+                    if (!msUsername.isNullOrBlank()) username = msUsername
+                }
+                else -> {
+                    // 离线模式：不携带任何 token
+                    msToken = null
+                }
             }
 
             // 断开旧连接
@@ -199,7 +216,9 @@ fun buildMinecraftMcpTools(context: Context): List<Tool> = listOf(
             listOf(UIMessagePart.Text(buildJsonObject {
                 put("connected", result.contains("登录成功") || result.contains("连接"))
                 put("result", result)
-                put("tip", "AI 已作为机器人进入服务器（离线模式服务器），可开始玩")
+                put("auth", auth)
+                put("username", username)
+                put("tip", if (auth == "microsoft") "已用微软正版账号进入服务器" else "AI 已作为离线机器人进入服务器，可开始玩")
             }.toString()))
         },
     ),
