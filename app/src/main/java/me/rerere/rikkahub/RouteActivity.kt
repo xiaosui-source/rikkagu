@@ -706,10 +706,6 @@ entry<Screen.Extensions> {
                                 me.rerere.rikkahub.ui.pages.setting.AgentSettingsPage()
                             }
 
-                            entry<Screen.SettingNovelRoleplay> {
-                                me.rerere.rikkahub.ui.pages.setting.NovelRoleplayPage()
-                            }
-
                             entry<Screen.SettingWeixinBot> {
                                 SettingWeixinBotPage()
                             }
@@ -1102,14 +1098,10 @@ sealed interface Screen : NavKey {
     data object SettingAgents : Screen
 
     @Serializable
-    data object SettingNovelRoleplay : Screen
     @Serializable
     data object SettingWeixinBot : Screen
 
     @Serializable
-    data object SettingApiExplorer : Screen
-    @Serializable
-    data object SettingGomoku : Screen
     @Serializable
     data object Health : Screen
 

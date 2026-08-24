@@ -208,12 +208,6 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                         headlineContent = { Text("智能体管理") },
                     )
                     item(
-                        onClick = { navController.navigate(Screen.SettingNovelRoleplay) },
-                        leadingContent = { Icon(HugeIcons.BookOpen01, null) },
-                        supportingContent = { Text("导入 TXT/EPUB 小说，与原著角色进行角色扮演对话") },
-                        headlineContent = { Text("小说角色扮演") },
-                    )
-                    item(
                         onClick = { navController.navigate(Screen.Assistant) },
                         leadingContent = { Icon(HugeIcons.LookTop, null) },
                         supportingContent = { Text(stringResource(R.string.setting_page_assistant_desc)) },
