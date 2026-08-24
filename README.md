@@ -95,6 +95,7 @@
 - **🤖 多智能体联合** — 配置不同专长智能体（写作/翻译/代码…），主助手自动把子任务转交给对应智能体处理，结果回传后继续作答（设置 → 智能体管理）
 - **📖 小说角色扮演** — 导入 TXT/EPUB 小说自动切章提角色，或输入小说名自动搜索获取；选择角色即可与 AI 进行原著角色扮演对话（设置 → 小说角色扮演）
 - **🎮 Minecraft 机器人** — AI 作为游戏内机器人进服游玩：离线模式（无需正版）或微软正版登录（PCL2 同款设备码网页授权，无需账号密码）；支持基岩版 RCON 操作与 AI 自主通关模式
+- **⚙️ proot 工作区** — 完整 APK 流水线：**免root脱壳**（Unicorn 模拟执行加固 so 自动 dump dex）→ **二改**（apktool/jadx 反编译+重打包+apksigner 签名）→ **编译 APK**（自动装 Java17+Android SDK+Gradle，**按手机内存自动调节 JVM 堆/worker 防卡死**）；另支持 **本地文件夹工作区**（SAF 授权后 AI 直接读写手机项目文件夹，`local_ws_*` 工具）
 
 ### 📝 富文本渲染
 - Markdown 完整支持
@@ -125,7 +126,7 @@
 ├── app/          # 主应用模块（UI、ViewModel、核心逻辑、工具、扩展）
 │   └── data/ai/agents/   # 多智能体（AgentProfile / AgentRunner / AgentTools）
 │   └── data/novel/       # 小说角色扮演（NovelParser / NovelScene / NovelStore）
-│   └── data/ai/tools/    # 55 个工具文件（含 Minecraft 机器人 / 微软设备码授权）
+│   └── data/ai/tools/    # 工具系统（Minecraft/本地文件夹工作区/APK脱壳二改等）
 ├── ai/           # AI SDK 抽象层（OpenAI / Google / Anthropic）
 ├── common/       # 通用工具与扩展
 ├── document/     # 文档解析（PDF / DOCX / PPTX / EPUB）
@@ -133,7 +134,7 @@
 ├── search/       # 搜索功能 SDK（Exa / Tavily / 智谱 / Custom JS）
 ├── speech/       # 语音识别与 TTS
 ├── material3/    # Material3 组件（vendored material-color-utilities）
-├── workspace/    # 工作区（文件沙箱）
+├── workspace/    # proot 沙箱工作区（shell 执行 / 文件系统 / rootfs 安装）
 └── locale-tui/   # 国际化工具
 ```
 
