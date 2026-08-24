@@ -190,6 +190,16 @@ class WorkspaceRepository(
         manager.readText(workspace.root, path)
     }
 
+    /** 读取原始字节（用于图片/二进制预览） */
+    suspend fun readBytes(
+        id: String,
+        path: String,
+    ): ByteArray = withContext(Dispatchers.IO) {
+        val workspace = dao.getById(id) ?: error("Workspace not found: $id")
+        manager.ensureWorkspace(workspace.root)
+        manager.readBytes(workspace.root, path)
+    }
+
     suspend fun writeText(
         id: String,
         path: String,

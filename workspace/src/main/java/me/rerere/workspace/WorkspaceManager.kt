@@ -59,6 +59,11 @@ class WorkspaceManager(
         charset: Charset = StandardCharsets.UTF_8,
     ): String = fileSystem.readText(filesDir(root), path, charset)
 
+    fun readBytes(
+        root: String,
+        path: String,
+    ): ByteArray = File(filesDir(root), path).readBytes()
+
     fun writeText(
         root: String,
         path: String,

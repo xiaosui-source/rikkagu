@@ -7,10 +7,12 @@
 package me.rerere.rikkahub.ui.pages.extensions.workspace
 
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +26,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -44,6 +49,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -54,6 +60,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -92,6 +99,9 @@ import me.rerere.workspace.WorkspaceStorageArea
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
+/** 工作区文件预览支持的图片格式 */
+private val IMAGE_EXTENSIONS = setOf("png", "jpg", "jpeg", "gif", "webp", "bmp")
+
 @Composable
 fun WorkspaceDetailPage(id: String) {
     val navController = LocalNavController.current
@@ -104,6 +114,7 @@ fun WorkspaceDetailPage(id: String) {
     val scope = rememberCoroutineScope()
 
     var deleteTarget by remember { mutableStateOf<WorkspaceFileEntry?>(null) }
+    var previewTarget by remember { mutableStateOf<WorkspaceFileEntry?>(null) }
     var showInstallDialog by remember { mutableStateOf(false) }
     // 导出目标文件条目：非空时触发系统"另存为"选择器
     var exportTarget by remember { mutableStateOf<WorkspaceFileEntry?>(null) }
@@ -214,6 +225,7 @@ fun WorkspaceDetailPage(id: String) {
                     onSwitchArea = { vm.switchArea(it) },
                     onNavigateUp = { vm.navigateUp() },
                     onOpen = { vm.navigateTo(it.path) },
+                    onPreview = { previewTarget = it },
                     onDelete = { deleteTarget = it },
                     onExport = { entry ->
                         exportTarget = entry
@@ -251,6 +263,67 @@ fun WorkspaceDetailPage(id: String) {
         onDismiss = { deleteTarget = null },
     ) {
         Text(stringResource(R.string.workspace_detail_delete_file_message, deleteTarget?.name ?: ""))
+    }
+
+    // 文件预览对话框（文本/图片）
+    previewTarget?.let { entry ->
+        var content by remember(entry.path) { mutableStateOf<String?>(null) }
+        var imageBytes by remember(entry.path) { mutableStateOf<ByteArray?>(null) }
+        var loading by remember(entry.path) { mutableStateOf(true) }
+        var loadError by remember(entry.path) { mutableStateOf<String?>(null) }
+        LaunchedEffect(entry.path) {
+            loading = true
+            content = null
+            imageBytes = null
+            loadError = null
+            try {
+                if (IMAGE_EXTENSIONS.contains(entry.name.substringAfterLast('.', "").lowercase())) {
+                    imageBytes = vm.readBytes(entry)
+                } else {
+                    content = vm.readText(entry)
+                }
+            } catch (e: Exception) {
+                loadError = e.message ?: "读取失败"
+            }
+            loading = false
+        }
+        AlertDialog(
+            onDismissRequest = { previewTarget = null },
+            title = { Text(entry.name, maxLines = 1) },
+            text = {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    when {
+                        loading -> CircularProgressIndicator()
+                        imageBytes != null -> {
+                            val bmp = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+                            if (bmp != null) {
+                                Image(
+                                    bitmap = bmp.asImageBitmap(),
+                                    contentDescription = entry.name,
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                            } else {
+                                Text("无法解码图片（可能格式不支持或文件损坏）")
+                            }
+                        }
+                        loadError != null -> Text("预览失败：$loadError")
+                        else -> Text(
+                            text = content.orEmpty().take(100_000),
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .verticalScroll(rememberScrollState()),
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { previewTarget = null }) { Text("关闭") }
+            },
+        )
     }
 
     RootfsInstallUrlDialog(
@@ -307,6 +380,7 @@ private fun WorkspaceFilesPage(
     onSwitchArea: (WorkspaceStorageArea) -> Unit,
     onNavigateUp: () -> Unit,
     onOpen: (WorkspaceFileEntry) -> Unit,
+    onPreview: (WorkspaceFileEntry) -> Unit,
     onDelete: (WorkspaceFileEntry) -> Unit,
     onExport: (WorkspaceFileEntry) -> Unit,
     onShare: (WorkspaceFileEntry) -> Unit,
@@ -361,6 +435,8 @@ private fun WorkspaceFilesPage(
                     onClick = {
                         if (entry.isDirectory) {
                             onOpen(entry)
+                        } else {
+                            onPreview(entry)
                         }
                     },
                     onDelete = { onDelete(entry) },

@@ -270,6 +270,14 @@ class WorkspaceDetailVM(
         _state.value = _state.value.copy(errorMessage = null)
     }
 
+    /** 预览：读取文本内容 */
+    suspend fun readText(entry: WorkspaceFileEntry): String =
+        repository.readText(id, entry.path)
+
+    /** 预览：读取原始字节（图片等） */
+    suspend fun readBytes(entry: WorkspaceFileEntry): ByteArray =
+        repository.readBytes(id, entry.path)
+
     private fun setError(message: String?) {
         _state.value = _state.value.copy(errorMessage = message)
     }
