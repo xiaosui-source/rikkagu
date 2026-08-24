@@ -174,9 +174,9 @@ class ExternalMemoryService(
         runCatching {
             // 列出 baseDir 下所有 messages_*.json 并过滤
             val resources = client().list(baseDir()).getOrNull().orEmpty()
-            val files = resources.filter { it.name.startsWith("messages_") && it.name.endsWith(".json") }
+            val files = resources.filter { it.displayName.startsWith("messages_") && it.displayName.endsWith(".json") }
             val all = files.flatMap { f ->
-                parseList<ExternalMemoryMessage>(readRemote("${baseDir()}/${f.name}"))
+                parseList<ExternalMemoryMessage>(readRemote("${baseDir()}/${f.displayName}"))
             }
             all.filter { it.createdAt.startsWith(dateStr) }
         }
