@@ -27,6 +27,7 @@ import me.rerere.rikkahub.data.ai.GenerationHandler
 import me.rerere.rikkahub.data.ai.agents.AgentRunner
 import me.rerere.rikkahub.data.ai.agents.AgentStore
 import me.rerere.rikkahub.data.ai.transformers.TemplateTransformer
+import me.rerere.rikkahub.data.novel.NovelStore
 import me.rerere.rikkahub.data.api.LingxiAPI
 import me.rerere.rikkahub.data.api.SponsorAPI
 import me.rerere.rikkahub.data.datastore.SettingsStore
@@ -186,6 +187,10 @@ val dataSourceModule = module {
 
     single {
         AgentRunner(providerManager = get())
+    }
+
+    single {
+        NovelStore(context = get(), json = get())
     }
 
     single {
