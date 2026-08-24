@@ -270,12 +270,6 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                         headlineContent = { Text("微信 Bot") },
                     )
                     item(
-                        onClick = { navController.navigate(Screen.SettingApiExplorer) },
-                        leadingContent = { Icon(HugeIcons.Settings01, null) },
-                        supportingContent = { Text("输入网址自动发现 API 接口") },
-                        headlineContent = { Text("API 探索器") },
-                    )
-                    item(
                         onClick = { navController.navigate(Screen.SettingGomoku) },
                         leadingContent = { Icon(HugeIcons.Grid, null) },
                         supportingContent = { Text("15x15 棋盘，人机对战五子棋") },

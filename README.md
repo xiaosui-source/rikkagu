@@ -70,7 +70,6 @@
 - OCR 图片文字提取
 
 ### 🛠️ Extensions
-- **API Explorer** — Discover APIs from any URL
 - **APK Reverse Engineering** — Analyze APK files, decompile to Java source
 - **RailGo** — Train schedules & station lookup
 - **Gomoku** — 15×15 board, play against AI

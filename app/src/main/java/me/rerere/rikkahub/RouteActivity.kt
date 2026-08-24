@@ -166,7 +166,6 @@ import me.rerere.rikkahub.ui.pages.setting.SettingThemePage
 
 import me.rerere.rikkahub.ui.pages.setting.SecuritySettingPage
 import me.rerere.rikkahub.ui.pages.setting.SettingWeixinBotPage
-import me.rerere.rikkahub.ui.pages.setting.SettingApiExplorerPage
 import me.rerere.rikkahub.ui.pages.setting.SettingGomokuPage
 import me.rerere.rikkahub.plugin.webview.PluginWebViewPage
 import me.rerere.rikkahub.ui.pages.memory.MemoryBankPage
@@ -710,10 +709,6 @@ entry<Screen.Extensions> {
                                 SettingWeixinBotPage()
                             }
 
-                            entry<Screen.SettingApiExplorer> {
-                                SettingApiExplorerPage()
-                            }
-
                             entry<Screen.SettingGomoku> {
                                 SettingGomokuPage()
                             }
@@ -1096,9 +1091,6 @@ sealed interface Screen : NavKey {
 
     @Serializable
     data object SettingAgents : Screen
-
-    @Serializable
-    data object SettingApiExplorer : Screen
 
     @Serializable
     data object SettingGomoku : Screen
