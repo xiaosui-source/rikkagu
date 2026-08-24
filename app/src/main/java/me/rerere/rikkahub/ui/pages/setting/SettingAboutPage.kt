@@ -1,6 +1,6 @@
 ﻿/*
  * 灵犀 Lingxi
- * 衍生自 Lingxi (https://github.com/scottwilliamavery26071994-bot/rikkahub)，原作者 RE
+ * 衍生自 Lingxi (https://github.com/xiaosui-source/rikkagu)，原作者 xiaosui-source
  * 本项目基于 GNU AGPL v3 开源，详见根目录 LICENSE 文件
  */
 
@@ -169,26 +169,26 @@ fun SettingAboutPage() {
                         modifier = Modifier.padding(horizontal = 8.dp),
                     ) {
                         item(
-                            onClick = { context.openUrl("https://github.com/scottwilliamavery26071994-bot/rikkahub") },
+                            onClick = { context.openUrl("https://github.com/xiaosui-source/rikkagu") },
                             leadingContent = { Icon(HugeIcons.Earth, null) },
                             supportingContent = {
-                                Text("https://github.com/scottwilliamavery26071994-bot/rikkahub")
+                                Text("https://github.com/xiaosui-source/rikkagu")
                             },
                             headlineContent = { Text(stringResource(R.string.about_page_website)) },
                         )
                         item(
-                            onClick = { context.openUrl("https://github.com/scottwilliamavery26071994-bot/rikkahub") },
+                            onClick = { context.openUrl("https://github.com/xiaosui-source/rikkagu") },
                             leadingContent = { Icon(HugeIcons.Github, null) },
                             supportingContent = {
-                                Text("https://github.com/scottwilliamavery26071994-bot/rikkahub")
+                                Text("https://github.com/xiaosui-source/rikkagu")
                             },
                             headlineContent = { Text(stringResource(R.string.about_page_github)) },
                         )
                         item(
-                            onClick = { context.openUrl("https://github.com/scottwilliamavery26071994-bot/rikkahub/blob/master/LICENSE") },
+                            onClick = { context.openUrl("https://github.com/xiaosui-source/rikkagu/blob/master/LICENSE") },
                             leadingContent = { Icon(HugeIcons.File02, null) },
                             supportingContent = {
-                                Text("https://github.com/scottwilliamavery26071994-bot/rikkahub/blob/master/LICENSE")
+                                Text("https://github.com/xiaosui-source/rikkagu/blob/master/LICENSE")
                             },
                             headlineContent = { Text(stringResource(R.string.about_page_license)) },
                         )
@@ -200,7 +200,7 @@ fun SettingAboutPage() {
                         modifier = Modifier.padding(horizontal = 8.dp),
                     ) {
                         item(
-                            onClick = { context.openUrl("https://github.com/scottwilliamavery26071994-bot/rikkahub") },
+                            onClick = { context.openUrl("https://github.com/xiaosui-source/rikkagu") },
                             leadingContent = { Icon(HugeIcons.Github, null) },
                             supportingContent = {
                                 Text(stringResource(R.string.about_page_upstream_desc))

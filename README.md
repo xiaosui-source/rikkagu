@@ -201,7 +201,7 @@
 
 ## 📄 许可证
 
-本项目是 [Lingxi](https://github.com/scottwilliamavery26071994-bot/rikkahub) 的派生作品，遵循与上游一致的 **用户分段双重许可 (Segmented Dual Licensing)** 模式：
+本项目是基于 rikkahub 的派生作品（已迁移至本仓库），遵循与上游一致的 **用户分段双重许可 (Segmented Dual Licensing)** 模式：
 
 - **非商业 / 个人 / 教育 / 研究**，或 **用户总数不超过 10 人** 的组织 —— 遵循 [GNU AGPL v3](https://www.gnu.org/licenses/agpl-3.0.html)（含源代码公开义务）；
 - 商业用途、用户超过 10 人，或希望免除 AGPL v3 义务 —— 需购买商业许可证（联系原作者 `re_dev@qq.com`）。

@@ -1,6 +1,6 @@
 /*
  * 灵犀 Lingxi
- * 衍生自 Lingxi (https://github.com/scottwilliamavery26071994-bot/rikkahub)，原作者 RE
+ * 衍生自 Lingxi (https://github.com/xiaosui-source/rikkagu)，原作者 xiaosui-source
  * 本项目基于 GNU AGPL v3 开源，详见根目录 LICENSE 文件
  *
  * 本文件由 APK 反编译逆向还原（ScheduledMessageReceiver：定时消息广播接收器）

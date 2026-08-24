@@ -342,7 +342,7 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                     )
                     item(
                         onClick = {
-                            val docUrl = "https://github.com/scottwilliamavery26071994-bot/rikkahub"
+                            val docUrl = "https://github.com/xiaosui-source/rikkagu"
                             context.openUrl(docUrl)
                         },
                         leadingContent = { Icon(HugeIcons.Book01, null) },
