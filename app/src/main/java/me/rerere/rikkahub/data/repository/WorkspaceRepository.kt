@@ -494,7 +494,7 @@ class WorkspaceRepository(
                         "printf '84831b9409646a918e30573bab4c9c91346d8abd\\n' > /opt/android-sdk/licenses/android-sdk-preview-license && " +
                         "export ANDROID_HOME=/opt/android-sdk && " +
                         "yes | /opt/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=/opt/android-sdk " +
-                        "\\"platform-tools\\" \\"platforms;android-37\\" \\"build-tools;36.0.0\\" 2>&1 | tail -5",
+                        "\"platform-tools\" \"platforms;android-37\" \"build-tools;36.0.0\" 2>&1 | tail -5",
                     timeoutMillis = 1_800_000,
                 )
                 if (sdkInstall.exitCode != 0) {
@@ -508,7 +508,7 @@ class WorkspaceRepository(
                     "if ! which gradle >/dev/null 2>&1; then " +
                         "mkdir -p /opt/gradle && cd /tmp && " +
                         "(curl -sL --retry 2 -o gradle.zip " +
-                        "\"https://services.gradle.org/distributions/gradle-9.4.1-bin.zip\\" || " +
+                        "\"https://services.gradle.org/distributions/gradle-9.4.1-bin.zip\" || " +
                         "curl -sL --retry 2 -o gradle.zip " +
                         "\"https://mirrors.cloud.tencent.com/gradle/gradle-9.4.1-bin.zip") && " +
                         "unzip -qo gradle.zip -d /opt/gradle && " +
@@ -832,7 +832,7 @@ class WorkspaceRepository(
             appendLine("echo '=== DONE ==='")
             appendLine("echo '工作目录: $workDir'")
             appendLine("echo '· 无壳/明文dex：直接用 jadx/apktool 反编译 extracted/ 即可'")
-            appendLine("echo '· 有壳(免root优先)：python3 unpack_unicorn.py <加固so路径>，模拟执行JNI_OnLoad自动dump dex；')
+            appendLine("echo '· 有壳(免root优先)：python3 unpack_unicorn.py <加固so路径>，模拟执行JNI_OnLoad自动dump dex；"')
             appendLine("echo '   强壳按脚本提示用 capstone 定位解密函数、hook memcpy、或提取RC4/AES密钥静态解密'")
             appendLine("echo '· 全程在 proot 用户态沙箱内完成，无需 root 真机'")
         }
