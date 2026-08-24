@@ -1,209 +1,136 @@
-<div align="center">
-  <img src="docs/icon.png" alt="灵犀" width="120" />
-  <h1>灵犀</h1>
-  <p><strong>灵犀 全能 AI 客户端</strong></p>
-  <p>灵犀，让 AI 真正融入你的手机 🍊💬</p>
+# 🍊 灵犀 Lingxi
 
-  <p>
-    简体中文 ·
-    <a href="README_ZH_TW.md">繁體中文</a> ·
-    <a href="README.md">English</a>
-  </p>
-</div>
+> 源自 [rikkahub](https://github.com/scottwilliamavery26071994-bot/rikkahub) 的 AI 聊天助手，一款集 **多智能体协作、小说角色扮演、Minecraft 机器人、工具调用** 于一体的 Android AI 应用。
+>
+> 基于 **GNU AGPL v3** 开源（见 [LICENSE](LICENSE)）。
+
+**版本 v2.4.5** · Compose Multiplatform · 多供应商模型 · 30+ 本地工具
 
 ---
 
-<div align="center">
-  <img src="docs/img/chat.png" alt="聊天界面" width="140" />
-  <img src="docs/img/desktop.png" alt="模型选择" width="440" />
-  <img src="docs/img/assistants.png" alt="智能体" width="140" />
-</div>
+## ✨ 功能全景
 
----
+### 🧠 AI 对话核心
 
-## 🍊 灵犀功能
+| 功能 | 说明 |
+|---|---|
+| **多供应商模型** | OpenAI / Claude / Gemini / DeepSeek / 智谱 / 通义 / Vertex 等；自定义 API 地址、请求头、请求体；二维码导入导出配置 |
+| **多模态输入** | 图片理解、文档解析（PDF / DOCX / PPTX / EPUB）、OCR 文字提取 |
+| **多助手体系** | 每个助手独立系统提示词、模型、温度 / topP / maxTokens、预设消息、正则替换、对话隔离 |
+| **群聊模式** | 多 AI 同会话协作，消息分公开 / 私有 |
+| **记忆系统** | 类 ChatGPT 跨对话记忆 + Memory Bank 长期向量记忆库 |
+| **富文本渲染** | Markdown、代码高亮、LaTeX、Mermaid 流程图、表格 |
+| **消息分支 / 翻译 / 标题** | 对话分叉探索、一键 AI 翻译、自动标题与回复建议 |
+| **角色导入** | Silly Tavern 角色卡、Chatbox 聊天记录导入 |
+| **工具调用三通道** | 原生 tool_calls + 纯文本 XML 解析（弱模型也能调工具）+ 规则路由兜底 |
 
-> 以下为灵犀核心功能列表
+### 🤖 多智能体联合工作（Agent）
+
+- 配置多个不同专长的智能体（写作 / 翻译 / 代码 / …），每个绑定一个现有助手（复用其模型与密钥）
+- 主助手在对话中识别到子任务属于某智能体专长时，自动调用 `agent_call_<id>` 工具**转交**给它
+- 被调起的智能体用自己绑定的模型**独立子会话**完成任务，结果回传主助手继续作答
+- 禁止嵌套转交，防止死循环；转交过程以工具卡片形式展示
+- 入口：**设置 → 智能体管理**
+
+### 📖 小说导入 · 角色扮演
+
+- **本地导入**：TXT / EPUB 整本导入，自动切分章节、启发式提取角色（"XX说道/笑道" 词频）
+- **搜索自动获取**：输入小说名 → 自动搜索在线资源 → 点击导入抓取内容并解析
+- **角色扮演**：选择角色 → 自动创建"角色扮演"助手（注入角色设定 + 小说节选 + 扮演规则）→ 跳转对话，AI 以原著角色口吻互动
+- 支持自定义剧情简介，增强扮演设定
+- 入口：**设置 → 小说角色扮演**
+
+### 🎮 Minecraft 机器人（AI 进服游玩）
+
+- AI 作为游戏内机器人，Java / 基岩版双支持
+- **离线模式** `auth=offline`：无需正版，直接以自定义名字进服
+- **微软正版登录** `auth=microsoft`：**PCL2 同款设备码网页授权**——自动打开浏览器微软登录页，用户在浏览器登录并输入代码，无需提供账号密码
+- 机器人操作：连接、说话、查询状态；基岩版支持 RCON 命令（传送 / 放置 / 召唤 / 时间天气等）
+- **AI 自主通关模式**：设定目标（建家 / 挖矿 / 击败末影龙…），AI 自主循环"查状态 → 行动 → 汇报进度"直到通关
+
+### 🛠️ 工具系统（30+ 本地工具）
+
+- **系统控制**：时间、剪贴板、TTS 语音、电池、亮度、音量、手电筒、震动、闹钟、日历、TODO、短信、WiFi / 存储 / 电话信息、通知、Toast、分享、壁纸、媒体扫描
+- **UI 自动化**（无障碍）：点击 / 滑动 / 长按 / 输入 / 滚动 / 截图 / 读取窗口树 / 找节点
+- **硬件**：摄像头拍照、定位与附近搜索（高德）、Gadgetbridge 手环健康数据
+- **网络**：网页抓取、HTTP 请求、多引擎搜索（Exa / Tavily / 智谱 / Brave / Perplexity / Custom JS）
+- **文件**：文件系统读写、ZIP 打包 / 解析、工作区（Workspace）、SSH / SFTP 远程终端
+- **特色**：抖音 MCP、12306 火车票、APK 逆向、行测 MCP、知识库、`eval_javascript`、`ask_user`、消息桥接
+- **安全**：命令守卫（HardlineCommandGuard）、安全审计日志
+
+### 🧩 扩展生态（Extensions）
+
+API Explorer · 五子棋 AI 对战 · 工具箱（Base64 / 时间戳 / 密码 / JSON / 颜色 / 进制 / 正则）· AI 语音通话 · SSH 远程 · Memory Bank · **主动消息**（定时发送）· **微信 Bot**（微信变 AI 网关）· **工作流**（Tasker 式：触发 + 条件 → 动作，支持 cron 定时）· 本地插件系统（ZIP 导入 + 声明式 UI + WebView 插件）· MCP 协议（内置 / 外部 / 本地服务器）
 
 ### 🎨 个性化定制
-- **头像框** — 为 AI 助手头像添加装饰边框，打造独特视觉风格
-- **气泡透明度** — 自由调节聊天气泡透明度，营造沉浸式对话体验
-- **思维链样式** — 自定义思维链（Chain of Thought）的显示样式
-- **输入框换背景** — 自定义聊天输入框背景，告别单调默认样式
-- **字体包导入** — 导入自定义字体包，让对话界面更具个性
 
-### 📍 位置与生活
-- **获取定位** — AI 可获取用户当前位置信息，提供基于位置的服务
-- **附近搜索** — 基于高德地图 API，搜索附近的兴趣点（餐饮、商店等）
-- **App 使用情况与轨迹** — AI 可读取应用使用统计和活动轨迹，了解你的数字生活习惯
+Material You 动态取色 · 暗色模式 · 预测性返回 · 头像框 · 气泡透明度 · 思维链样式 · 输入框背景 · 字体包导入
 
-### 📸 硬件交互
-- **拍照** — AI 可调用设备摄像头拍照，实现视觉交互
+### ☁️ 数据与同步
 
-### ⌚ 健康数据
-- **Gadgetbridge 同步** — 从 Gadgetbridge 读取智能手环/手表的健康数据（步数、心率、睡眠等），让 AI 了解你的身体状况
-
-### ☁️ 数据同步
-- **Supabase 同步** — 基础数据通过 Supabase 云端同步，多设备无缝切换
-
-### 🔍 搜索增强
-- **Custom JS 搜索** — 通过 QuickJS 引擎支持自定义 JavaScript 脚本编写搜索服务，灵活扩展搜索能力
-
----
-
-## ✨ 继承自 Lingxi 的功能
-
-### 🎨 精致体验
-- **Material You 设计** — 动态取色，跟随系统主题
-- **暗色模式** — 护眼夜间体验
-- **预测性返回** — Android 14+ 原生返回动画
-
-### 🔄 多供应商支持
-- 兼容 OpenAI / Google / Anthropic 等主流 API
-- 自定义 API 地址、模型、请求头与请求体
-- 二维码快速导入/导出供应商配置
-
-### 🖼️ 多模态输入
-- 图片识别与理解
-- 文档解析（PDF、DOCX、PPTX）
-- OCR 图片文字提取
-
-### 🛠️ Extensions
-- **API Explorer** — Discover APIs from any URL
-- **APK Reverse Engineering** — Analyze APK files, decompile to Java source
-- **RailGo** — Train schedules & station lookup
-- **Gomoku** — 15×15 board, play against AI
-- **Toolbox** — Base64 / Timestamp / Password / JSON / Color / Radix / Regex
-- **Voice Call** — AI-powered voice conversation
-- **SSH Remote** — Terminal SSH/SFTP in workspace
-- **Security Audit Log** — Track sensitive operations & tool calls
-- **Memory Bank** — Long-term AI memory storage & retrieval
-- **Proactive Messages** — AI sends scheduled messages with context
-- **WeChat Bot** — Turn your WeChat into an AI gateway
-- **Workflow** — Tasker-style automation: trigger + condition → action
-- **Multi-Provider** — OpenAI / Claude / Gemini / DeepSeek / Zhipu / Qwen 等
-- **MCP 协议支持** — 连接外部工具与服务
-- **搜索集成** — Exa / Tavily / 智谱 / LinkUp / Brave / Perplexity 等
-- **Prompt 变量** — 模型名称、时间等动态注入
-- **消息分支** — 对话分叉，探索不同回复方向
-- **智能体定制** — 独立系统提示词、参数与对话隔离
-- **类 ChatGPT 记忆** — 跨对话上下文记忆
-- **AI 翻译** — 一键翻译消息内容
-- **会话独立系统提示词** — 每个会话可单独定义系统提示词
-- **Chatbox 聊天记录导入** — 从 Chatbox 导入历史对话
-
-### 📝 富文本渲染
-- Markdown 完整支持
-- 代码语法高亮
-- LaTeX 数学公式
-- Mermaid 流程图
-- 表格渲染
+Supabase 云同步（多设备无缝切换）· WebDAV / S3 备份恢复 · 本地备份 · 消息全文搜索（FTS）· 导出 / 导入
 
 ### 🖥️ 多端访问
-- Android 原生客户端
-- 内置 Web 服务，支持浏览器访问
 
-### 💌 角色导入
-- Silly Tavern 角色卡导入
-
----
-
-## 🚀 下载安装
-
-| 渠道 | 链接 |
-|------|------|
-| GitHub Releases | [scottwilliamavery26071994-bot/rikkahub/releases](https://github.com/scottwilliamavery26071994-bot/rikkahub/releases) |
-| 源码 | [github.com/scottwilliamavery26071994-bot/rikkahub](https://github.com/scottwilliamavery26071994-bot/rikkahub) |
+Android 原生客户端 + 内置 Web 服务（浏览器访问，React Web UI）
 
 ---
 
 ## 🏗️ 项目架构
 
 ```
-灵犀/
-├── app/          # 主应用模块（UI、ViewModel、核心逻辑）
-├── ai/           # AI SDK 抽象层（OpenAI / Google / Anthropic）
-├── common/       # 通用工具与扩展
-├── document/     # 文档解析（PDF / DOCX / PPTX）
-├── highlight/    # 代码语法高亮
-├── search/       # 搜索功能 SDK（Exa / Tavily / 智谱 / Custom JS）
-├── speech/       # 语音识别
-├── tts/          # 文本转语音
-├── web/          # 内嵌 Web 服务器（Ktor）
+├── app/          # 主应用（UI、服务、数据层、工具、扩展）
+├── ai/           # 多供应商 AI SDK（Provider / Model / Tool / Stream）
+├── common/       # 公共组件与资源
+├── search/       # 搜索服务 SDK（Bing / 搜狗 / 360 / DuckDuckGo / Google / SearXNG / Custom JS…）
+├── document/     # 文档解析（PDF / DOCX / PPTX / EPUB / CSV）
+├── highlight/    # 代码高亮
+├── speech/       # 语音（TTS / ASR）
+├── workspace/    # 工作区（文件沙箱）
+├── material3/    # Material3 组件（vendored material-color-utilities）
 ├── web-ui/       # Web 前端（React）
-└── locale-tui/   # 国际化工具
+├── website/      # 项目网站
+└── skills/       # 技能定义
 ```
+
+### 关键模块
+
+| 路径 | 职责 |
+|---|---|
+| `data/ai/` | 生成链路（GenerationHandler）、文本 XML 工具解析、规则路由、工具系统 |
+| `data/ai/agents/` | **多智能体**（AgentProfile / AgentStore / AgentRunner / AgentTools） |
+| `data/novel/` | **小说角色扮演**（NovelParser / NovelScene / NovelStore） |
+| `data/ai/tools/` | 55 个工具文件（含 Minecraft 机器人 / 微软设备码授权） |
+| `data/datastore/` | 全局设置（SettingsStore）、默认模型与助手 |
+| `data/db/` | Room 数据库（会话 / 消息 / 记忆 / FTS） |
+| `workflow/` | 工作流引擎（触发 + 条件 + 动作） |
+| `plugin/` | 插件系统（导入 / 声明式 UI / WebView） |
 
 ---
 
-## 🛠️ 开发构建
+## 🚀 构建与安装
 
-### 环境要求
+### GitHub Actions（推荐）
 
-- [Android Studio](https://developer.android.com/studio)
-- JDK 17+
-- Android SDK（compileSdk 37, minSdk 26）
+仓库已配置 CI（`.github/workflows/build-apk.yml`）：push / 手动触发即构建 **Release APK**（Gradle 官方源 + 单 job 提速）。
 
-### 构建命令
+1. 打开仓库 **Actions** 页 → 最新一次成功运行
+2. 底部 **Artifacts → Release-APK** 下载安装
+
+### 本地构建
 
 ```bash
-./gradlew assembleDebug                # 构建 Debug APK
-./gradlew assembleRelease              # 构建 Release APK
-./gradlew test                         # 运行单元测试
-./gradlew connectedDebugAndroidTest    # 运行仪器测试
-./gradlew lint                         # Android Lint 检查
+# 环境要求：JDK 17+、Android SDK 37、Gradle 9.4.1（wrapper 已内置）
+./gradlew assembleRelease -x lint -x lintVitalRelease
+# 产物：app/build/outputs/apk/release/app-release.apk
 ```
-
-> [!TIP]
-> 构建应用需要在 `app/` 目录下放置 `google-services.json`（Firebase 配置文件）。
 
 ### 技术栈
 
-| 技术 | 用途 |
-|------|------|
-| [Kotlin](https://kotlinlang.org/) | 开发语言 |
-| [Jetpack Compose](https://developer.android.com/jetpack/compose) | UI 框架 |
-| [Material You](https://m3.material.io/) | 设计系统 |
-| [Koin](https://insert-koin.io/) | 依赖注入 |
-| [Room](https://developer.android.com/training/data-storage/room) | 本地数据库 |
-| [DataStore](https://developer.android.com/topic/libraries/architecture/datastore) | 偏好存储 |
-| [OkHttp](https://square.github.io/okhttp/) | HTTP 客户端 |
-| [Ktor](https://ktor.io/) | 内嵌 Web 服务器 |
-| [Coil](https://coil-kt.github.io/coil/) | 图片加载 |
-| [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization) | JSON 序列化 |
-| [Navigation Compose](https://developer.android.com/develop/ui/compose/navigation) | 页面导航 |
-| [Lucide Icons](https://composeicons.com/icon-libraries/lucide) | 图标库 |
-| [QuickJS](https://github.com/nicholasgasior/quickjs-java) | 自定义 JS 搜索引擎 |
-| [Supabase](https://supabase.com/) | 云端数据同步 |
-| [高德地图 SDK](https://lbs.amap.com/) | 定位与附近搜索 |
-
----
-
-## 🤝 贡献指南
-
-欢迎提交 Pull Request！
-
-> [!IMPORTANT]
-> 以下 PR 将被拒绝：
-> 1. 翻译相关变更（新增语言或更新翻译会增加后续维护负担）
-> 2. 新增功能（本项目有自己的设计理念，不随意接受功能 PR）
-> 3. AI 生成的大规模重构与变更
-
----
-
-## ⭐ Star History
-
-喜欢这个项目？给个 Star ⭐
-
-[![Star History Chart](https://api.star-history.com/svg?repos=scottwilliamavery26071994-bot/rikkahub&type=Date)](https://star-history.com/#scottwilliamavery26071994-bot/rikkahub&Date)
+Kotlin · Jetpack Compose（Material3）· Koin（DI）· Room · OkHttp · kotlinx.serialization · Coroutines · Navigation3 · AGP 9.1.1 · Gradle 9.4.1
 
 ---
 
 ## 📄 许可证
 
-本项目是 [Lingxi](https://github.com/scottwilliamavery26071994-bot/rikkahub) 的派生作品，遵循与上游一致的 **用户分段双重许可 (Segmented Dual Licensing)** 模式：
-
-- **非商业 / 个人 / 教育 / 研究**，或 **用户总数不超过 10 人** 的组织 —— 遵循 [GNU AGPL v3](https://www.gnu.org/licenses/agpl-3.0.html)（含源代码公开义务）；
-- 商业用途、用户超过 10 人，或希望免除 AGPL v3 义务 —— 需购买商业许可证（联系原作者 `re_dev@qq.com`）。
-
-详见 [LICENSE](LICENSE)。
+本项目基于 **GNU AGPL v3** 开源。详见 [LICENSE](LICENSE)。
