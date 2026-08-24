@@ -45,13 +45,16 @@ object NovelParser {
             "epub" -> EpubParser.parse(file)
             else -> file.readText(Charsets.UTF_8)
         }.replace("\uFEFF", "")
+        return parseText(raw, file.nameWithoutExtension.ifBlank { "未命名小说" })
+    }
 
+    /** 从纯文本直接解析（用于网页抓取等场景） */
+    fun parseText(raw: String, title: String): ParsedNovel {
         val text = raw.replace("\r\n", "\n").replace("\r", "\n")
         val chapters = splitChapters(text)
-        val title = file.nameWithoutExtension.ifBlank { "未命名小说" }
         val characters = extractCharacters(text)
         return ParsedNovel(
-            title = title,
+            title = title.ifBlank { "未命名小说" },
             chapters = chapters,
             characters = characters,
         )

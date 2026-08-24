@@ -26,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -38,6 +39,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -45,11 +47,15 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.AiMagic
 import me.rerere.hugeicons.stroke.BookOpen01
 import me.rerere.hugeicons.stroke.Delete02
 import me.rerere.rikkahub.Screen
+import me.rerere.rikkahub.data.ai.tools.HtmlToText
+import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.datastore.getCurrentAssistant
 import me.rerere.rikkahub.data.novel.NovelParser
@@ -61,6 +67,10 @@ import me.rerere.rikkahub.ui.context.LocalNavController
 import me.rerere.rikkahub.ui.context.LocalToaster
 import me.rerere.rikkahub.ui.theme.CustomColors
 import me.rerere.rikkahub.utils.plus
+import me.rerere.search.SearchService
+import me.rerere.search.SearchServiceOptions
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.koin.compose.koinInject
 import java.io.File
 import kotlin.uuid.Uuid
@@ -106,6 +116,61 @@ fun NovelRoleplayPage() {
                 } finally {
                     importing = false
                 }
+            }
+        }
+    }
+
+    // ===== 搜索导入（填小说名 → 自动搜索抓取）=====
+    val okHttp = koinInject<OkHttpClient>()
+    var searchQuery by remember { mutableStateOf("") }
+    var searching by remember { mutableStateOf(false) }
+    var fetchingUrl by remember { mutableStateOf<String?>(null) }
+    var searchHits by remember { mutableStateOf<List<NovelSearchHit>>(emptyList()) }
+
+    fun doSearch() {
+        val q = searchQuery.trim()
+        if (q.isEmpty()) return
+        scope.launch {
+            searching = true
+            searchHits = withContext(Dispatchers.IO) {
+                searchNovel(settingsStore.settingsFlow.value, q)
+            }
+            searching = false
+            if (searchHits.isEmpty()) {
+                toaster.show("没有搜到结果，换个关键词或在设置里检查搜索服务")
+            }
+        }
+    }
+
+    fun doFetch(hit: NovelSearchHit) {
+        scope.launch {
+            fetchingUrl = hit.url
+            try {
+                val text = withContext(Dispatchers.IO) { fetchNovelText(okHttp, hit.url) }
+                if (text.isNullOrBlank() || text.length < 300) {
+                    toaster.show("抓取内容太少（可能是目录页或被反爬），试试其他链接")
+                } else {
+                    val parsed = withContext(Dispatchers.IO) {
+                        NovelParser.parseText(text, hit.title.take(30).ifBlank { searchQuery.trim() })
+                    }
+                    if (parsed.chapters.isEmpty()) {
+                        toaster.show("未解析出章节内容")
+                    } else {
+                        novelStore.add(
+                            NovelScene(
+                                title = parsed.title,
+                                sourceFileName = hit.url,
+                                characters = parsed.characters,
+                                chapters = parsed.chapters,
+                            )
+                        )
+                        toaster.show("已获取《${parsed.title}》：${parsed.chapters.size} 章，${parsed.characters.size} 个角色")
+                    }
+                }
+            } catch (e: Exception) {
+                toaster.show("抓取失败：${e.message ?: e.toString()}")
+            } finally {
+                fetchingUrl = null
             }
         }
     }
@@ -174,6 +239,65 @@ fun NovelRoleplayPage() {
                         )
                     },
                 )
+            }
+
+            // 搜索小说自动获取
+            OutlinedCard(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text("搜索小说自动获取", style = MaterialTheme.typography.titleSmall)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            placeholder = { Text("输入小说名，如：斗破苍穹") },
+                            singleLine = true,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Button(
+                            onClick = { doSearch() },
+                            enabled = !searching && searchQuery.isNotBlank()
+                        ) {
+                            Text(if (searching) "搜索中…" else "搜索")
+                        }
+                    }
+                    if (searchHits.isNotEmpty()) {
+                        Text(
+                            "搜索结果（点击「导入」抓取）",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    searchHits.take(8).forEach { hit ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(hit.title, style = MaterialTheme.typography.bodyMedium, maxLines = 2)
+                                Text(
+                                    hit.url,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1
+                                )
+                            }
+                            TextButton(
+                                onClick = { doFetch(hit) },
+                                enabled = fetchingUrl == null
+                            ) {
+                                Text(if (fetchingUrl == hit.url) "抓取中…" else "导入")
+                            }
+                        }
+                    }
+                }
             }
 
             CardGroup(
@@ -311,3 +435,46 @@ private fun buildRoleplayPrompt(scene: NovelScene, character: String): String = 
     appendLine("4. 回复自然、口语化，长度适中（100~300 字），必要时可描写动作与神态。")
     appendLine("5. 若用户请求超出当前情节，可基于原著风格合理演绎。")
 }
+
+/** 搜索结果条目 */
+data class NovelSearchHit(
+    val title: String,
+    val url: String,
+)
+
+/** 用当前配置的搜索服务搜索小说 */
+private suspend fun searchNovel(settings: Settings, query: String): List<NovelSearchHit> =
+    withContext(Dispatchers.IO) {
+        runCatching {
+            val options = settings.searchServices.getOrElse(settings.searchServiceSelected) {
+                SearchServiceOptions.DEFAULT
+            }
+            val service = SearchService.getService(options)
+            val result = service.search(
+                params = buildJsonObject { put("query", "$query 小说 全文") },
+                commonOptions = settings.searchCommonOptions,
+                serviceOptions = options,
+            ).getOrNull() ?: return@runCatching emptyList()
+            result.items.map { NovelSearchHit(it.title, it.url) }
+        }.getOrDefault(emptyList())
+    }
+
+/** 抓取网页正文并转纯文本 */
+private suspend fun fetchNovelText(client: OkHttpClient, url: String): String? =
+    withContext(Dispatchers.IO) {
+        runCatching {
+            val request = Request.Builder()
+                .url(url)
+                .header(
+                    "User-Agent",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+                )
+                .header("Accept", "text/html,application/xhtml+xml,*/*;q=0.8")
+                .header("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8")
+                .build()
+            client.newCall(request).execute().use { resp ->
+                if (!resp.isSuccessful) null
+                else resp.body?.string()?.let { HtmlToText.convert(it) }
+            }
+        }.getOrNull()
+    }
