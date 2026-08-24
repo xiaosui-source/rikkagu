@@ -344,7 +344,7 @@ fun NovelRoleplayPage() {
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 if (scene.characters.isEmpty()) {
-                                    Text("未提取到角色，可编辑简介或换一本对话较多的小说试试。")
+                                    Text("未提取到角色，可在下方手动输入角色名开始扮演。")
                                 }
                                 Row(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -356,6 +356,30 @@ fun NovelRoleplayPage() {
                                             onClick = { startRoleplay(scene, character) },
                                             label = { Text(character) }
                                         )
+                                    }
+                                }
+                                // 手动输入角色名兜底
+                                var customName by remember(scene.id) { mutableStateOf("") }
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    OutlinedTextField(
+                                        value = customName,
+                                        onValueChange = { customName = it },
+                                        placeholder = { Text("手动输入角色名") },
+                                        singleLine = true,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    TextButton(
+                                        onClick = {
+                                            val name = customName.trim()
+                                            if (name.isNotBlank()) startRoleplay(scene, name)
+                                        },
+                                        enabled = customName.isNotBlank()
+                                    ) {
+                                        Text("开始扮演")
                                     }
                                 }
                                 TextButton(onClick = { editingSynopsis = scene }) {

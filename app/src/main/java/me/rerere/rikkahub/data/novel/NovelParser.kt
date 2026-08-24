@@ -34,12 +34,6 @@ object NovelParser {
             "([Cc]hapter\\s*[0-9]+)|([Pp]rologue)|([Ee]pilogue)"
     )
 
-    private val speechRegex = Regex(
-        "([\\u4e00-\\u9fa5]{2,4})" +
-            "(?:说道|笑着说|笑道|说|道|问|问道|答道|回答道|喊道|叫道|低声道|轻声说|" +
-            "冷冷地说|开口道|开口|接口|回应道|解释|解释道|告诉|对着|看向|看向我)"
-    )
-
     fun parse(file: File): ParsedNovel {
         val raw = when (file.extension.lowercase()) {
             "epub" -> EpubParser.parse(file)
@@ -85,9 +79,15 @@ object NovelParser {
         return result
     }
 
-    /** 提取候选角色：统计"XX说/道/笑道"前的 2-4 字人名，取高频前 20 */
+    /** 提取候选角色：找"XX说道/笑道"动词，取动词前 2-3 个汉字，过滤常见词，取高频前 N */
     fun extractCharacters(text: String, topN: Int = 20): List<String> {
         val scanned = text.take(MAX_SCAN_CHARS)
+        // 动词优先匹配长词（说道>道），避免把"说"吞进名字
+        val verbRegex = Regex(
+            "(说道|笑着说|笑了笑说|笑道|问道|答道|回答道|喊道|叫道|低声道|轻声说|" +
+                "冷冷地说|开口道|接口|回应道|解释道|嘟囔|嘀咕|叹道|喃喃|附和道|" +
+                "沉声道|缓缓道|想了想说|说|道|问|答|告诉|解释|开口)"
+        )
         val freq = HashMap<String, Int>()
         val blacklist = setOf(
             "不是", "没有", "不要", "一个", "什么", "怎么", "这个", "那个", "自己",
@@ -95,19 +95,34 @@ object NovelParser {
             "以后", "现在", "这里", "那里", "然后", "可以", "因为", "所以", "但是",
             "不过", "突然", "终于", "一下", "这时", "时候", "心里", "脸上", "眼睛",
             "声音", "语气", "目光", "淡淡", "微微", "轻轻", "好好", "那人", "只见",
+            "他说", "她说", "你说", "我说", "他说", "它说", "我", "他", "她", "你",
+            "只见他", "只见她", "看着他", "看着她", "对", "在", "被", "这本", "这本",
+            "我的", "他的", "她的", "你的", "大家", "有人", "别人", "我们", "他们",
+            "忍不住", "不由", "不禁", "连忙", "赶紧", "急忙", "立刻", "直接", "反而",
+            "似乎", "好像", "仿佛", "终于", "总算", "只能", "只得", "只好", "便", "就",
+            "开口", "说道", "问道", "答道", "笑着", "笑了笑",
         )
-        for (m in speechRegex.findAll(scanned)) {
-            val name = m.groupValues[1]
-            if (name.length !in 2..4) continue
+        for (m in verbRegex.findAll(scanned)) {
+            val verbStart = m.range.first
+            var nameStart = verbStart
+            var count = 0
+            // 取动词前连续 2-3 个汉字作为名字候选
+            while (nameStart > 0 && count < 3 && scanned[nameStart - 1].isCjk()) {
+                nameStart--
+                count++
+            }
+            if (count !in 2..3) continue
+            val name = scanned.substring(nameStart, verbStart)
             if (name in blacklist) continue
-            // 名字里不应带明显动词/助词
-            if (name.any { it in "的了着过把被将就在和与或" }) continue
+            // 名字不应以常见代词/虚词结尾
+            if (name.last() in "的了着过把被将就在和与或向我你他她它") continue
             freq[name] = (freq[name] ?: 0) + 1
         }
         return freq.entries
-            .filter { it.value >= 2 }
             .sortedByDescending { it.value }
             .take(topN)
             .map { it.key }
     }
+
+    private fun Char.isCjk(): Boolean = this in '\u4e00'..'\u9fff'
 }
