@@ -347,11 +347,11 @@ class SettingsStore(
                     assistants.add(defaultAssistant.copy())
                 }
             }
-            val ttsProviders = it.ttsProviders.ifEmpty { DEFAULT_TTS_PROVIDERS }.toMutableList()
-            DEFAULT_TTS_PROVIDERS.forEach { defaultTTSProvider ->
-                if (ttsProviders.none { provider -> provider.id == defaultTTSProvider.id }) {
-                    ttsProviders.add(defaultTTSProvider.copyProvider())
-                }
+            // TTS 提供商列表：不自动填充全部默认 TTS（Edge/百度/有道/Google），
+            // 只保证系统 TTS 存在，其他由用户手动添加选择
+            val ttsProviders = it.ttsProviders.toMutableList()
+            if (ttsProviders.none { provider -> provider.id == DEFAULT_SYSTEM_TTS_ID }) {
+                ttsProviders.add(TTSProviderSetting.SystemTTS(id = DEFAULT_SYSTEM_TTS_ID, name = ""))
             }
             it.copy(
                 providers = providers,
@@ -625,7 +625,10 @@ data class Settings(
     val mcpServers: List<McpServerConfig> = emptyList(),
     val webDavConfig: WebDavConfig = WebDavConfig(),
     val s3Config: S3Config = S3Config(),
-    val ttsProviders: List<TTSProviderSetting> = DEFAULT_TTS_PROVIDERS,
+    // TTS 提供商列表（默认只含系统 TTS，其余由用户手动添加）
+    val ttsProviders: List<TTSProviderSetting> = listOf(
+        TTSProviderSetting.SystemTTS(id = DEFAULT_SYSTEM_TTS_ID, name = ""),
+    ),
     val selectedTTSProviderId: Uuid = DEFAULT_SYSTEM_TTS_ID,
     val asrProviders: List<ASRProviderSetting> = DEFAULT_ASR_PROVIDERS,
     val selectedASRProviderId: Uuid? = DEFAULT_SYSTEM_ASR_ID,
