@@ -417,6 +417,132 @@ class WorkspaceRepository(
         }
     }
 
+    /**
+     * 自动安装 Android 编译环境：Java 17 + Android SDK (cmdline-tools/platform-tools/platforms;android-37/build-tools)。
+     * 需 shell 已 READY。后台调用, 失败抛异常由调用方容错。
+     */
+    suspend fun installAndroidBuildEnv(
+        id: String,
+        onProgress: (String) -> Unit = {},
+    ) {
+        val workspace = dao.getById(id) ?: return
+        // 检查是否已装好
+        val check = executeCommand(
+            id,
+            "java -version 2>&1 && ls /opt/android-sdk/platforms >/dev/null 2>&1",
+            timeoutMillis = 10_000,
+        )
+        if (check.exitCode == 0) return
+
+        // 确保 DNS 与国内镜像源
+        executeCommand(
+            id,
+            "printf 'nameserver 223.5.5.5\nnameserver 8.8.8.8\n' > /etc/resolv.conf && " +
+                "sed -i 's|http://archive.ubuntu.com/ubuntu|http://mirrors.aliyun.com/ubuntu|g; " +
+                "s|https://archive.ubuntu.com/ubuntu|http://mirrors.aliyun.com/ubuntu|g; " +
+                "s|http://security.ubuntu.com/ubuntu|http://mirrors.aliyun.com/ubuntu|g; " +
+                "s|https://security.ubuntu.com/ubuntu|http://mirrors.aliyun.com/ubuntu|g' " +
+                "/etc/apt/sources.list.d/ubuntu.sources || true",
+            timeoutMillis = 30_000,
+        )
+
+        repeat(2) { attempt ->
+            try {
+                // 1. Java 17
+                val javaCheck = executeCommand(id, "java -version 2>&1", timeoutMillis = 15_000)
+                if (javaCheck.exitCode != 0) {
+                    onProgress("安装 Java 17 (openjdk-17-jdk-headless)...")
+                    val javaInstall = executeCommand(
+                        id,
+                        "DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends openjdk-17-jdk-headless",
+                        timeoutMillis = 1_200_000,
+                    )
+                    if (javaInstall.exitCode != 0) {
+                        throw RuntimeException("openjdk install failed: ${javaInstall.stderr.take(200)}")
+                    }
+                }
+
+                // 2. Android cmdline-tools
+                onProgress("下载 Android cmdline-tools...")
+                executeCommand(
+                    id,
+                    "mkdir -p /opt/android-sdk/cmdline-tools /opt/android-sdk/licenses && cd /tmp && " +
+                        "(curl -sL --retry 2 -o cmdtools.zip " +
+                        "\"https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip\" || " +
+                        "curl -sL --retry 2 -o cmdtools.zip " +
+                        "\"https://mirrors.cloud.tencent.com/AndroidSDK/commandlinetools-linux-11076708_latest.zip\") && " +
+                        "unzip -qo cmdtools.zip -d /opt/android-sdk/cmdline-tools && " +
+                        "(mv /opt/android-sdk/cmdline-tools/cmdline-tools /opt/android-sdk/cmdline-tools/latest 2>/dev/null || true)",
+                    timeoutMillis = 600_000,
+                )
+
+                // 3. SDK 组件 (licenses + platform-tools + android-37 + build-tools 36)
+                onProgress("安装 Android SDK 组件 (platform-37 / build-tools / platform-tools)...")
+                val sdkInstall = executeCommand(
+                    id,
+                    "printf '24333f8a63b6825ea9c5514f83c2829b004d1fee\n' > /opt/android-sdk/licenses/android-sdk-license && " +
+                        "printf '84831b9409646a918e30573bab4c9c91346d8abd\n' > /opt/android-sdk/licenses/android-sdk-preview-license && " +
+                        "export ANDROID_HOME=/opt/android-sdk && " +
+                        "yes | /opt/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=/opt/android-sdk " +
+                        "\"platform-tools\" \"platforms;android-37\" \"build-tools;36.0.0\" 2>&1 | tail -5",
+                    timeoutMillis = 1_800_000,
+                )
+                if (sdkInstall.exitCode != 0) {
+                    throw RuntimeException("sdkmanager install failed: ${sdkInstall.stdout.take(200)} ${sdkInstall.stderr.take(200)}")
+                }
+
+                // 4. 验证
+                val verify = executeCommand(
+                    id,
+                    "ls /opt/android-sdk/platforms/android-37 >/dev/null && ls /opt/android-sdk/platform-tools/adb >/dev/null && echo SDK_OK",
+                    timeoutMillis = 30_000,
+                )
+                if (verify.exitCode != 0) {
+                    throw RuntimeException("SDK verify failed: ${verify.stdout.take(100)} ${verify.stderr.take(100)}")
+                }
+                return
+            } catch (e: Throwable) {
+                if (attempt == 1) throw e
+                Log.w(TAG, "android build env install attempt $attempt failed, retrying: ${e.message}")
+                onProgress("安装失败, 正在重试...")
+            }
+        }
+    }
+
+    /**
+     * 在 proot 工作区里编译 APK。
+     * 首次会自动安装 Java 17 + Android SDK；然后在项目目录执行 gradle 构建并返回 APK 路径。
+     *
+     * @param projectDir 项目相对路径（如 "" 表示工作区根，或 "MyApp" 表示 /workspace/MyApp）
+     * @param task Gradle 任务（默认 assembleRelease）
+     */
+    suspend fun buildApk(
+        id: String,
+        projectDir: String = "",
+        task: String = "assembleRelease",
+        onProgress: (String) -> Unit = {},
+    ): WorkspaceCommandResult {
+        val workspace = dao.getById(id) ?: error("Workspace not found: $id")
+        installAndroidBuildEnv(id, onProgress)
+
+        onProgress("开始构建 ($task)...")
+        val projectPath = if (projectDir.isBlank()) "/workspace" else "/workspace/${projectDir.trim('/')}"
+        val cmd = buildString {
+            appendLine("export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64")
+            appendLine("export ANDROID_HOME=/opt/android-sdk")
+            appendLine("export ANDROID_SDK_ROOT=/opt/android-sdk")
+            appendLine("export PATH=\${'$'}JAVA_HOME/bin:/opt/android-sdk/platform-tools:\${'$'}PATH")
+            appendLine("export CI=true")
+            appendLine("cd $projectPath")
+            appendLine("ls settings.gradle* build.gradle* >/dev/null 2>&1 || { echo 'NO_GRADLE_PROJECT: 该目录不是 Android 项目（缺少 settings.gradle/build.gradle）'; exit 1; }")
+            appendLine("chmod +x gradlew 2>/dev/null || true")
+            appendLine("if [ -x ./gradlew ]; then ./gradlew $task --no-daemon --stacktrace 2>&1 | tail -150; else gradle $task 2>&1 | tail -150; fi")
+            appendLine("echo '===APK-PATHS==='")
+            appendLine("find . -name '*.apk' 2>/dev/null | head -8")
+        }
+        return executeCommand(id, cmd, timeoutMillis = 1_800_000)
+    }
+
     suspend fun delete(id: String): Boolean {
         val workspace = dao.getById(id) ?: return false
         dao.deleteById(id)

@@ -55,6 +55,7 @@ suspend fun createWorkspaceTools(
         createEditFileTool(workspaceId, needsApproval("workspace_edit_file"), workspaceRepository),
         createShellTool(workspaceId, needsApproval("workspace_shell"), workspaceRepository, shellCwd),
         createWebBrowseTool(workspaceId, workspaceRepository),
+        createBuildApkTool(workspaceId, needsApproval("workspace_build_apk"), workspaceRepository),
     )
 }
  
@@ -522,3 +523,51 @@ private fun createWebBrowseTool(
         }
     }
 )
+
+
+/** 在 proot 工作区里编译 Android APK（自动安装 Java17+Android SDK） */
+private fun createBuildApkTool(
+    workspaceId: String,
+    needsApproval: Boolean,
+    workspaceRepository: WorkspaceRepository,
+) = Tool(
+    name = "workspace_build_apk",
+    description = "在 proot 工作区里编译 Android APK。首次调用会自动安装 Java 17 + Android SDK (platform-37/build-tools)，" +
+        "然后在项目目录执行 gradlew 构建并返回日志与 APK 路径。Params: optional project_dir(项目子目录，如 MyApp，默认工作区根), " +
+        "optional task(Gradle 任务，默认 assembleRelease)",
+    needsApproval = needsApproval,
+    parameters = {
+        InputSchema.Obj(
+            properties = buildJsonObject {
+                put("project_dir", buildJsonObject {
+                    put("type", "string")
+                    put("description", "Android 项目子目录（可选，默认工作区根）")
+                })
+                put("task", buildJsonObject {
+                    put("type", "string")
+                    put("description", "Gradle 任务（可选，默认 assembleRelease）")
+                })
+            }
+        )
+    },
+    execute = { args ->
+        val obj = args.jsonObject
+        val projectDir = obj["project_dir"]?.jsonPrimitive?.contentOrNull ?: ""
+        val task = obj["task"]?.jsonPrimitive?.contentOrNull ?: "assembleRelease"
+        val result = workspaceRepository.buildApk(workspaceId, projectDir, task)
+        val log = (result.stdout + "\n" + result.stderr).trim()
+        listOf(UIMessagePart.Text(buildJsonObject {
+            put("exit_code", result.exitCode)
+            put("timed_out", result.timedOut)
+            put("task", task)
+            put("project_dir", projectDir.ifBlank { "/workspace" })
+            put("log", log.take(30000))
+            put(
+                "tip",
+                if (result.exitCode == 0) "构建成功！可在上方 log 的 ===APK-PATHS=== 部分找到 APK 路径，用 workspace_read_file 无法直接读取二进制，可把 APK 放到 /workspace 后导出"
+                else "构建失败，查看 log 定位错误；缺少依赖可先装 gradle 或检查项目配置"
+            )
+        }.toString()))
+    },
+)
+

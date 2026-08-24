@@ -243,6 +243,54 @@ fun SettingSystemToolsPage(vm: SettingVM = koinViewModel()) {
 
 
 
+            // 本地文件夹工作区（SAF 授权：AI 读写本地项目文件夹）
+            item {
+                val folderLauncher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.OpenDocumentTree()
+                ) { uri ->
+                    if (uri != null) {
+                        runCatching {
+                            context.contentResolver.takePersistableUriPermission(
+                                uri,
+                                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                            )
+                        }
+                        vm.updateSettings(settings.copy(localWorkspaceUri = uri.toString()))
+                    }
+                }
+                CardGroup(
+                    title = { Text("本地文件夹工作区") },
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                ) {
+                    item(
+                        leadingContent = { Icon(imageVector = HugeIcons.Folder02, contentDescription = null) },
+                        headlineContent = { Text("选择本地项目文件夹") },
+                        supportingContent = {
+                            Text(
+                                if (settings.localWorkspaceUri.isNullOrBlank())
+                                    "授权后 AI 可直接读写该文件夹（local_ws_* 工具），作为本地项目工作区"
+                                else "已授权：${settings.localWorkspaceUri}"
+                            )
+                        },
+                        trailingContent = {
+                            TextButton(onClick = { folderLauncher.launch(null) }) {
+                                Text(if (settings.localWorkspaceUri.isNullOrBlank()) "选择" else "更换")
+                            }
+                        }
+                    )
+                    if (!settings.localWorkspaceUri.isNullOrBlank()) {
+                        item(
+                            headlineContent = { Text("取消授权") },
+                            trailingContent = {
+                                TextButton(
+                                    onClick = { vm.updateSettings(settings.copy(localWorkspaceUri = null)) }
+                                ) { Text("移除", color = MaterialTheme.colorScheme.error) }
+                            }
+                        )
+                    }
+                }
+            }
+
             // 位置服务
             item {
             CardGroup(
