@@ -87,6 +87,12 @@ object ModelRegistry {
         toolReasoningAbility()
     }
 
+    private val GPT_5_6 = defineModel {
+        tokens("gpt", "5", "6")
+        visionInput()
+        toolReasoningAbility()
+    }
+
     private val GEMINI_20_FLASH = defineModel {
         tokens("gemini", "2", "0", "flash")
         visionInput()
@@ -155,6 +161,12 @@ object ModelRegistry {
         reasoningAbility()
     }
 
+    val GEMINI_3_5 = defineModel {
+        tokens("gemini", "3", "5")
+        visionInput()
+        toolReasoningAbility()
+    }
+
     val GEMINI_FLASH_LATEST = defineModel {
         exact("gemini-flash-latest")
         visionInput()
@@ -172,7 +184,7 @@ object ModelRegistry {
     }
 
     val GEMINI_3_SERIES = defineGroup {
-        add(GEMINI_3_PRO, GEMINI_3_FLASH, GEMINI_3_1_PRO_PREVIEW, GEMINI_3_1_PRO_PREVIEW_CUSTOMTOOLS)
+        add(GEMINI_3_PRO, GEMINI_3_FLASH, GEMINI_3_1_PRO_PREVIEW, GEMINI_3_1_PRO_PREVIEW_CUSTOMTOOLS, GEMINI_3_5)
     }
 
     val GEMINI_SERIES = defineGroup {
@@ -398,6 +410,23 @@ object ModelRegistry {
         toolReasoningAbility()
     }
 
+    private val LONGCAT_2 = defineModel {
+        tokens("longcat", "2", "0")
+        toolReasoningAbility()
+    }
+
+    private val MUSE_SPARK = defineModel {
+        tokens("muse", "spark")
+        visionInput()
+        toolReasoningAbility()
+    }
+
+    private val MUSE_GLIMMER = defineModel {
+        tokens("muse", "glimmer")
+        visionInput()
+        toolReasoningAbility()
+    }
+
     val QWEN_MT = defineModel {
         tokens("qwen", "mt")
     }
@@ -415,6 +444,7 @@ object ModelRegistry {
         GPT_5_4_MINI,
         GPT_5_4_NANO,
         GPT_5_5,
+        GPT_5_6,
         GEMINI_20_FLASH,
         GEMINI_2_5_FLASH,
         GEMINI_2_5_PRO,
@@ -426,6 +456,7 @@ object ModelRegistry {
         GEMINI_3_1_PRO_PREVIEW,
         GEMINI_3_1_PRO_PREVIEW_CUSTOMTOOLS,
         GEMINI_3_1_FLASH_IMAGE,
+        GEMINI_3_5,
         GEMINI_FLASH_LATEST,
         GEMINI_PRO_LATEST,
         CLAUDE_SONNET_3_5,
@@ -440,6 +471,7 @@ object ModelRegistry {
         DEEPSEEK_R1_MODEL,
         DEEPSEEK_REASONER,
         DEEPSEEK_V4_FLASH,
+        DEEPSEEK_V4_FLASH_VISION_EXP,
         DEEPSEEK_V4_PRO,
         DEEPSEEK_V3_1,
         DEEPSEEK_V3_2,
@@ -466,6 +498,9 @@ object ModelRegistry {
         XIAOMI_MIMO_V2_PRO,
         XIAOMI_MIMO_V2_5,
         XIAOMI_MIMO_V2_5_PRO,
+        LONGCAT_2,
+        MUSE_SPARK,
+        MUSE_GLIMMER,
         QWEN_MT
     )
 
