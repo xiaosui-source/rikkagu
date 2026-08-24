@@ -198,7 +198,6 @@ class SettingsStore(
         val LAUNCH_COUNT = intPreferencesKey("launch_count")
 
         // 赞助提醒
-        val SPONSOR_ALERT_DISMISSED_AT = intPreferencesKey("sponsor_alert_dismissed_at")
 
         // 系统工具设置
         val SYSTEM_TOOLS_SETTING = stringPreferencesKey("system_tools_setting")
@@ -301,7 +300,6 @@ class SettingsStore(
                 quickMessages = preferences[QUICK_MESSAGES].decodeOrNull(emptyList()),
                 backupReminderConfig = preferences[BACKUP_REMINDER_CONFIG].decodeOrNull(BackupReminderConfig()),
                 launchCount = preferences[LAUNCH_COUNT] ?: 0,
-                sponsorAlertDismissedAt = preferences[SPONSOR_ALERT_DISMISSED_AT] ?: 0,
                 systemToolsSetting = preferences[SYSTEM_TOOLS_SETTING].decodeOrNull(SystemToolsSetting()),
                 localWorkspaceUri = preferences[LOCAL_WORKSPACE_URI],
                 todos = preferences[TODOS]?.let {
@@ -489,7 +487,6 @@ class SettingsStore(
             preferences[QUICK_MESSAGES] = JsonInstant.encodeToString(settings.quickMessages)
             preferences[BACKUP_REMINDER_CONFIG] = JsonInstant.encodeToString(settings.backupReminderConfig)
             preferences[LAUNCH_COUNT] = settings.launchCount
-            preferences[SPONSOR_ALERT_DISMISSED_AT] = settings.sponsorAlertDismissedAt
             preferences[SYSTEM_TOOLS_SETTING] = JsonInstant.encodeToString(settings.systemToolsSetting)
             if (settings.localWorkspaceUri != null) {
                 preferences[LOCAL_WORKSPACE_URI] = settings.localWorkspaceUri
@@ -637,7 +634,6 @@ data class Settings(
     val quickMessages: List<QuickMessage> = emptyList(),
     val backupReminderConfig: BackupReminderConfig = BackupReminderConfig(),
     val launchCount: Int = 0,
-    val sponsorAlertDismissedAt: Int = 0,
     val systemToolsSetting: SystemToolsSetting = SystemToolsSetting(),
     // 本地文件夹工作区（SAF 授权 uri）：AI 可读写此文件夹作为项目工作区
     val localWorkspaceUri: String? = null,
