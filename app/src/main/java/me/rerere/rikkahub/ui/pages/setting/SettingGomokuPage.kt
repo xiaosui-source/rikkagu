@@ -82,10 +82,11 @@ fun SettingGomokuPage(onBack: () -> Unit = {}) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    // 棋盘状态
+    // 棋盘状态（board 是普通数组，修改不触发重组，用 boardTick 强制刷新）
     val board = remember {
         Array(GomokuGame.BOARD_SIZE) { IntArray(GomokuGame.BOARD_SIZE) { GomokuGame.EMPTY } }
     }
+    var boardTick by remember { mutableStateOf(0) }
     var currentPlayer by remember { mutableStateOf(GomokuGame.BLACK) }
     var winner by remember { mutableStateOf(0) }
     var statusText by remember { mutableStateOf("轮到你下棋（黑子）") }
@@ -108,6 +109,7 @@ fun SettingGomokuPage(onBack: () -> Unit = {}) {
         isAIThinking = false
         solveResults = emptyList()
         highlightedCell = null
+        boardTick++ // 强制重组刷新棋盘
     }
 
     fun aiMove() {
@@ -360,6 +362,8 @@ fun SettingGomokuPage(onBack: () -> Unit = {}) {
                     .padding(4.dp),
                 verticalArrangement = Arrangement.Center,
             ) {
+                // 读取 boardTick：board 数组变化时强制重组重绘棋盘
+                val tick = boardTick
                 for (y in 0 until GomokuGame.BOARD_SIZE) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         for (x in 0 until GomokuGame.BOARD_SIZE) {
