@@ -201,6 +201,12 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                         headlineContent = { Text("安全设置") },
                     )
                     item(
+                        onClick = { navController.navigate(Screen.SettingAgents) },
+                        leadingContent = { Icon(HugeIcons.AiMagic, null) },
+                        supportingContent = { Text("多智能体联合：配置不同专长助手，子任务自动转交") },
+                        headlineContent = { Text("智能体管理") },
+                    )
+                    item(
                         onClick = { navController.navigate(Screen.Assistant) },
                         leadingContent = { Icon(HugeIcons.LookTop, null) },
                         supportingContent = { Text(stringResource(R.string.setting_page_assistant_desc)) },

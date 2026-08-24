@@ -24,6 +24,8 @@ import me.rerere.rikkahub.data.ai.AIRequestInterceptor
 import me.rerere.rikkahub.data.ai.RequestLoggingInterceptor
 import me.rerere.rikkahub.data.ai.transformers.AssistantTemplateLoader
 import me.rerere.rikkahub.data.ai.GenerationHandler
+import me.rerere.rikkahub.data.ai.agents.AgentRunner
+import me.rerere.rikkahub.data.ai.agents.AgentStore
 import me.rerere.rikkahub.data.ai.transformers.TemplateTransformer
 import me.rerere.rikkahub.data.api.LingxiAPI
 import me.rerere.rikkahub.data.api.SponsorAPI
@@ -179,6 +181,14 @@ val dataSourceModule = module {
     }
 
     single {
+        AgentStore(context = get(), json = get())
+    }
+
+    single {
+        AgentRunner(providerManager = get())
+    }
+
+    single {
         GenerationHandler(
             context = get(),
             providerManager = get(),
@@ -186,7 +196,9 @@ val dataSourceModule = module {
             memoryRepo = get(),
             conversationRepo = get(),
             aiLoggingManager = get(),
-            memoryBankService = get()
+            memoryBankService = get(),
+            agentStore = get(),
+            agentRunner = get()
         )
     }
 

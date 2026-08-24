@@ -53,6 +53,9 @@ import me.rerere.rikkahub.data.ai.transformers.OutputMessageTransformer
 import me.rerere.rikkahub.data.ai.transformers.onGenerationFinish
 import me.rerere.rikkahub.data.ai.transformers.transforms
 import me.rerere.rikkahub.data.ai.transformers.visualTransforms
+import me.rerere.rikkahub.data.ai.agents.AgentRunner
+import me.rerere.rikkahub.data.ai.agents.AgentStore
+import me.rerere.rikkahub.data.ai.agents.buildAgentTools
 import me.rerere.rikkahub.data.ai.tools.buildMemoryTools
 import me.rerere.rikkahub.data.ai.tools.buildWriteFilesTool
 import me.rerere.rikkahub.data.ai.tools.createSearchConversationsTool
@@ -98,6 +101,8 @@ class GenerationHandler(
     private val conversationRepo: ConversationRepository,
     private val aiLoggingManager: AILoggingManager,
     private val memoryBankService: MemoryBankService,
+    private val agentStore: AgentStore,
+    private val agentRunner: AgentRunner,
 ) {
     fun generateText(
         settings: Settings,
@@ -152,6 +157,9 @@ class GenerationHandler(
                 // 文件写入工具 - AI可直接将文件内容写入设备或打包ZIP
                 add(buildWriteFilesTool(conversationId))
                 addAll(tools)
+                // 多智能体联合：为每个启用的智能体注入 agent_call_<id> 工具，
+                // 主助手可把子任务转交给其他智能体（B）处理，结果回传后继续
+                addAll(buildAgentTools(settings, agentStore, agentRunner))
                 // 参考历史聊天记录：提供搜索历史对话内容的能力，
                 // 避免 AI 只有 recent_chat 标题而无法检索正文（幻觉调用不存在的工具）
                 if (assistant?.enableRecentChatsReference == true) {
