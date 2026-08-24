@@ -9,6 +9,7 @@ package me.rerere.rikkahub.utils
 import android.content.Context
 import android.util.Log
 import androidx.core.content.edit
+import java.io.File
 
 private const val TAG = "CrashHandler"
 private const val PREFS_NAME = "crash_handler"
@@ -52,5 +53,11 @@ object CrashHandler {
                 putBoolean(KEY_CRASHED, true)
                 putString(KEY_STACKTRACE, stackTrace)
             } // commit() 同步写入，确保崩溃前写完
+        // 额外写入外部存储，便于通过 FTP 抓取崩溃日志
+        runCatching {
+            val dir = context.getExternalFilesDir(null) ?: context.filesDir
+            val f = File(dir, "crash_log.txt")
+            f.writeText(stackTrace)
+        }
     }
 }
