@@ -6,6 +6,8 @@
 
 package me.rerere.rikkahub.ui.pages.setting
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -46,6 +48,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.core.content.ContextCompat
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -220,6 +223,28 @@ fun SettingGomokuPage(onBack: () -> Unit = {}) {
         }
     }
 
+    // 相机权限请求（没有权限时先申请，避免直接打开相机崩溃）
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            cameraLauncher.launch(null)
+        } else {
+            toaster.show("需要相机权限才能拍照识别棋盘，请在系统设置中开启", type = ToastType.Error)
+        }
+    }
+
+    fun openCameraSafely() {
+        val hasCamera = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+        if (hasCamera) {
+            cameraLauncher.launch(null)
+        } else {
+            permissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -232,7 +257,7 @@ fun SettingGomokuPage(onBack: () -> Unit = {}) {
                 actions = {
                     // 拍照按钮
                     if (mode == GomokuMode.ENDGAME) {
-                        IconButton(onClick = { cameraLauncher.launch(null) }) {
+                        IconButton(onClick = { openCameraSafely() }) {
                             Icon(HugeIcons.Camera01, contentDescription = "拍照识别")
                         }
                     }
