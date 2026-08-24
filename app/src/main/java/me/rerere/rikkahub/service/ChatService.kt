@@ -81,7 +81,6 @@ import me.rerere.rikkahub.data.ai.tools.createTodoTools
 import me.rerere.rikkahub.data.ai.tools.createReadPendingMessagesTool
 import me.rerere.rikkahub.data.ai.tools.createSendMessageBridgeTool
 import me.rerere.rikkahub.data.ai.tools.createRegisterPollingTaskTool
-import me.rerere.rikkahub.data.ai.tools.createReadPhoneFolderTool
 import me.rerere.rikkahub.data.ai.tools.createSkillTools
 import me.rerere.rikkahub.data.ai.tools.createWorkspaceTools
 import me.rerere.rikkahub.data.files.SkillManager
@@ -872,8 +871,6 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
                     add(createReadPendingMessagesTool(context))
                     add(createSendMessageBridgeTool(context))
                     add(createRegisterPollingTaskTool(context))
-                    // 手机文件夹读取
-                    add(createReadPhoneFolderTool(context))
                 },
                 pluginPromptInjections = pluginToolProvider.getPluginPromptInjections(),
                 conversationId = conversationId.toString(),
@@ -1240,8 +1237,6 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
                     add(createReadPendingMessagesTool(context))
                     add(createSendMessageBridgeTool(context))
                     add(createRegisterPollingTaskTool(context))
-                    // 手机文件夹读取
-                    add(createReadPhoneFolderTool(context))
                 },
                 pluginPromptInjections = pluginToolProvider.getPluginPromptInjections(),
                 conversationId = conversationId.toString(),

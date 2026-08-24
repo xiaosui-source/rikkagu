@@ -178,11 +178,6 @@ class SettingsStore(
         val ASR_PROVIDERS = stringPreferencesKey("asr_providers")
         val SELECTED_ASR_PROVIDER = stringPreferencesKey("selected_asr_provider")
 
-        // Web Server
-
-        // 手机文件夹授权（SAF）
-        val PHONE_FOLDER_URI = stringPreferencesKey("phone_folder_uri")
-
         // 知识库（RAG 文档检索）
         val KNOWLEDGE_DOCS = stringPreferencesKey("knowledge_docs")
 
@@ -307,7 +302,6 @@ class SettingsStore(
                 launchCount = preferences[LAUNCH_COUNT] ?: 0,
                 sponsorAlertDismissedAt = preferences[SPONSOR_ALERT_DISMISSED_AT] ?: 0,
                 systemToolsSetting = preferences[SYSTEM_TOOLS_SETTING].decodeOrNull(SystemToolsSetting()),
-                phoneFolderUri = preferences[PHONE_FOLDER_URI],
                 todos = preferences[TODOS]?.let {
                     runCatching { JsonInstant.decodeFromString<List<me.rerere.rikkahub.data.ai.tools.TodoItem>>(it) }.getOrDefault(emptyList())
                 } ?: emptyList(),
@@ -495,11 +489,6 @@ class SettingsStore(
             preferences[LAUNCH_COUNT] = settings.launchCount
             preferences[SPONSOR_ALERT_DISMISSED_AT] = settings.sponsorAlertDismissedAt
             preferences[SYSTEM_TOOLS_SETTING] = JsonInstant.encodeToString(settings.systemToolsSetting)
-            if (settings.phoneFolderUri != null) {
-                preferences[PHONE_FOLDER_URI] = settings.phoneFolderUri
-            } else {
-                preferences.remove(PHONE_FOLDER_URI)
-            }
             preferences[KNOWLEDGE_DOCS] = JsonInstant.encodeToString(settings.knowledgeDocs)
             preferences[TODOS] = JsonInstant.encodeToString(settings.todos)
             preferences[WECHAT_BOT_SETTINGS] = JsonInstant.encodeToString(settings.wechatBotSettings)
@@ -640,7 +629,6 @@ data class Settings(
     val launchCount: Int = 0,
     val sponsorAlertDismissedAt: Int = 0,
     val systemToolsSetting: SystemToolsSetting = SystemToolsSetting(),
-    val phoneFolderUri: String? = null,
     val knowledgeDocs: List<KnowledgeDoc> = emptyList(),
     val todos: List<me.rerere.rikkahub.data.ai.tools.TodoItem> = emptyList(),
     val wechatBotSettings: List<WechatBotSetting> = emptyList(),

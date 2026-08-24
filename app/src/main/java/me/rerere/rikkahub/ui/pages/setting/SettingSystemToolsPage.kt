@@ -240,65 +240,7 @@ fun SettingSystemToolsPage(vm: SettingVM = koinViewModel()) {
             }
             }
 
-            // 手机文件夹授权（SAF）
-            item {
-                val folderLauncher = rememberLauncherForActivityResult(
-                    ActivityResultContracts.OpenDocumentTree()
-                ) { uri ->
-                    if (uri != null) {
-                        runCatching {
-                            context.contentResolver.takePersistableUriPermission(
-                                uri,
-                                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                            )
-                        }
-                        vm.updateSettings(settings.copy(phoneFolderUri = uri.toString()))
-                    }
-                }
-                CardGroup(
-                    title = { Text("手机文件夹") },
-                    modifier = Modifier.padding(horizontal = 8.dp)
-                ) {
-                    item(
-                        leadingContent = { Icon(imageVector = HugeIcons.Folder02, contentDescription = null) },
-                        headlineContent = { Text("选择手机文件夹") },
-                        supportingContent = {
-                            Text(
-                                if (settings.phoneFolderUri.isNullOrBlank())
-                                    "授权后 AI 可直接读取该文件夹内容，无需先导入工作区"
-                                else "已授权：${settings.phoneFolderUri}"
-                            )
-                        },
-                        trailingContent = {
-                            TextButton(onClick = { folderLauncher.launch(null) }) {
-                                Text(if (settings.phoneFolderUri.isNullOrBlank()) "选择" else "更换")
-                            }
-                        }
-                    )
-                    if (!settings.phoneFolderUri.isNullOrBlank()) {
-                        item(
-                            headlineContent = { Text("取消授权") },
-                            supportingContent = { Text("移除文件夹访问权限") },
-                            trailingContent = {
-                                TextButton(
-                                    onClick = {
-                                        runCatching {
-                                            val uri = Uri.parse(settings.phoneFolderUri)
-                                            context.contentResolver.releasePersistableUriPermission(
-                                                uri,
-                                                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                                            )
-                                        }
-                                        vm.updateSettings(settings.copy(phoneFolderUri = null))
-                                    }
-                                ) {
-                                    Text("移除", color = MaterialTheme.colorScheme.error)
-                                }
-                            }
-                        )
-                    }
-                }
-            }
+
 
 
             // 位置服务
