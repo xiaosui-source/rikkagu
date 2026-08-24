@@ -385,30 +385,10 @@ private fun ModelList(
     val context = LocalContext.current
     val toaster = LocalToaster.current
     val scope = rememberCoroutineScope()
-    // API 获取的 + 软件内置的一起显示（合并去重）
-    val modelList by produceState(emptyList(), providerSetting) {
-        // 从 API 获取模型（listModels：供应商 /models 接口）
-        // 必须有 API Key 才调用供应商 API：无 Key 时不请求，直接显示已添加/内置模型
-        val hasApiKey = when (providerSetting) {
-            is ProviderSetting.OpenAI -> providerSetting.apiKey.isNotBlank()
-            is ProviderSetting.Google -> providerSetting.apiKey.isNotBlank()
-            is ProviderSetting.Claude -> providerSetting.apiKey.isNotBlank()
-        }
-        if (!hasApiKey) {
-            value = providerSetting.models
-            return@produceState
-        }
-        runCatching {
-            value = providerManager.getProviderByType(providerSetting)
-                .listModels(providerSetting)
-                .sortedBy { it.modelId }
-                .toList()
-        }.onFailure {
-            value = providerSetting.models
-        }
-    }
-    // 不内置任何模型：可用模型 = API 拉取的全部，用户自己选；
-    // API 拉取失败时显示已添加的兜底
+    // 不再自动拉取供应商 API 模型：有 Key 时打开页面就自动拉取几百个模型会让界面暴涨。
+    // 需要更多模型时，点击下方"从 API 获取模型"按钮手动拉取并合并。
+    val modelList = providerSetting.models
+    // 可用模型 = 已添加的模型（手动拉取后会自动合并进这里）
     val displayModels = if (modelList.isNotEmpty()) modelList else providerSetting.models
     // 手动"从 API 获取模型"状态（一键拉取并合并到已使用列表）
     var fetchingModels by remember { mutableStateOf(false) }
