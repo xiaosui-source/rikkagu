@@ -169,7 +169,7 @@ class ExternalMemoryService(
             } else {
                 list.add(summary)
             }
-            val ok = writeRemote(path, encodeMessages(list))
+            val ok = writeRemote(path, encodeSummaries(list))
             if (!ok) throw Exception("WebDAV 写入失败: $path")
             Log.d(TAG, "Saved diary summary to WebDAV memory for assistant $assistantId")
         }.map { }
