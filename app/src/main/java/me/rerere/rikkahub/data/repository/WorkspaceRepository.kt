@@ -480,18 +480,36 @@ class WorkspaceRepository(
                 onProgress("安装 Android SDK 组件 (platform-37 / build-tools / platform-tools)...")
                 val sdkInstall = executeCommand(
                     id,
-                    "printf '24333f8a63b6825ea9c5514f83c2829b004d1fee\n' > /opt/android-sdk/licenses/android-sdk-license && " +
-                        "printf '84831b9409646a918e30573bab4c9c91346d8abd\n' > /opt/android-sdk/licenses/android-sdk-preview-license && " +
+                    "printf '24333f8a63b6825ea9c5514f83c2829b004d1fee\\n' > /opt/android-sdk/licenses/android-sdk-license && " +
+                        "printf '84831b9409646a918e30573bab4c9c91346d8abd\\n' > /opt/android-sdk/licenses/android-sdk-preview-license && " +
                         "export ANDROID_HOME=/opt/android-sdk && " +
                         "yes | /opt/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=/opt/android-sdk " +
-                        "\"platform-tools\" \"platforms;android-37\" \"build-tools;36.0.0\" 2>&1 | tail -5",
+                        "\\"platform-tools\\" \\"platforms;android-37\\" \\"build-tools;36.0.0\\" 2>&1 | tail -5",
                     timeoutMillis = 1_800_000,
                 )
                 if (sdkInstall.exitCode != 0) {
                     throw RuntimeException("sdkmanager install failed: ${sdkInstall.stdout.take(200)} ${sdkInstall.stderr.take(200)}")
                 }
 
-                // 4. 验证
+                // 4. Gradle（非 wrapper 项目/命令行直接用）
+                onProgress("安装 Gradle 9.4.1...")
+                val gradleInstall = executeCommand(
+                    id,
+                    "if ! which gradle >/dev/null 2>&1; then " +
+                        "mkdir -p /opt/gradle && cd /tmp && " +
+                        "(curl -sL --retry 2 -o gradle.zip " +
+                        "\\"https://services.gradle.org/distributions/gradle-9.4.1-bin.zip\\" || " +
+                        "curl -sL --retry 2 -o gradle.zip " +
+                        "\\"https://mirrors.cloud.tencent.com/gradle/gradle-9.4.1-bin.zip\\") && " +
+                        "unzip -qo gradle.zip -d /opt/gradle && " +
+                        "ln -sf /opt/gradle/gradle-9.4.1/bin/gradle /usr/local/bin/gradle; fi",
+                    timeoutMillis = 900_000,
+                )
+                if (gradleInstall.exitCode != 0) {
+                    Log.w(TAG, "gradle install failed, non-fatal: ${gradleInstall.stderr.take(200)}")
+                }
+
+                // 5. 验证
                 val verify = executeCommand(
                     id,
                     "ls /opt/android-sdk/platforms/android-37 >/dev/null && ls /opt/android-sdk/platform-tools/adb >/dev/null && echo SDK_OK",
@@ -539,6 +557,79 @@ class WorkspaceRepository(
             appendLine("if [ -x ./gradlew ]; then ./gradlew $task --no-daemon --stacktrace 2>&1 | tail -150; else gradle $task 2>&1 | tail -150; fi")
             appendLine("echo '===APK-PATHS==='")
             appendLine("find . -name '*.apk' 2>/dev/null | head -8")
+        }
+        return executeCommand(id, cmd, timeoutMillis = 1_800_000)
+    }
+
+    /**
+     * APK 二改完整链路：反编译 (apktool/jadx) → 修改 → 重打包 (apktool b) → 签名 (apksigner)。
+     *
+     * @param action decode=反编译 / build=重打包 / sign=签名 / full=反编译+重打包+签名
+     * @param apkPath 工作区内 APK 路径（如 /workspace/input.apk）
+     * @param outputName 输出 APK 文件名（默认 signed.apk）
+     */
+    suspend fun reworkApk(
+        id: String,
+        action: String = "full",
+        apkPath: String,
+        outputName: String = "signed.apk",
+        onProgress: (String) -> Unit = {},
+    ): WorkspaceCommandResult {
+        val workspace = dao.getById(id) ?: error("Workspace not found: $id")
+        // 确保工具链：java + apktool + jadx + android sdk(apksigner) + gradle
+        installReverseTools(id, onProgress)
+        installAndroidBuildEnv(id, onProgress)
+
+        onProgress("APK 二改：$action ...")
+        val workDir = "/workspace/apk_rework"
+        val baseName = apkPath.substringAfterLast('/').substringBeforeLast('.').ifBlank { "app" }
+        val decodedDir = "$workDir/$baseName"
+        val unsignedApk = "$workDir/${baseName}_unsigned.apk"
+        val signedApk = "$workDir/$outputName"
+        val keystore = "/opt/rework.keystore"
+
+        val cmd = buildString {
+            appendLine("export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64")
+            appendLine("export ANDROID_HOME=/opt/android-sdk")
+            appendLine("export ANDROID_SDK_ROOT=/opt/android-sdk")
+            appendLine("export PATH=\${'$'}JAVA_HOME/bin:/opt/android-sdk/build-tools/36.0.0:/opt/android-sdk/platform-tools:\${'$'}PATH")
+            appendLine("mkdir -p $workDir")
+            // 确保签名 key
+            appendLine("if [ ! -f $keystore ]; then keytool -genkeypair -keystore $keystore -alias rework -keyalg RSA -keysize 2048 -validity 10000 -storepass android -keypass android -dname \"CN=Android,O=Rework,C=CN\" 2>&1 | tail -2; fi")
+            when (action) {
+                "decode" -> {
+                    appendLine("echo '=== DECODE ==='")
+                    appendLine("rm -rf $decodedDir")
+                    appendLine("apktool d $apkPath -o $decodedDir -f 2>&1 | tail -30")
+                    appendLine("echo '=== DONE ==='")
+                    appendLine("echo '解码完成，目录: $decodedDir （可用 workspace_shell/read_file 修改 smali/资源，改完执行 build）'")
+                }
+                "build" -> {
+                    appendLine("echo '=== BUILD ==='")
+                    appendLine("apktool b $decodedDir -o $unsignedApk 2>&1 | tail -40")
+                    appendLine("echo '=== DONE ==='")
+                    appendLine("echo '重打包完成: $unsignedApk （下一步 sign 签名）'")
+                }
+                "sign" -> {
+                    appendLine("echo '=== SIGN ==='")
+                    appendLine("apksigner sign --ks $keystore --ks-key-alias rework --ks-pass pass:android --key-pass pass:android --out $signedApk $unsignedApk 2>&1 | tail -10")
+                    appendLine("echo '=== DONE ==='")
+                    appendLine("echo '签名完成: $signedApk'")
+                }
+                else -> { // full
+                    appendLine("echo '=== 1/3 DECODE ==='")
+                    appendLine("rm -rf $decodedDir")
+                    appendLine("apktool d $apkPath -o $decodedDir -f 2>&1 | tail -20")
+                    appendLine("echo '=== 2/3 BUILD ==='")
+                    appendLine("apktool b $decodedDir -o $unsignedApk 2>&1 | tail -30")
+                    appendLine("echo '=== 3/3 SIGN ==='")
+                    appendLine("apksigner sign --ks $keystore --ks-key-alias rework --ks-pass pass:android --key-pass pass:android --out $signedApk $unsignedApk 2>&1 | tail -10")
+                    appendLine("echo '=== APK ==='")
+                    appendLine("ls -lh $signedApk 2>/dev/null")
+                    appendLine("echo '=== DONE ==='")
+                    appendLine("echo '二改流程完成。提示：反编译后可先用 workspace_shell 查看 $decodedDir 结构，改完再跑一次 action=full 或分别 build+sign'")
+                }
+            }
         }
         return executeCommand(id, cmd, timeoutMillis = 1_800_000)
     }

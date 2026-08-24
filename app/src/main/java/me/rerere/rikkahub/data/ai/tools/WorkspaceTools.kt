@@ -33,6 +33,8 @@ val WorkspaceToolDefaultApprovals: Map<String, Boolean> = mapOf(
     "workspace_write_file" to false,
     "workspace_edit_file" to false,
     "workspace_shell" to true,
+    "workspace_build_apk" to true,
+    "workspace_apk_rework" to true,
 )
  
 fun resolveWorkspaceToolApproval(name: String, overrides: Map<String, Boolean>): Boolean =
@@ -56,6 +58,7 @@ suspend fun createWorkspaceTools(
         createShellTool(workspaceId, needsApproval("workspace_shell"), workspaceRepository, shellCwd),
         createWebBrowseTool(workspaceId, workspaceRepository),
         createBuildApkTool(workspaceId, needsApproval("workspace_build_apk"), workspaceRepository),
+        createApkReworkTool(workspaceId, needsApproval("workspace_apk_rework"), workspaceRepository),
     )
 }
  
@@ -566,6 +569,64 @@ private fun createBuildApkTool(
                 "tip",
                 if (result.exitCode == 0) "构建成功！可在上方 log 的 ===APK-PATHS=== 部分找到 APK 路径，用 workspace_read_file 无法直接读取二进制，可把 APK 放到 /workspace 后导出"
                 else "构建失败，查看 log 定位错误；缺少依赖可先装 gradle 或检查项目配置"
+            )
+        }.toString()))
+    },
+)
+
+
+/** APK 二改：反编译 → 修改 → 重打包 → 签名（proot 内完整链路） */
+private fun createApkReworkTool(
+    workspaceId: String,
+    needsApproval: Boolean,
+    workspaceRepository: WorkspaceRepository,
+) = Tool(
+    name = "workspace_apk_rework",
+    description = "在 proot 工作区里对 APK 进行反编译/二改/重打包/签名。自动确保 Java+apktool+jadx+Android SDK+gradle。" +
+        "Params: apk_path(工作区内APK路径，如 /workspace/input.apk), optional action(decode反编译/build重打包/sign签名/full全流程默认), " +
+        "optional output_name(输出APK名，默认signed.apk)",
+    needsApproval = needsApproval,
+    parameters = {
+        InputSchema.Obj(
+            properties = buildJsonObject {
+                put("apk_path", buildJsonObject {
+                    put("type", "string")
+                    put("description", "APK 路径（工作区内，如 /workspace/input.apk）")
+                })
+                put("action", buildJsonObject {
+                    put("type", "string")
+                    put("description", "操作：decode=反编译，build=重打包，sign=签名，full=全流程（默认）")
+                })
+                put("output_name", buildJsonObject {
+                    put("type", "string")
+                    put("description", "输出 APK 文件名（可选，默认 signed.apk）")
+                })
+            },
+            required = listOf("apk_path")
+        )
+    },
+    execute = { args ->
+        val obj = args.jsonObject
+        val apkPath = obj["apk_path"]?.jsonPrimitive?.contentOrNull
+            ?: return@Tool listOf(UIMessagePart.Text("""{"error":"apk_path required"}"""))
+        val action = obj["action"]?.jsonPrimitive?.contentOrNull ?: "full"
+        val outputName = obj["output_name"]?.jsonPrimitive?.contentOrNull ?: "signed.apk"
+        val result = workspaceRepository.reworkApk(workspaceId, action, apkPath, outputName)
+        val log = (result.stdout + "\n" + result.stderr).trim()
+        listOf(UIMessagePart.Text(buildJsonObject {
+            put("action", action)
+            put("exit_code", result.exitCode)
+            put("timed_out", result.timedOut)
+            put("log", log.take(30000))
+            put(
+                "tip",
+                when {
+                    action == "decode" && result.exitCode == 0 -> "反编译完成。用 workspace_shell 浏览 ${apkPath.substringBeforeLast('.').substringAfterLast('/')} 目录，改 smali/资源后用 action=build 重打包"
+                    action == "build" && result.exitCode == 0 -> "重打包完成，用 action=sign 签名"
+                    action == "sign" && result.exitCode == 0 -> "签名完成！APK 在 /workspace/apk_rework/$outputName，可导出安装"
+                    result.exitCode == 0 -> "二改完成！APK 在 /workspace/apk_rework/$outputName"
+                    else -> "失败，查看 log 定位（常见：APK 损坏/路径不对/环境未装好会自动重试）"
+                }
             )
         }.toString()))
     },
