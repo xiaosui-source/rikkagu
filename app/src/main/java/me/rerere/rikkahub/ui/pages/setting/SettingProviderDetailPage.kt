@@ -390,6 +390,8 @@ private fun ModelList(
     val modelList = providerSetting.models
     // 可用模型 = 已添加的模型（手动拉取后会自动合并进这里）
     val displayModels = if (modelList.isNotEmpty()) modelList else providerSetting.models
+    // 浮动工具栏展开状态
+    var expanded by rememberSaveable { mutableStateOf(true) }
     // 多选模式：勾选多个模型后可批量测试 / 批量删除
     var selectionMode by rememberSaveable { mutableStateOf(false) }
     val selected = remember { mutableStateListOf<Uuid>() }
