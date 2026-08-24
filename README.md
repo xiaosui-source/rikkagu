@@ -105,7 +105,6 @@
 
 ### 🖥️ 多端访问
 - Android 原生客户端
-- 内置 Web 服务，支持浏览器访问
 
 ### 💌 角色导入
 - Silly Tavern 角色卡导入
@@ -118,8 +117,6 @@
 |------|------|
 | GitHub Actions 构建 | [xiaosui-source/rikkagu/actions](https://github.com/xiaosui-source/rikkagu/actions)（最新成功运行 → Artifacts → Release-APK） |
 | 源码 | [github.com/xiaosui-source/rikkagu](https://github.com/xiaosui-source/rikkagu) |
-
----
 
 ## 🏗️ 项目架构
 
@@ -137,8 +134,6 @@
 ├── speech/       # 语音识别与 TTS
 ├── material3/    # Material3 组件（vendored material-color-utilities）
 ├── workspace/    # 工作区（文件沙箱）
-├── web-ui/       # Web 前端（React）
-├── website/      # 项目网站
 └── locale-tui/   # 国际化工具
 ```
 
@@ -177,7 +172,6 @@
 | [Room](https://developer.android.com/training/data-storage/room) | 本地数据库 |
 | [DataStore](https://developer.android.com/topic/libraries/architecture/datastore) | 偏好存储 |
 | [OkHttp](https://square.github.io/okhttp/) | HTTP 客户端 |
-| [Ktor](https://ktor.io/) | 内嵌 Web 服务器 |
 | [Coil](https://coil-kt.github.io/coil/) | 图片加载 |
 | [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization) | JSON 序列化 |
 | [Navigation Compose](https://developer.android.com/develop/ui/compose/navigation) | 页面导航 |
