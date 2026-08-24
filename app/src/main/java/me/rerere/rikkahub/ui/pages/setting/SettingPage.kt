@@ -288,12 +288,6 @@ fun SettingPage(vm: SettingVM = koinViewModel()) {
                         headlineContent = { Text("五子棋") },
                     )
                     item(
-                        onClick = { navController.navigate(Screen.SettingToolbox) },
-                        leadingContent = { Icon(HugeIcons.Tools, null) },
-                        supportingContent = { Text("Base64/时间戳/密码/JSON/颜色/进制/正则") },
-                        headlineContent = { Text("工具箱") },
-                    )
-                    item(
                         onClick = { navController.navigate(Screen.Workflows) },
                         leadingContent = { Icon(HugeIcons.SmartPhone01, null) },
                         supportingContent = { Text("Tasker 风格自动化：触发器 + 条件 -> 执行动作，由 AI 编写") },

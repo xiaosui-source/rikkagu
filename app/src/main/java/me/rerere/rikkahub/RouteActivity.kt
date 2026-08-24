@@ -168,7 +168,6 @@ import me.rerere.rikkahub.ui.pages.setting.SecuritySettingPage
 import me.rerere.rikkahub.ui.pages.setting.SettingWeixinBotPage
 import me.rerere.rikkahub.ui.pages.setting.SettingApiExplorerPage
 import me.rerere.rikkahub.ui.pages.setting.SettingGomokuPage
-import me.rerere.rikkahub.ui.pages.setting.SettingToolboxPage
 import me.rerere.rikkahub.plugin.webview.PluginWebViewPage
 import me.rerere.rikkahub.ui.pages.memory.MemoryBankPage
 import me.rerere.rikkahub.ui.components.ui.EmojiPickerPage
@@ -723,10 +722,6 @@ entry<Screen.Extensions> {
                                 SettingGomokuPage()
                             }
 
-                            entry<Screen.SettingToolbox> {
-                                SettingToolboxPage()
-                            }
-
                             entry<Screen.Workflows> {
                                 me.rerere.rikkahub.workflow.ui.WorkflowsScreen()
                             }
@@ -1115,8 +1110,6 @@ sealed interface Screen : NavKey {
     data object SettingApiExplorer : Screen
     @Serializable
     data object SettingGomoku : Screen
-    @Serializable
-    data object SettingToolbox : Screen
     @Serializable
     data object Health : Screen
 

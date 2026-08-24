@@ -74,7 +74,6 @@
 - **APK Reverse Engineering** — Analyze APK files, decompile to Java source
 - **RailGo** — Train schedules & station lookup
 - **Gomoku** — 15×15 board, play against AI
-- **Toolbox** — Base64 / Timestamp / Password / JSON / Color / Radix / Regex
 - **Voice Call** — AI-powered voice conversation
 - **SSH Remote** — Terminal SSH/SFTP in workspace
 - **Security Audit Log** — Track sensitive operations & tool calls
