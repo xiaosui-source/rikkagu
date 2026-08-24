@@ -390,6 +390,28 @@ private fun ModelList(
     val modelList = providerSetting.models
     // 可用模型 = 已添加的模型（手动拉取后会自动合并进这里）
     val displayModels = if (modelList.isNotEmpty()) modelList else providerSetting.models
+
+    // 自动验证 API Key：保存 key 后自动检测，有效才显示预置模型，无效不显示
+    val apiKey = when (providerSetting) {
+        is ProviderSetting.OpenAI -> providerSetting.apiKey
+        is ProviderSetting.Google -> providerSetting.apiKey
+        is ProviderSetting.Claude -> providerSetting.apiKey
+    }
+    var keyValidated by remember(providerSetting.id) { mutableStateOf<Boolean?>(null) }
+    var keyChecking by remember(providerSetting.id) { mutableStateOf(false) }
+    LaunchedEffect(apiKey) {
+        if (apiKey.isBlank()) {
+            keyValidated = null
+            keyChecking = false
+        } else {
+            keyChecking = true
+            keyValidated = runCatching {
+                providerManager.getProviderByType(providerSetting)
+                    .listModels(providerSetting)
+            }.isSuccess
+            keyChecking = false
+        }
+    }
     // 浮动工具栏展开状态
     var expanded by rememberSaveable { mutableStateOf(true) }
     // 多选模式：勾选多个模型后可批量测试 / 批量删除
@@ -473,13 +495,17 @@ private fun ModelList(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             state = lazyListState
         ) {
-            // 模型列表：未填 API Key 时不显示预置模型，填入有效 Key 后才显示
-            val apiKeyConfigured = when (providerSetting) {
-                is ProviderSetting.OpenAI -> providerSetting.apiKey.isNotBlank()
-                is ProviderSetting.Google -> providerSetting.apiKey.isNotBlank()
-                is ProviderSetting.Claude -> providerSetting.apiKey.isNotBlank()
-            }
-            if (!apiKeyConfigured) {
+            // 模型列表：仅当 API Key 有效时才显示预置模型（自动验证，无需手动操作）
+            if (keyChecking) {
+                item {
+                    Text(
+                        text = "正在验证 API Key...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(24.dp)
+                    )
+                }
+            } else if (keyValidated != true) {
                 item {
                     Column(
                         modifier = Modifier
@@ -489,12 +515,12 @@ private fun ModelList(
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = "填写 API Key 后显示可用模型",
+                            text = if (apiKey.isBlank()) "未填写 API Key" else "API Key 无效",
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = "在上方输入该提供商的 API Key，保存后模型列表才会显示",
+                            text = if (apiKey.isBlank()) "在上方输入该提供商的 API Key，保存后自动验证" else "Key 验证失败，请检查后重试",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                         )
