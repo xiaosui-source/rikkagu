@@ -389,8 +389,12 @@ private fun ModelList(
     // 不再拉取供应商 API 模型（避免几百个模型让界面暴涨），
     // 模型全部手动添加管理。
     val modelList = providerSetting.models
-    // 可用模型 = 已添加的模型（手动拉取后会自动合并进这里）
-    val displayModels = if (modelList.isNotEmpty()) modelList else providerSetting.models
+    // 可用模型 = 内置预置模型 + 已添加的模型（去重）。
+    // 预置模型即使被删除，也始终在候选列表里可重新添加。
+    val builtinModels = me.rerere.rikkahub.data.datastore.DEFAULT_PROVIDERS
+        .firstOrNull { it.name == providerSetting.name }
+        ?.models.orEmpty()
+    val displayModels = (builtinModels + providerSetting.models).distinctBy { it.modelId }
 
     // 自动验证 API Key：保存 key 后自动检测，有效才显示预置模型，无效不显示
     val apiKey = when (providerSetting) {
