@@ -337,23 +337,45 @@ class SettingsStore(
                 workflowHeadlessBlockSensitive = preferences[WORKFLOW_HEADLESS_BLOCK_SENSITIVE] != false,
                 autoApproveAllTools = preferences[AUTO_APPROVE_ALL_TOOLS] == true,
             )
-            }.getOrElse { Settings(providers = DEFAULT_PROVIDERS.map { it.copyProvider(models = it.models) }) }
+            }.getOrElse { Settings(providers = DEFAULT_PROVIDERS.map { defaultProvider ->
+                defaultProvider.copyProvider(
+                    models = if (defaultProvider.name == "喵喵喵") defaultProvider.models.take(1) else emptyList()
+                )
+            }) }
         }
         .map {
             var providers = it.providers.ifEmpty { DEFAULT_PROVIDERS }.toMutableList()
             DEFAULT_PROVIDERS.forEach { defaultProvider ->
                 if (providers.none { it.id == defaultProvider.id }) {
-                    providers.add(defaultProvider.copyProvider(models = defaultProvider.models))
+                    // 预置模型不自动添加：只作为"添加模型"候选，用户自己勾选
+                    // 例外：喵喵喵 provider 自动保留默认模型（deepseek-v4-flash），开箱即用
+                    providers.add(
+                        if (defaultProvider.name == "喵喵喵") {
+                            defaultProvider.copyProvider(models = defaultProvider.models.take(1))
+                        } else {
+                            defaultProvider.copyProvider(models = emptyList())
+                        }
+                    )
                 }
             }
             providers = providers.map { provider ->
                 val defaultProvider = DEFAULT_PROVIDERS.find { it.id == provider.id }
                 if (defaultProvider != null) {
+                    // 预置模型不自动添加：迁移时移除配置中已有的预置模型（仅作为"添加模型"候选），
+                    // 用户自己勾选才添加；用户自定义添加的模型（非预置 modelId）保留
+                    // 例外：喵喵喵 provider 保留默认模型（deepseek-v4-flash）开箱即用
+                    val builtinModelIds = defaultProvider.models.map { it.modelId }.toSet()
                     provider.copyProvider(
                         builtIn = defaultProvider.builtIn,
                         description = defaultProvider.description,
                         shortDescription = defaultProvider.shortDescription,
-                        models = provider.models,
+                        models = if (defaultProvider.name == "喵喵喵") {
+                            defaultProvider.models.take(1)
+                        } else if (builtinModelIds.isEmpty()) {
+                            provider.models
+                        } else {
+                            provider.models.filterNot { it.modelId in builtinModelIds }
+                        },
                     )
                 } else provider
             }.toMutableList()
