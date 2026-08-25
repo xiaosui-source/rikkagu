@@ -1291,5 +1291,7 @@
   <string name="assistant_page_allow_conversation_prompt_injection_desc">Allow injecting prompt from conversation system prompt</string>
   <string name="workspace_terminal_title_with_name">Terminal - %1$s</string>
   <string name="workspace_terminal_new_tab">New Tab</string>
+  <string name="workspace_terminal_tab">Tab %1$d</string>
+  <string name="workspace_terminal_close_tab">Close Tab</string>
   <string name="workspace_terminal_no_tabs">No terminal sessions</string>
 </resources>

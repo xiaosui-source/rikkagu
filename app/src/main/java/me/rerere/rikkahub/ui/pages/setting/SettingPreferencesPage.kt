@@ -16,6 +16,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import me.rerere.hugeicons.HugeIcons
+import me.rerere.hugeicons.stroke.GlobalSearch
 import me.rerere.hugeicons.stroke.Notification01
 import me.rerere.hugeicons.stroke.PaintBoard
 import me.rerere.hugeicons.stroke.Settings03
