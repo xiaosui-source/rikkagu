@@ -770,7 +770,6 @@ data class DisplaySetting(
 )
 
 @Serializable
-@Serializable
 data class NetworkSetting(
     val userAgent: String = "",
     val proxyUrl: String = "",

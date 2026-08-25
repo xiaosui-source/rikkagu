@@ -35,6 +35,7 @@ import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.repository.WorkspaceRepository
 import me.rerere.ai.ui.UIMessagePart
 import me.rerere.rikkahub.utils.JsonInstant
+import androidx.core.net.toUri
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 import kotlin.uuid.Uuid
@@ -270,7 +271,8 @@ class McpManager(
         val bytes = Base64.decode(image.data)
         val extension = android.webkit.MimeTypeMap.getSingleton()
             .getExtensionFromMimeType(image.mimeType) ?: "bin"
-        val entity = filesManager.saveUploadFromBytes(
+        val entity = filesManager.saveManagedFromBytes(
+            folder = "uploads",
             bytes = bytes,
             displayName = "mcp_image.$extension",
             mimeType = image.mimeType,

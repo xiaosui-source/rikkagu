@@ -384,6 +384,9 @@
   <string name="extensions_page_agent_skills_desc">Manage skill packages for AI to load on demand</string>
   <string name="extensions_page_workspace">Workspace</string>
   <string name="extensions_page_workspace_desc">Sandboxed Linux file area &amp; shell tools for assistants</string>
+  <string name="assistant_page_workspace">Workspace</string>
+  <string name="assistant_page_workspace_desc">Bind a workspace to enable file/shell tools</string>
+  <string name="assistant_page_context_message_size_hint">e.g. 20</string>
   <string name="assistant_page_workspace_binding">Workspace Binding</string>
   <string name="assistant_page_workspace_binding_desc">Bind a workspace to enable file/shell tools for this assistant</string>
   <string name="workspace_no_binding">No binding</string>
@@ -610,6 +613,7 @@
   <string name="reasoning_picker_hint">Not all models support depth adjustment. Refer to the model and provider documentation.</string>
   <string name="reasoning_picker_title">Adjust Model Thinking Depth</string>
   <string name="reasoning_xhigh">XHigh</string>
+  <string name="reasoning_max">Max</string>
   <string name="regenerate">Regenerate</string>
   <string name="regenerate_confirm_message">Are you sure you want to regenerate this message?</string>
   <string name="render_with_webview">Render with WebView</string>

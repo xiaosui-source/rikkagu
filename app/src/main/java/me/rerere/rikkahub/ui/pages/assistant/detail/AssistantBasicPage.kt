@@ -374,21 +374,21 @@ internal fun AssistantBasicContent(
             FormItem(
                 modifier = Modifier.padding(8.dp),
                 label = {
-                    Text(stringResource(R.string.assistant_page_context_message_limit))
+                    Text(stringResource(R.string.assistant_page_context_message_size))
                 },
                 description = {
                     Text(
-                        text = stringResource(R.string.assistant_page_context_message_limit_desc),
+                        text = stringResource(R.string.assistant_page_context_message_desc),
                     )
                 }
             ) {
-                var contextMessageLimitInput by remember(
+                var contextMessageSizeInput by remember(
                     assistant.id,
-                    assistant.contextMessageLimit
+                    assistant.contextMessageSize
                 ) {
-                    mutableStateOf(assistant.contextMessageLimit.toString())
+                    mutableStateOf(assistant.contextMessageSize.toString())
                 }
-                var contextMessageLimitFocused by remember(assistant.id) {
+                var contextMessageSizeFocused by remember(assistant.id) {
                     mutableStateOf(false)
                 }
                 var showContextMessageLimitDialog by remember(assistant.id) {
@@ -397,43 +397,43 @@ internal fun AssistantBasicContent(
                 val focusManager = LocalFocusManager.current
 
                 fun commitContextMessageLimit() {
-                    val value = contextMessageLimitInput.toIntOrNull()
+                    val value = contextMessageSizeInput.toIntOrNull()
                     if (value == null) {
-                        contextMessageLimitInput = assistant.contextMessageLimit.toString()
+                        contextMessageSizeInput = assistant.contextMessageSize.toString()
                         return
                     }
 
                     val normalizedValue = normalizeContextMessageLimit(value)
-                    contextMessageLimitInput = normalizedValue.toString()
-                    if (normalizedValue != assistant.contextMessageLimit) {
-                        onUpdate(assistant.copy(contextMessageLimit = normalizedValue))
+                    contextMessageSizeInput = normalizedValue.toString()
+                    if (normalizedValue != assistant.contextMessageSize) {
+                        onUpdate(assistant.copy(contextMessageSize = normalizedValue))
                     }
                     if (normalizedValue != value) {
                         showContextMessageLimitDialog = true
                     }
                 }
 
-                val contextMessageLimitValue = contextMessageLimitInput.toIntOrNull()
+                val contextMessageSizeValue = contextMessageSizeInput.toIntOrNull()
                 OutlinedTextField(
-                    value = contextMessageLimitInput,
+                    value = contextMessageSizeInput,
                     onValueChange = { input ->
                         if (input.all(Char::isDigit) &&
                             (input.isEmpty() || input.toIntOrNull() != null)
                         ) {
-                            contextMessageLimitInput = input
+                            contextMessageSizeInput = input
                             input.toIntOrNull()
                                 ?.takeIf { it == 0 || it >= MIN_CONTEXT_MESSAGE_LIMIT }
-                                ?.takeIf { it != assistant.contextMessageLimit }
-                                ?.let { onUpdate(assistant.copy(contextMessageLimit = it)) }
+                                ?.takeIf { it != assistant.contextMessageSize }
+                                ?.let { onUpdate(assistant.copy(contextMessageSize = it)) }
                         }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
                         .onFocusChanged { focusState ->
-                            if (contextMessageLimitFocused && !focusState.isFocused) {
+                            if (contextMessageSizeFocused && !focusState.isFocused) {
                                 commitContextMessageLimit()
                             }
-                            contextMessageLimitFocused = focusState.isFocused
+                            contextMessageSizeFocused = focusState.isFocused
                         },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Number,
@@ -443,11 +443,11 @@ internal fun AssistantBasicContent(
                         onDone = { focusManager.clearFocus() }
                     ),
                     singleLine = true,
-                    isError = contextMessageLimitValue in 1 until MIN_CONTEXT_MESSAGE_LIMIT,
+                    isError = contextMessageSizeValue in 1 until MIN_CONTEXT_MESSAGE_LIMIT,
                     supportingText = {
                         Text(
                             stringResource(
-                                R.string.assistant_page_context_message_limit_hint,
+                                R.string.assistant_page_context_message_size_hint,
                                 MIN_CONTEXT_MESSAGE_LIMIT
                             )
                         )
@@ -458,12 +458,12 @@ internal fun AssistantBasicContent(
                     AlertDialog(
                         onDismissRequest = { showContextMessageLimitDialog = false },
                         title = {
-                            Text(stringResource(R.string.assistant_page_context_message_limit))
+                            Text(stringResource(R.string.assistant_page_context_message_size))
                         },
                         text = {
                             Text(
                                 stringResource(
-                                    R.string.assistant_page_context_message_limit_too_small,
+                                    R.string.assistant_page_context_message_size_too_small,
                                     MIN_CONTEXT_MESSAGE_LIMIT
                                 )
                             )
@@ -476,9 +476,9 @@ internal fun AssistantBasicContent(
                     )
                 }
 
-                if (assistant.contextMessageLimit > 0) {
+                if (assistant.contextMessageSize > 0) {
                     Text(
-                        text = stringResource(R.string.assistant_page_context_message_limit_warning),
+                        text = stringResource(R.string.assistant_page_context_message_size_warning),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.error,
                     )
