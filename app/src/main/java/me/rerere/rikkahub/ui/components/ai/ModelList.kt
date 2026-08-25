@@ -136,6 +136,13 @@ class ModelListState internal constructor(
         this.providers = providers
         this.type = type
     }
+
+    companion object {
+        val Saver: Saver<ModelListState, *> = Saver(
+            save = { it.modelId },
+            restore = { Uuid.parse(it) }
+        )
+    }
 }
 
 @Composable
@@ -144,7 +151,7 @@ fun rememberModelListState(
     providers: List<ProviderSetting>,
     type: ModelType,
 ): ModelListState {
-    return remember {
+    return rememberSaveable(saver = ModelListState.Saver) {
         ModelListState(
             modelId = modelId,
             providers = providers,
