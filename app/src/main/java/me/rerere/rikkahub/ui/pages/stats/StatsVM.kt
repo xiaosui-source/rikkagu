@@ -6,6 +6,7 @@
 
 package me.rerere.rikkahub.ui.pages.stats
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -71,7 +72,17 @@ class StatsVM(
         val totalConversations = conversationDAO.countAll()
 
         // json_each() + json_extract() 在 SQLite 侧聚合，不再加载完整 JSON 到 Kotlin
-        val tokenStats = messageNodeDAO.getTokenStats()
+        // #1694: 任一 MessageNode 含损坏 JSON 时 SQLite 抛 malformed JSON，必须容错，不能崩溃
+        val tokenStats = runCatching { messageNodeDAO.getTokenStats() }
+            .getOrElse { e ->
+                Log.w("StatsVM", "getTokenStats failed (可能含损坏JSON), 返回零值: ${e.message}")
+                me.rerere.rikkahub.data.db.dao.MessageTokenStats(
+                    totalMessages = 0,
+                    promptTokens = 0,
+                    completionTokens = 0,
+                    cachedTokens = 0,
+                )
+            }
 
         val launchCount = settingsStore.settingsFlow.value.launchCount
 
