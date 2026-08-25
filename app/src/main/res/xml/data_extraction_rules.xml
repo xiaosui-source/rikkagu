@@ -1,19 +1,41 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-   Sample data extraction rules file; uncomment and customize as necessary.
-   See https://developer.android.com/about/versions/12/backup-restore#xml-changes
-   for details.
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 12+ 数据提取规则：仅备份聊天数据库和用户上传文件，
+  排除密钥/API Key/密码等敏感配置。
 -->
 <data-extraction-rules>
-  <cloud-backup>
-    <!-- TODO: Use <include> and <exclude> to control what is backed up.
-    <include .../>
-    <exclude .../>
-    -->
-  </cloud-backup>
-  <!--
-  <device-transfer>
-      <include .../>
-      <exclude .../>
-  </device-transfer>
-  -->
+    <cloud-backup>
+        <include
+            domain="database"
+            path="." />
+        <include
+            domain="file"
+            path="upload/" />
+        <exclude
+            domain="sharedpref"
+            path="." />
+        <exclude
+            domain="file"
+            path="datastore/" />
+        <exclude
+            domain="file"
+            path="external_memories/" />
+    </cloud-backup>
+    <device-transfer>
+        <include
+            domain="database"
+            path="." />
+        <include
+            domain="file"
+            path="upload/" />
+        <exclude
+            domain="sharedpref"
+            path="." />
+        <exclude
+            domain="file"
+            path="datastore/" />
+        <exclude
+            domain="file"
+            path="external_memories/" />
+    </device-transfer>
 </data-extraction-rules>
