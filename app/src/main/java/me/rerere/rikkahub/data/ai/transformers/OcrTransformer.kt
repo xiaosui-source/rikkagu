@@ -208,7 +208,8 @@ object OcrTransformer : InputMessageTransformer, KoinComponent {
         }
     }
 
-    /** 本地图像标签识别（ML Kit Image Labeling）：准确识别图片中的物体/场景，纯本地 */
+    /** 本地图像理解（ML Kit Image Labeling）：像"真视觉模型"一样识别图中物体/场景/内容，纯本地小内存
+     *  生成自然语言描述而非单纯标签罗列，让弱模型也能"看到"图片里有什么。 */
     private fun performImageLabeling(part: UIMessagePart.Image): String {
         val context = get<Context>()
         val labeler = ImageLabeling.getClient(ImageLabelerOptions.DEFAULT_OPTIONS)
@@ -216,10 +217,29 @@ object OcrTransformer : InputMessageTransformer, KoinComponent {
             val uri = android.net.Uri.parse(part.url)
             val image = InputImage.fromFilePath(context, uri)
             val result = Tasks.await(labeler.process(image))
-            val tags = result.sortedByDescending { it.confidence }
-                .take(10)
-                .joinToString("、") { "${it.text}(${"%.2f".format(it.confidence)})" }
-            if (tags.isNotBlank()) "图片内容识别：$tags" else ""
+            if (result.isEmpty()) return ""
+
+            val top = result.sortedByDescending { it.confidence }.take(6)
+            val sceneWords = top.filter { it.confidence >= 0.5 }.map { it.text }
+            if (sceneWords.isEmpty()) return ""
+
+            // 归类：主体/场景/属性，组装成自然语言描述
+            val subjects = sceneWords.take(3)
+            val scene = sceneWords.drop(0).joinToString("、")
+            buildString {
+                append("我看到了这张图片，它")
+                append("描绘")
+                append(scene)
+                append("的画面")
+                if (subjects.size > 1 && subjects.isNotEmpty()) {
+                    append("，其中包含")
+                    append(subjects.joinToString("、"))
+                }
+                append("。")
+                append("（图片关键视觉元素：")
+                append(top.joinToString("、") { "${it.text}(${"%.0f%%".format(it.confidence * 100)})" })
+                append("）")
+            }
         } catch (e: Exception) {
             Log.w(TAG, "performImageLabeling 失败: ${e.message}", e)
             ""
@@ -260,7 +280,33 @@ object OcrTransformer : InputMessageTransformer, KoinComponent {
                 val hex = String.format("#%02X%02X%02X", avgR, avgG, avgB)
                 val brightness = (avgR * 0.299 + avgG * 0.587 + avgB * 0.114).toInt()
                 buildString {
-                    append("图片信息：尺寸 ${w}x${h}px，平均色调 $hex，亮度 $brightness/255")
+                    append("图片视觉信息：尺寸 ${w}x${h}px，平均色调 $hex，亮度 $brightness/255")
+
+                    // 亮度分区统计（亮/暗占比），判断照片明暗氛围
+                    var darkCount = 0; var brightCount = 0
+                    val step2 = maxOf(1, (w * h) / 800)
+                    var xx = 0
+                    while (xx < w) {
+                        var yy = 0
+                        while (yy < h) {
+                            val p = bitmap.getPixel(xx, yy)
+                            val lum = (android.graphics.Color.red(p) * 0.299 + android.graphics.Color.green(p) * 0.587 + android.graphics.Color.blue(p) * 0.114).toInt()
+                            if (lum < 64) darkCount++ else if (lum > 192) brightCount++
+                            yy += step2
+                        }
+                        xx += step2
+                    }
+                    val total = maxOf(1, (h / step2) * (w / step2))
+                    val darkPct = (darkCount * 100.0 / total).toInt()
+                    val brightPct = (brightCount * 100.0 / total).toInt()
+                    append("，暗部占比${darkPct}%，亮部占比${brightPct}%")
+                    append(if (brightPct > 70) "（画面偏亮/明亮）" else if (darkPct > 70) "（画面偏暗/昏暗）" else "（明暗均衡）")
+
+                    // 饱和度：从平均 RGB 与灰度值的偏差估算
+                    val saturation = (((maxOf(avgR, avgG, avgB) - minOf(avgR, avgG, avgB)) * 100) / 255).toInt()
+                    append("，饱和度${saturation}%")
+                    append(if (saturation > 60) "（色彩鲜艳）" else if (saturation < 20) "（接近黑白/灰阶）" else "（色彩适中）")
+
                     // 条码/二维码识别（已有依赖 barcode-scanning）
                     try {
                         val barcode = scanBarcode(uri)
@@ -295,9 +341,9 @@ object OcrTransformer : InputMessageTransformer, KoinComponent {
 
     private fun wrapOcrText(content: String): String =
         """
-            <image_file_ocr>
+            <image_visual_description>
                $content
-            </image_file_ocr>
-            * The image_file_ocr tag contains a description of an image that the user uploaded to you, not the user's prompt.
+            </image_visual_description>
+            * The image_visual_description tag contains a visual understanding (what the image looks like and any text inside it) that was produced by a local vision analyzer. Use it to answer the user. It is not part of the user's own prompt.
         """.trimIndent()
 }
