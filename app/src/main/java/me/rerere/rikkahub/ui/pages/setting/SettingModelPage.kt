@@ -149,15 +149,6 @@ private fun ModelSettingsPage(settings: Settings, vm: SettingVM, contentPadding:
                 onSelect = { vm.updateSettings(settings.copy(translateModeId = it.id)) },
             )
         }
-        item {
-            ModelSettingItem(
-                title = stringResource(R.string.setting_model_page_ocr_model),
-                description = stringResource(R.string.setting_model_page_ocr_model_desc),
-                modelId = settings.ocrModelId,
-                providers = settings.providers,
-                onSelect = { vm.updateSettings(settings.copy(ocrModelId = it.id)) },
-            )
-        }
     }
 }
 
