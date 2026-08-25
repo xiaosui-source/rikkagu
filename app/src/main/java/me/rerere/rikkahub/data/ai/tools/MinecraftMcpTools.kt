@@ -272,6 +272,109 @@ fun buildMinecraftMcpTools(context: Context): List<Tool> = listOf(
         },
     ),
 
+    // ===== Java 版行动（纯协议，vanilla 服务器原生支持，无需服务器端配置）=====
+    Tool(
+        name = "mc_java_move",
+        description = "【Java版】AI 机器人移动。Params: dx,dy,dz(相对位移，如 0.5,0,0 表示向右移半格；0,1,0 向上跳；0,-1,0 下落)。移动是真实存活玩家移动，服务器玩家可见。",
+        needsApproval = false,
+        parameters = {
+            InputSchema.Obj(properties = buildJsonObject {
+                put("dx", buildJsonObject { put("type", "string"); put("description", "X 方向位移（东+西-）") })
+                put("dy", buildJsonObject { put("type", "string"); put("description", "Y 方向位移（上下）") })
+                put("dz", buildJsonObject { put("type", "string"); put("description", "Z 方向位移（南+北-）") })
+            }, required = listOf("dx", "dy", "dz"))
+        },
+        execute = { args ->
+            val o = args.jsonObject
+            val dx = o["dx"]?.jsonPrimitive?.contentOrNull?.toDoubleOrNull() ?: 0.0
+            val dy = o["dy"]?.jsonPrimitive?.contentOrNull?.toDoubleOrNull() ?: 0.0
+            val dz = o["dz"]?.jsonPrimitive?.contentOrNull?.toDoubleOrNull() ?: 0.0
+            val bot = botSession
+            if (bot == null || !bot.isConnected()) {
+                return@Tool listOf(UIMessagePart.Text("""{"error":"未连接服务器，先调用 mc_bot_connect"}"""))
+            }
+            val result = withContext(Dispatchers.IO) { bot.move(dx, dy, dz) }
+            listOf(UIMessagePart.Text(buildJsonObject {
+                put("result", result)
+                put("position", bot.position())
+            }.toString()))
+        },
+    ),
+
+    // ===== Java 版挖方块 =====
+    Tool(
+        name = "mc_java_mine",
+        description = "【Java版】AI 机器人挖掘方块。Params: x,y,z(方块坐标), optional face(0=底,1=顶,2=北,3=南,4=西,5=东,默认1)。",
+        needsApproval = false,
+        parameters = {
+            InputSchema.Obj(properties = buildJsonObject {
+                put("x", buildJsonObject { put("type", "string"); put("description", "方块 X 坐标") })
+                put("y", buildJsonObject { put("type", "string"); put("description", "方块 Y 坐标") })
+                put("z", buildJsonObject { put("type", "string"); put("description", "方块 Z 坐标") })
+                put("face", buildJsonObject { put("type", "string"); put("description", "朝向(可选)") })
+            }, required = listOf("x", "y", "z"))
+        },
+        execute = { args ->
+            val o = args.jsonObject
+            val x = o["x"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: return@Tool listOf(UIMessagePart.Text("""{"error":"x 需要是数字"}"""))
+            val y = o["y"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: return@Tool listOf(UIMessagePart.Text("""{"error":"y 需要是数字"}"""))
+            val z = o["z"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: return@Tool listOf(UIMessagePart.Text("""{"error":"z 需要是数字"}"""))
+            val face = o["face"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: 1
+            val bot = botSession
+            if (bot == null || !bot.isConnected()) return@Tool listOf(UIMessagePart.Text("""{"error":"未连接服务器"}"""))
+            listOf(UIMessagePart.Text(buildJsonObject {
+                put("result", withContext(Dispatchers.IO) { bot.dig(x, y, z, face) })
+            }.toString()))
+        },
+    ),
+
+    // ===== Java 版放方块 =====
+    Tool(
+        name = "mc_java_place",
+        description = "【Java版】AI 机器人放置方块（使用当前选中物品/主手物品）。Params: x,y,z(目标方块坐标), face(放置面,0-5)。",
+        needsApproval = false,
+        parameters = {
+            InputSchema.Obj(properties = buildJsonObject {
+                put("x", buildJsonObject { put("type", "string"); put("description", "X 坐标") })
+                put("y", buildJsonObject { put("type", "string"); put("description", "Y 坐标") })
+                put("z", buildJsonObject { put("type", "string"); put("description", "Z 坐标") })
+                put("face", buildJsonObject { put("type", "string"); put("description", "放置面 0-5") })
+            }, required = listOf("x", "y", "z", "face"))
+        },
+        execute = { args ->
+            val o = args.jsonObject
+            val x = o["x"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: return@Tool listOf(UIMessagePart.Text("""{"error":"x 需要是数字"}"""))
+            val y = o["y"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: return@Tool listOf(UIMessagePart.Text("""{"error":"y 需要是数字"}"""))
+            val z = o["z"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: return@Tool listOf(UIMessagePart.Text("""{"error":"z 需要是数字"}"""))
+            val face = o["face"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: 1
+            val bot = botSession
+            if (bot == null || !bot.isConnected()) return@Tool listOf(UIMessagePart.Text("""{"error":"未连接服务器"}"""))
+            listOf(UIMessagePart.Text(buildJsonObject {
+                put("result", withContext(Dispatchers.IO) { bot.place(x, y, z, face) })
+            }.toString()))
+        },
+    ),
+
+    // ===== Java 版当前位置 =====
+    Tool(
+        name = "mc_java_pos",
+        description = "【Java版】查询 AI 机器人当前坐标位置。",
+        needsApproval = false,
+        parameters = { InputSchema.Obj(properties = buildJsonObject { }) },
+        execute = {
+            val bot = botSession
+            listOf(UIMessagePart.Text(buildJsonObject {
+                if (bot != null && bot.isConnected()) {
+                    put("connected", true)
+                    put("position", bot.position())
+                } else {
+                    put("connected", false)
+                    put("message", "机器人未连接服务器")
+                }
+            }.toString()))
+        },
+    ),
+
     // ===== 基岩版操作（RCON）=====
     Tool(
         name = "mc_bedrock_do",

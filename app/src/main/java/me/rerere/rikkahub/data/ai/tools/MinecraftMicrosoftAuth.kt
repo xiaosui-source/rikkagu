@@ -55,18 +55,24 @@ class MinecraftMicrosoftAuth {
     fun requestDeviceCode(): DeviceCodeResult {
         val form = FormBody.Builder()
             .add("client_id", CLIENT_ID)
+            .add("tenant", "/consumers")
             .add("scope", SCOPE)
             .build()
         val req = Request.Builder()
             .url("https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode")
             .header("User-Agent", "RikkaHub")
+            .header("Accept", "application/json")
             .post(form)
             .build()
         client.newCall(req).execute().use { resp ->
             val body = resp.body?.string() ?: throw Exception("devicecode 失败: ${resp.code}")
             val obj = json.parseToJsonElement(body).jsonObject
+            val deviceCode = obj["device_code"]?.jsonPrimitive?.contentOrNull
+            if (deviceCode == null) {
+                throw Exception("获取微软设备码失败，请检查网络后重试")
+            }
             return DeviceCodeResult(
-                deviceCode = obj["device_code"]?.jsonPrimitive?.contentOrNull ?: throw Exception("无 device_code"),
+                deviceCode = deviceCode,
                 userCode = obj["user_code"]?.jsonPrimitive?.contentOrNull ?: "",
                 verificationUri = obj["verification_uri"]?.jsonPrimitive?.contentOrNull ?: "https://microsoft.com/link",
                 interval = obj["interval"]?.jsonPrimitive?.contentOrNull?.toLongOrNull() ?: 5,
@@ -83,6 +89,7 @@ class MinecraftMicrosoftAuth {
                 .add("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
                 .add("client_id", CLIENT_ID)
                 .add("device_code", deviceCode)
+                .add("scope", SCOPE)
                 .build()
             val req = Request.Builder()
                 .url("https://login.microsoftonline.com/consumers/oauth2/v2.0/token")
