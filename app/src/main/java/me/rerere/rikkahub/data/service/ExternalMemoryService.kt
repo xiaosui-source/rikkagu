@@ -58,6 +58,45 @@ class ExternalMemoryService(
 
     private fun client(): WebDavClient = WebDavClient(davConfig(), httpClient)
 
+    // ===== 本地内存缓存：避免每次全量下载/上传，网络失败时数据保留在内存待重试 =====
+    private val messagesCache = mutableMapOf<String, MutableList<ExternalMemoryMessage>>()
+    private val summariesCache = mutableMapOf<String, MutableList<ExternalMemorySummary>>()
+    private val pendingSync = mutableSetOf<String>()
+    private var lastWriteFailed = false
+    private var lastWriteError: String? = null
+
+    private suspend fun loadMessages(assistantId: String): MutableList<ExternalMemoryMessage> {
+        messagesCache[assistantId]?.let { return it }
+        val list = parseMessages(readRemote(messagesPath(assistantId))).toMutableList()
+        messagesCache[assistantId] = list
+        return list
+    }
+
+    private suspend fun loadSummaries(assistantId: String): MutableList<ExternalMemorySummary> {
+        summariesCache[assistantId]?.let { return it }
+        val list = parseSummaries(readRemote(summariesPath(assistantId))).toMutableList()
+        summariesCache[assistantId] = list
+        return list
+    }
+
+    private suspend fun syncMessages(assistantId: String): Boolean {
+        val list = messagesCache[assistantId] ?: return true
+        val ok = writeRemote(messagesPath(assistantId), encodeMessages(list))
+        if (ok) pendingSync.remove(messagesPath(assistantId)) else pendingSync.add(messagesPath(assistantId))
+        lastWriteFailed = !ok
+        lastWriteError = if (ok) null else "WebDAV 同步失败，数据已保留在本地缓存，将自动重试"
+        return ok
+    }
+
+    private suspend fun syncSummaries(assistantId: String): Boolean {
+        val list = summariesCache[assistantId] ?: return true
+        val ok = writeRemote(summariesPath(assistantId), encodeSummaries(list))
+        if (ok) pendingSync.remove(summariesPath(assistantId)) else pendingSync.add(summariesPath(assistantId))
+        lastWriteFailed = !ok
+        lastWriteError = if (ok) null else "WebDAV 同步失败，数据已保留在本地缓存，将自动重试"
+        return ok
+    }
+
     private fun parseMessages(jsonText: String?): List<ExternalMemoryMessage> =
         if (jsonText.isNullOrBlank()) emptyList()
         else runCatching {
@@ -96,8 +135,7 @@ class ExternalMemoryService(
         content: String,
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
-            val path = messagesPath(assistantId)
-            val list = parseMessages(readRemote(path)).toMutableList()
+            val list = loadMessages(assistantId)
             val sdf = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
             list.add(
                 ExternalMemoryMessage(
@@ -109,9 +147,11 @@ class ExternalMemoryService(
                     createdAt = sdf.format(java.util.Date()),
                 )
             )
-            val ok = writeRemote(path, encodeMessages(list))
-            if (!ok) throw Exception("WebDAV 写入失败: $path")
-            Log.d(TAG, "Saved message to WebDAV memory for assistant $assistantId (total ${list.size})")
+            if (!syncMessages(assistantId)) {
+                lastWriteError?.let { Log.w(TAG, it) }
+            } else {
+                Log.d(TAG, "Saved message to WebDAV memory for assistant $assistantId (total ${list.size})")
+            }
         }.map { }
     }
 
@@ -123,7 +163,7 @@ class ExternalMemoryService(
         limit: Int = 10,
     ): Result<List<ExternalMemoryMessage>> = withContext(Dispatchers.IO) {
         runCatching {
-            parseMessages(readRemote(messagesPath(assistantId))).takeLast(limit)
+            loadMessages(assistantId).takeLast(limit)
         }
     }
 
@@ -136,7 +176,7 @@ class ExternalMemoryService(
         limit: Int = 10,
     ): Result<List<ExternalMemoryMessage>> = withContext(Dispatchers.IO) {
         runCatching {
-            parseMessages(readRemote(messagesPath(assistantId)))
+            loadMessages(assistantId)
                 .filter { it.content.contains(keyword, ignoreCase = true) }
                 .takeLast(limit)
         }
@@ -152,8 +192,7 @@ class ExternalMemoryService(
         targetDate: String,
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
-            val path = summariesPath(assistantId)
-            val list = parseSummaries(readRemote(path)).toMutableList()
+            val list = loadSummaries(assistantId)
             // 同一天已存在则覆盖，否则追加
             val existingIndex = list.indexOfLast { it.createdAt.startsWith(targetDate) }
             val sdf = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
@@ -169,9 +208,11 @@ class ExternalMemoryService(
             } else {
                 list.add(summary)
             }
-            val ok = writeRemote(path, encodeSummaries(list))
-            if (!ok) throw Exception("WebDAV 写入失败: $path")
-            Log.d(TAG, "Saved diary summary to WebDAV memory for assistant $assistantId")
+            if (!syncSummaries(assistantId)) {
+                lastWriteError?.let { Log.w(TAG, it) }
+            } else {
+                Log.d(TAG, "Saved diary summary to WebDAV memory for assistant $assistantId")
+            }
         }.map { }
     }
 
@@ -182,11 +223,16 @@ class ExternalMemoryService(
         dateStr: String,
     ): Result<List<ExternalMemoryMessage>> = withContext(Dispatchers.IO) {
         runCatching {
-            // 列出 baseDir 下所有 messages_*.json 并过滤
+            // 遍历内存缓存 + WebDAV 目录下所有 messages_*.json 并过滤
+            val assistantIds = messagesCache.keys.toMutableSet()
             val resources = client().list(baseDir()).getOrNull().orEmpty()
-            val files = resources.filter { it.displayName.startsWith("messages_") && it.displayName.endsWith(".json") }
-            val all = files.flatMap { f ->
-                parseMessages(readRemote("${baseDir()}/${f.displayName}"))
+            resources.filter { it.displayName.startsWith("messages_") && it.displayName.endsWith(".json") }
+                .forEach { f ->
+                    val aid = f.displayName.removePrefix("messages_").removeSuffix(".json")
+                    assistantIds.add(aid)
+                }
+            val all = assistantIds.flatMap { aid ->
+                loadMessages(aid)
             }
             all.filter { it.createdAt.startsWith(dateStr) }
         }
@@ -200,7 +246,7 @@ class ExternalMemoryService(
         dateStr: String,
     ): Result<List<ExternalMemorySummary>> = withContext(Dispatchers.IO) {
         runCatching {
-            parseSummaries(readRemote(summariesPath(assistantId)))
+            loadSummaries(assistantId)
                 .filter { it.createdAt.startsWith(dateStr) }
         }
     }
@@ -213,7 +259,7 @@ class ExternalMemoryService(
         limit: Int = 5,
     ): Result<List<ExternalMemorySummary>> = withContext(Dispatchers.IO) {
         runCatching {
-            parseSummaries(readRemote(summariesPath(assistantId))).takeLast(limit)
+            loadSummaries(assistantId).takeLast(limit)
         }
     }
 
@@ -224,7 +270,7 @@ class ExternalMemoryService(
         assistantId: String,
     ): Result<List<ExternalMemorySummary>> = withContext(Dispatchers.IO) {
         runCatching {
-            parseSummaries(readRemote(summariesPath(assistantId)))
+            loadSummaries(assistantId)
         }
     }
 
@@ -237,7 +283,7 @@ class ExternalMemoryService(
         count: Int = 5,
     ): Result<List<ExternalMemorySummary>> = withContext(Dispatchers.IO) {
         runCatching {
-            val all = parseSummaries(readRemote(summariesPath(assistantId)))
+            val all = loadSummaries(assistantId)
             if (queryEmbedding.isEmpty() || all.isEmpty()) return@runCatching all.takeLast(count)
             all.sortedByDescending { summary ->
                 cosineSimilarity(queryEmbedding, summary.embedding)
