@@ -271,7 +271,9 @@ class SettingsStore(
                     ?: DEFAULT_ASSISTANT_ID,
                 assistantTags = preferences[ASSISTANT_TAGS].decodeOrNull(emptyList()),
                 providers = runCatching {
-                    JsonInstant.decodeFromString<List<ProviderSetting>>(preferences[PROVIDERS] ?: "[]")
+                    // 密文优先解密；旧版明文数据 decrypt 失败回退原文
+                    val raw = preferences[PROVIDERS] ?: "[]"
+                    JsonInstant.decodeFromString<List<ProviderSetting>>(SecureStorage.decrypt(raw).ifEmpty { raw })
                 }.getOrDefault(emptyList()),
                 assistants = runCatching {
                     JsonInstant.decodeFromString<List<me.rerere.rikkahub.data.model.Assistant>>(preferences[ASSISTANTS] ?: "[]")
@@ -287,8 +289,16 @@ class SettingsStore(
                 searchCommonOptions = preferences[SEARCH_COMMON].decodeOrNull(SearchCommonOptions()),
                 searchServiceSelected = preferences[SEARCH_SELECTED] ?: 0,
                 mcpServers = preferences[MCP_SERVERS].decodeOrNull(emptyList()),
-                webDavConfig = preferences[WEBDAV_CONFIG].decodeOrNull(WebDavConfig()),
-                s3Config = preferences[S3_CONFIG].decodeOrNull(S3Config()),
+                webDavConfig = preferences[WEBDAV_CONFIG]?.let { raw ->
+                    runCatching {
+                        JsonInstant.decodeFromString<WebDavConfig>(SecureStorage.decrypt(raw).ifEmpty { raw })
+                    }.getOrNull()
+                } ?: WebDavConfig(),
+                s3Config = preferences[S3_CONFIG]?.let { raw ->
+                    runCatching {
+                        JsonInstant.decodeFromString<S3Config>(SecureStorage.decrypt(raw).ifEmpty { raw })
+                    }.getOrNull()
+                } ?: S3Config(),
                 ttsProviders = preferences[TTS_PROVIDERS].decodeOrNull(emptyList()),
                 selectedTTSProviderId = preferences[SELECTED_TTS_PROVIDER]?.let { Uuid.parse(it) }
                     ?: DEFAULT_SYSTEM_TTS_ID,
@@ -470,7 +480,7 @@ class SettingsStore(
             preferences[COMPRESS_MODEL] = settings.compressModelId.toString()
             preferences[COMPRESS_PROMPT] = settings.compressPrompt
 
-            preferences[PROVIDERS] = JsonInstant.encodeToString(settings.providers)
+            preferences[PROVIDERS] = SecureStorage.encrypt(JsonInstant.encodeToString(settings.providers))
 
             preferences[ASSISTANTS] = JsonInstant.encodeToString(settings.assistants)
             preferences[SELECT_ASSISTANT] = settings.assistantId.toString()
@@ -481,8 +491,8 @@ class SettingsStore(
             preferences[SEARCH_SELECTED] = settings.searchServiceSelected.coerceIn(0, settings.searchServices.size - 1)
 
             preferences[MCP_SERVERS] = JsonInstant.encodeToString(settings.mcpServers)
-            preferences[WEBDAV_CONFIG] = JsonInstant.encodeToString(settings.webDavConfig)
-            preferences[S3_CONFIG] = JsonInstant.encodeToString(settings.s3Config)
+            preferences[WEBDAV_CONFIG] = SecureStorage.encrypt(JsonInstant.encodeToString(settings.webDavConfig))
+            preferences[S3_CONFIG] = SecureStorage.encrypt(JsonInstant.encodeToString(settings.s3Config))
             preferences[TTS_PROVIDERS] = JsonInstant.encodeToString(settings.ttsProviders)
             settings.selectedTTSProviderId?.let {
                 preferences[SELECTED_TTS_PROVIDER] = it.toString()
