@@ -59,7 +59,7 @@ val DEFAULT_PROVIDERS = listOf(
         builtIn = true,
         models = listOf(
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("6a7dc319b6277e51-0000-4000-8000-000000000000"),
+                id = kotlin.uuid.Uuid.parse("00000001-0000-4000-8000-000000000001"),
                 modelId = "gpt-4o",
                 displayName = "GPT-4o",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -67,7 +67,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("6859b16ceaa9acb8-0000-4000-8000-000000000001"),
+                id = kotlin.uuid.Uuid.parse("00000002-0000-4000-8000-000000000002"),
                 modelId = "gpt-4o-mini",
                 displayName = "GPT-4o mini",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -75,7 +75,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("301bb9c112eba4fa-0000-4000-8000-000000000002"),
+                id = kotlin.uuid.Uuid.parse("00000003-0000-4000-8000-000000000003"),
                 modelId = "gpt-4.1",
                 displayName = "GPT-4.1",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -83,7 +83,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("3d31f67e6804ef23-0000-4000-8000-000000000003"),
+                id = kotlin.uuid.Uuid.parse("00000004-0000-4000-8000-000000000004"),
                 modelId = "gpt-4.1-mini",
                 displayName = "GPT-4.1 mini",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -91,7 +91,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("5a817f1599aed882-0000-4000-8000-000000000004"),
+                id = kotlin.uuid.Uuid.parse("00000005-0000-4000-8000-000000000005"),
                 modelId = "o3-mini",
                 displayName = "o3 mini",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -99,7 +99,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("6c099d64d168a2e1-0000-4000-8000-000000000005"),
+                id = kotlin.uuid.Uuid.parse("00000006-0000-4000-8000-000000000006"),
                 modelId = "gpt-4.1-nano",
                 displayName = "GPT-4.1 nano",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -116,7 +116,7 @@ val DEFAULT_PROVIDERS = listOf(
         builtIn = true,
         models = listOf(
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("32b20c746a6f9d1-0000-4000-8000-000000000000"),
+                id = kotlin.uuid.Uuid.parse("00000007-0000-4000-8000-000000000007"),
                 modelId = "gemini-2.5-pro",
                 displayName = "Gemini 2.5 Pro",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -124,7 +124,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("96e8deb6f96e945-0000-4000-8000-000000000001"),
+                id = kotlin.uuid.Uuid.parse("00000008-0000-4000-8000-000000000008"),
                 modelId = "gemini-2.5-flash",
                 displayName = "Gemini 2.5 Flash",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -132,7 +132,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("73ef247ea32cd14a-0000-4000-8000-000000000002"),
+                id = kotlin.uuid.Uuid.parse("00000009-0000-4000-8000-000000000009"),
                 modelId = "gemini-2.0-flash",
                 displayName = "Gemini 2.0 Flash",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -140,7 +140,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("6443f9c30ed11d43-0000-4000-8000-000000000003"),
+                id = kotlin.uuid.Uuid.parse("0000000a-0000-4000-8000-00000000000a"),
                 modelId = "gemini-1.5-pro",
                 displayName = "Gemini 1.5 Pro",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -148,7 +148,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("4e22afbc558dccaa-0000-4000-8000-000000000004"),
+                id = kotlin.uuid.Uuid.parse("0000000b-0000-4000-8000-00000000000b"),
                 modelId = "gemini-2.5-flash-lite",
                 displayName = "Gemini 2.5 Flash-Lite",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -165,7 +165,7 @@ val DEFAULT_PROVIDERS = listOf(
         builtIn = true,
         models = listOf(
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("618d38a1c3175fe4-0000-4000-8000-000000000000"),
+                id = kotlin.uuid.Uuid.parse("0000000c-0000-4000-8000-00000000000c"),
                 modelId = "Qwen/Qwen2.5-72B-Instruct",
                 displayName = "Qwen2.5 72B",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -173,7 +173,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("334099de2fe1e6a9-0000-4000-8000-000000000001"),
+                id = kotlin.uuid.Uuid.parse("0000000d-0000-4000-8000-00000000000d"),
                 modelId = "deepseek-ai/DeepSeek-V3",
                 displayName = "DeepSeek V3",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -181,7 +181,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("7b8954bd611bb86e-0000-4000-8000-000000000002"),
+                id = kotlin.uuid.Uuid.parse("0000000e-0000-4000-8000-00000000000e"),
                 modelId = "deepseek-ai/DeepSeek-R1",
                 displayName = "DeepSeek R1",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -189,7 +189,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("4f7e2ababcf16553-0000-4000-8000-000000000003"),
+                id = kotlin.uuid.Uuid.parse("0000000f-0000-4000-8000-00000000000f"),
                 modelId = "THUDM/glm-4-9b-chat",
                 displayName = "GLM-4 9B",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -197,7 +197,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("2bb92698f8b3c19f-0000-4000-8000-000000000004"),
+                id = kotlin.uuid.Uuid.parse("00000010-0000-4000-8000-000000000010"),
                 modelId = "Qwen/Qwen3-235B-A22B",
                 displayName = "Qwen3 235B",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -214,7 +214,7 @@ val DEFAULT_PROVIDERS = listOf(
         builtIn = true,
         models = listOf(
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("2157f60702acefba-0000-4000-8000-000000000000"),
+                id = kotlin.uuid.Uuid.parse("00000011-0000-4000-8000-000000000011"),
                 modelId = "deepseek-chat",
                 displayName = "DeepSeek Chat (V3)",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -222,7 +222,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("63f78979bc192b8a-0000-4000-8000-000000000001"),
+                id = kotlin.uuid.Uuid.parse("00000012-0000-4000-8000-000000000012"),
                 modelId = "deepseek-reasoner",
                 displayName = "DeepSeek Reasoner (R1)",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -230,7 +230,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("17a4d1bb8b472f6f-0000-4000-8000-000000000002"),
+                id = kotlin.uuid.Uuid.parse("00000013-0000-4000-8000-000000000013"),
                 modelId = "deepseek-v3.2",
                 displayName = "DeepSeek V3.2",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -253,7 +253,7 @@ val DEFAULT_PROVIDERS = listOf(
         builtIn = true,
         models = listOf(
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("27a3823359a3ca99-0000-4000-8000-000000000000"),
+                id = kotlin.uuid.Uuid.parse("00000014-0000-4000-8000-000000000014"),
                 modelId = "qwen-plus",
                 displayName = "Qwen Plus",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -261,7 +261,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("70a4934c94154092-0000-4000-8000-000000000001"),
+                id = kotlin.uuid.Uuid.parse("00000015-0000-4000-8000-000000000015"),
                 modelId = "qwen-turbo",
                 displayName = "Qwen Turbo",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -269,7 +269,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("2b8f0dae980d0dca-0000-4000-8000-000000000002"),
+                id = kotlin.uuid.Uuid.parse("00000016-0000-4000-8000-000000000016"),
                 modelId = "qwen-max",
                 displayName = "Qwen Max",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -277,7 +277,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("426d488517b58b27-0000-4000-8000-000000000003"),
+                id = kotlin.uuid.Uuid.parse("00000017-0000-4000-8000-000000000017"),
                 modelId = "qwen-long",
                 displayName = "Qwen Long",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -285,7 +285,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("5414646d94f3af8e-0000-4000-8000-000000000004"),
+                id = kotlin.uuid.Uuid.parse("00000018-0000-4000-8000-000000000018"),
                 modelId = "deepseek-v3",
                 displayName = "DeepSeek V3",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -303,7 +303,7 @@ val DEFAULT_PROVIDERS = listOf(
         builtIn = true,
         models = listOf(
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("7114ee98e93e0747-0000-4000-8000-000000000000"),
+                id = kotlin.uuid.Uuid.parse("00000019-0000-4000-8000-000000000019"),
                 modelId = "doubao-1-5-pro-32k-250115",
                 displayName = "豆包 1.5 Pro 32K",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -311,7 +311,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("39abc5a0f181f030-0000-4000-8000-000000000001"),
+                id = kotlin.uuid.Uuid.parse("0000001a-0000-4000-8000-00000000001a"),
                 modelId = "doubao-1-5-lite-32k-250115",
                 displayName = "豆包 1.5 Lite 32K",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -319,7 +319,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("493dcac99fc82a78-0000-4000-8000-000000000002"),
+                id = kotlin.uuid.Uuid.parse("0000001b-0000-4000-8000-00000000001b"),
                 modelId = "deepseek-v3",
                 displayName = "DeepSeek V3",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -327,7 +327,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("60db0bb177ecaaf2-0000-4000-8000-000000000003"),
+                id = kotlin.uuid.Uuid.parse("0000001c-0000-4000-8000-00000000001c"),
                 modelId = "deepseek-r1",
                 displayName = "DeepSeek R1",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -345,7 +345,7 @@ val DEFAULT_PROVIDERS = listOf(
         builtIn = true,
         models = listOf(
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("76e33fa142a6c15-0000-4000-8000-000000000000"),
+                id = kotlin.uuid.Uuid.parse("0000001d-0000-4000-8000-00000000001d"),
                 modelId = "glm-4.5",
                 displayName = "GLM-4.5",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -353,7 +353,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("7ea5b4403e0fc3f9-0000-4000-8000-000000000001"),
+                id = kotlin.uuid.Uuid.parse("0000001e-0000-4000-8000-00000000001e"),
                 modelId = "glm-4-plus",
                 displayName = "GLM-4 Plus",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -361,7 +361,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("7726af8f7d59bf0d-0000-4000-8000-000000000002"),
+                id = kotlin.uuid.Uuid.parse("0000001f-0000-4000-8000-00000000001f"),
                 modelId = "glm-4-air",
                 displayName = "GLM-4 Air",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -369,7 +369,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("5276eb61280d0bc7-0000-4000-8000-000000000003"),
+                id = kotlin.uuid.Uuid.parse("00000020-0000-4000-8000-000000000020"),
                 modelId = "glm-4-flash",
                 displayName = "GLM-4 Flash",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -377,7 +377,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("1c952a9e14d61191-0000-4000-8000-000000000004"),
+                id = kotlin.uuid.Uuid.parse("00000021-0000-4000-8000-000000000021"),
                 modelId = "glm-4-long",
                 displayName = "GLM-4 Long",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -395,7 +395,7 @@ val DEFAULT_PROVIDERS = listOf(
         builtIn = true,
         models = listOf(
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("7ca1abd2fc3b9600-0000-4000-8000-000000000000"),
+                id = kotlin.uuid.Uuid.parse("00000022-0000-4000-8000-000000000022"),
                 modelId = "hunyuan-turbo",
                 displayName = "混元 Turbo",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -403,7 +403,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("6a121544e2c6b138-0000-4000-8000-000000000001"),
+                id = kotlin.uuid.Uuid.parse("00000023-0000-4000-8000-000000000023"),
                 modelId = "hunyuan-pro",
                 displayName = "混元 Pro",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -411,7 +411,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("ebeb2a6d5a539ce-0000-4000-8000-000000000002"),
+                id = kotlin.uuid.Uuid.parse("00000024-0000-4000-8000-000000000024"),
                 modelId = "hunyuan-standard",
                 displayName = "混元 Standard",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -419,7 +419,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("158e44ed0dc2cec9-0000-4000-8000-000000000003"),
+                id = kotlin.uuid.Uuid.parse("00000025-0000-4000-8000-000000000025"),
                 modelId = "hunyuan-lite",
                 displayName = "混元 Lite",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -427,7 +427,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("1a467b1e152a1b2f-0000-4000-8000-000000000004"),
+                id = kotlin.uuid.Uuid.parse("00000026-0000-4000-8000-000000000026"),
                 modelId = "hunyuan-t1",
                 displayName = "混元 T1",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -445,7 +445,7 @@ val DEFAULT_PROVIDERS = listOf(
         builtIn = true,
         models = listOf(
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("2a0bf83f0697b3ce-0000-4000-8000-000000000000"),
+                id = kotlin.uuid.Uuid.parse("00000027-0000-4000-8000-000000000027"),
                 modelId = "generalv4.0",
                 displayName = "星火 4.0",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -453,7 +453,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("5e2f30e1e50fe60a-0000-4000-8000-000000000001"),
+                id = kotlin.uuid.Uuid.parse("00000028-0000-4000-8000-000000000028"),
                 modelId = "generalv3.5",
                 displayName = "星火 3.5",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -461,7 +461,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("2d4de4bd56421f0d-0000-4000-8000-000000000002"),
+                id = kotlin.uuid.Uuid.parse("00000029-0000-4000-8000-000000000029"),
                 modelId = "xdeepseekv3",
                 displayName = "DeepSeek V3",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -469,7 +469,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("7422d2fe57c053f0-0000-4000-8000-000000000003"),
+                id = kotlin.uuid.Uuid.parse("0000002a-0000-4000-8000-00000000002a"),
                 modelId = "xdeepseekr1",
                 displayName = "DeepSeek R1",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
@@ -477,7 +477,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("5fb04f483e53cc16-0000-4000-8000-000000000004"),
+                id = kotlin.uuid.Uuid.parse("0000002b-0000-4000-8000-00000000002b"),
                 modelId = "general",
                 displayName = "星火通用",
                 inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
