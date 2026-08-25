@@ -282,6 +282,47 @@ sealed class TTSProviderSetting {
         }
     }
 
+
+    @Serializable
+    @SerialName("edge_tts")
+    data class EdgeTTS(
+        override var id: Uuid = Uuid.random(),
+        override var name: String = "Edge TTS",
+        var voice: String = "zh-CN-XiaoxiaoNeural",
+    ) : TTSProviderSetting() {
+        override fun copyProvider(id: Uuid, name: String) = copy(id = id, name = name)
+    }
+
+    @Serializable
+    @SerialName("baidu_tts")
+    data class BaiduTTS(
+        override var id: Uuid = Uuid.random(),
+        override var name: String = "百度 TTS",
+        var speed: Int = 5,
+    ) : TTSProviderSetting() {
+        override fun copyProvider(id: Uuid, name: String) = copy(id = id, name = name)
+    }
+
+    @Serializable
+    @SerialName("youdao_tts")
+    data class YoudaoTTS(
+        override var id: Uuid = Uuid.random(),
+        override var name: String = "有道 TTS",
+        var speed: Int = 50,
+    ) : TTSProviderSetting() {
+        override fun copyProvider(id: Uuid, name: String) = copy(id = id, name = name)
+    }
+
+    @Serializable
+    @SerialName("google_free_tts")
+    data class GoogleFreeTTS(
+        override var id: Uuid = Uuid.random(),
+        override var name: String = "Google TTS",
+        var lang: String = "zh-CN",
+    ) : TTSProviderSetting() {
+        override fun copyProvider(id: Uuid, name: String) = copy(id = id, name = name)
+    }
+
     companion object {
         val Types by lazy {
             listOf(
