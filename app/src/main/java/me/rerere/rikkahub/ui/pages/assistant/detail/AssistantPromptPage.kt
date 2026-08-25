@@ -1,30 +1,27 @@
-﻿/*
- * 灵犀 Lingxi
- * 衍生自 Lingxi (https://github.com/xiaosui-source/rikkagu)，原作者 xiaosui-source
- * 本项目基于 GNU AGPL v3 开源，详见根目录 LICENSE 文件
- */
-
 package me.rerere.rikkahub.ui.pages.assistant.detail
 
 import me.rerere.hugeicons.HugeIcons
-import me.rerere.hugeicons.*
 import me.rerere.hugeicons.stroke.ArrowDown01
 import me.rerere.hugeicons.stroke.ArrowUp01
 import me.rerere.hugeicons.stroke.Add01
 import me.rerere.hugeicons.stroke.Delete01
 import me.rerere.hugeicons.stroke.Cancel01
+import me.rerere.hugeicons.stroke.DragDropVertical
 import me.rerere.hugeicons.stroke.Refresh03
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -54,12 +51,16 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -90,6 +91,7 @@ import me.rerere.rikkahub.ui.components.ui.FormItem
 import me.rerere.rikkahub.ui.components.ui.Select
 import me.rerere.rikkahub.ui.components.ui.Tag
 import me.rerere.rikkahub.ui.components.ui.TextArea
+import me.rerere.rikkahub.ui.theme.ChatFontProvider
 import me.rerere.rikkahub.ui.theme.CustomColors
 import me.rerere.rikkahub.ui.theme.JetbrainsMono
 import me.rerere.rikkahub.utils.UiState
@@ -99,6 +101,7 @@ import me.rerere.rikkahub.utils.onSuccess
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
+import sh.calvin.reorderable.ReorderableColumn
 import kotlin.uuid.Uuid
 
 @Composable
@@ -129,7 +132,7 @@ fun AssistantPromptPage(id: String) {
         containerColor = CustomColors.topBarColors.containerColor,
     ) { innerPadding ->
         AssistantPromptContent(
-            modifier = Modifier.padding(innerPadding),
+            innerPadding = innerPadding,
             assistant = assistant,
             settings = settings,
             onUpdate = { vm.update(it) }
@@ -139,7 +142,7 @@ fun AssistantPromptPage(id: String) {
 
 @Composable
 private fun AssistantPromptContent(
-    modifier: Modifier = Modifier,
+    innerPadding: PaddingValues,
     assistant: Assistant,
     settings: Settings,
     onUpdate: (Assistant) -> Unit
@@ -148,11 +151,12 @@ private fun AssistantPromptContent(
     val templateTransformer = koinInject<TemplateTransformer>()
 
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
-            .imePadding()
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp)
+            .padding(innerPadding)
+            .imePadding(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Card(
@@ -224,6 +228,32 @@ private fun AssistantPromptContent(
                             onUpdate(
                                 assistant.copy(
                                     allowConversationSystemPrompt = it
+                                )
+                            )
+                        }
+                    )
+                }
+            )
+        }
+
+        Card(
+            colors = CustomColors.cardColorsOnSurfaceContainer
+        ) {
+            FormItem(
+                modifier = Modifier.padding(8.dp),
+                label = {
+                    Text(stringResource(R.string.assistant_page_allow_conversation_prompt_injection))
+                },
+                description = {
+                    Text(stringResource(R.string.assistant_page_allow_conversation_prompt_injection_desc))
+                },
+                tail = {
+                    Switch(
+                        checked = assistant.allowConversationPromptInjection,
+                        onCheckedChange = {
+                            onUpdate(
+                                assistant.copy(
+                                    allowConversationPromptInjection = it
                                 )
                             )
                         }
@@ -355,17 +385,19 @@ private fun AssistantPromptContent(
                     )
                 }
                 preview.onSuccess {
-                    it.fastForEach { message ->
-                        ChatMessage(
-                            node = message.toMessageNode(),
-                            onFork = {},
-                            onRegenerate = {},
-                            onEdit = {},
-                            onShare = {},
-                            onDelete = {},
-                            onUpdate = {},
-                            lastMessage = false,
-                        )
+                    ChatFontProvider(displaySetting = settings.displaySetting) {
+                        it.fastForEach { message ->
+                            ChatMessage(
+                                node = message.toMessageNode(),
+                                onFork = {},
+                                onRegenerate = {},
+                                onEdit = {},
+                                onShare = {},
+                                onDelete = {},
+                                onUpdate = {},
+                                lastMessage = false,
+                            )
+                        }
                     }
                 }
             }
@@ -489,13 +521,43 @@ private fun AssistantPromptContent(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.padding(horizontal = 8.dp)
             ) {
-                assistant.regexes.fastForEachIndexed { index, regex ->
-                    AssistantRegexCard(
-                        regex = regex,
-                        onUpdate = onUpdate,
-                        assistant = assistant,
-                        index = index
-                    )
+                val haptic = LocalHapticFeedback.current
+                ReorderableColumn(
+                    list = assistant.regexes,
+                    onSettle = { fromIndex, toIndex ->
+                        val regexes = assistant.regexes.toMutableList().apply {
+                            add(toIndex, removeAt(fromIndex))
+                        }
+                        onUpdate(assistant.copy(regexes = regexes))
+                    },
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) { index, regex, isDragging ->
+                    key(regex.id) {
+                        ReorderableItem(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            AssistantRegexCard(
+                                regex = regex,
+                                onUpdate = onUpdate,
+                                assistant = assistant,
+                                index = index,
+                                modifier = Modifier.scale(if (isDragging) 0.95f else 1f),
+                                dragHandleModifier = Modifier
+                                    .size(48.dp)
+                                    .longPressDraggableHandle(
+                                        enabled = assistant.regexes.size > 1,
+                                        onDragStarted = {
+                                            haptic.performHapticFeedback(
+                                                HapticFeedbackType.GestureThresholdActivate
+                                            )
+                                        },
+                                        onDragStopped = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.GestureEnd)
+                                        }
+                                    )
+                            )
+                        }
+                    }
                 }
                 Button(
                     onClick = {
@@ -521,13 +583,15 @@ private fun AssistantRegexCard(
     regex: AssistantRegex,
     onUpdate: (Assistant) -> Unit,
     assistant: Assistant,
-    index: Int
+    index: Int,
+    modifier: Modifier = Modifier,
+    dragHandleModifier: Modifier = Modifier,
 ) {
     var expanded by remember {
         mutableStateOf(false)
     }
     ElevatedCard(
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
     ) {
         Column(
             modifier = Modifier
@@ -538,6 +602,15 @@ private fun AssistantRegexCard(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                Box(
+                    modifier = dragHandleModifier,
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = HugeIcons.DragDropVertical,
+                        contentDescription = null,
+                    )
+                }
                 Text(
                     text = regex.name,
                     maxLines = 1,
