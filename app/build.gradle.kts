@@ -15,8 +15,8 @@ android {
         applicationId = "me.rerere.rikkahub"
         minSdk = 26
         targetSdk = 37
-        versionCode = 20405
-        versionName = "2.4.5"
+        versionCode = 179
+        versionName = "2.4.12"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "GIT_COMMIT", "\"unknown\"")
