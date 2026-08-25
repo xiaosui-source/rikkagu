@@ -160,6 +160,10 @@ fun TTSProviderConfigure(
             is TTSProviderSetting.ElevenLabs -> ElevenLabsTTSConfiguration(setting, onValueChange)
             is TTSProviderSetting.FishAudio -> FishAudioTTSConfiguration(setting, onValueChange)
             is TTSProviderSetting.Step -> StepTTSConfiguration(setting, onValueChange)
+            is TTSProviderSetting.BaiduTTS -> {}
+            is TTSProviderSetting.EdgeTTS -> {}
+            is TTSProviderSetting.YoudaoTTS -> {}
+            is TTSProviderSetting.GoogleFreeTTS -> {}
         }
     }
 }
