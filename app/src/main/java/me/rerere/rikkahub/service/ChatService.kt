@@ -2068,6 +2068,10 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
             assistantId = currentConversation.assistantId,
             messageNodes = copiedNodes,
             customSystemPrompt = currentConversation.customSystemPrompt,
+            modeInjectionIds = currentConversation.modeInjectionIds,
+            lorebookIds = currentConversation.lorebookIds,
+            workspaceCwd = currentConversation.workspaceCwd,
+            folderId = currentConversation.folderId,
         )
 
         saveConversation(forkConversation.id, forkConversation)
