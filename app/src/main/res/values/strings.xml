@@ -1294,4 +1294,9 @@
   <string name="workspace_terminal_tab">Tab %1$d</string>
   <string name="workspace_terminal_close_tab">Close Tab</string>
   <string name="workspace_terminal_no_tabs">No terminal sessions</string>
+  <string name="setting_model_page_enable_suggestion">Enable Chat Suggestions</string>
+  <string name="setting_model_page_fast_model">Fast Model</string>
+  <string name="setting_model_page_fast_model_desc">Model for fast or background tasks, also used as fallback for title and suggestion models when not set</string>
+  <string name="setting_model_page_tab_model">Model</string>
+  <string name="setting_model_page_tab_prompt">Prompts</string>
 </resources>
