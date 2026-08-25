@@ -514,6 +514,10 @@ class GenerationHandler(
                     append(effectiveSystemPrompt)
                 }
 
+                // 全局强制简体中文：所有模型一律用简体中文回答，且思考链也使用简体中文
+                appendLine()
+                append("重要指令：请始终使用简体中文回答。你的所有输出（包括思考过程、推理、思考链、代码注释）都必须使用简体中文，除非用户明确要求输出其他语言。")
+
                 // 记忆
                 if (assistant.enableMemory) {
                     appendLine()
