@@ -281,10 +281,6 @@ class WorkspaceRepository(
         }
     }
 
-    /**
-     * 自动安装编程环境与常用工具 (git/curl/wget/python3/pip/build-essential/nano/unzip)。
-     * 需 shell 已 READY (rootfs 已就绪)。后台调用, 失败抛异常由调用方容错。
-     */
     suspend fun buildApk(
         id: String,
         projectDir: String = "",
@@ -415,15 +411,6 @@ class WorkspaceRepository(
         onProgress: (String) -> Unit = {},
     ): WorkspaceCommandResult {
         val workspace = dao.getById(id) ?: error("Workspace not found: $id")
-
-        onProgress("准备免root脱壳工具链 (unicorn/capstone)...")
-        // 免root核心：Unicorn CPU模拟器 + Capstone反汇编（模拟执行加固so解密，无需root真机）
-        executeCommand(
-            id,
-            "pip3 install -q unicorn capstone 2>/dev/null || pip3 install -q unicorn 2>/dev/null || true",
-            timeoutMillis = 600_000,
-        )
-
 
         onProgress("开始脱壳分析：$apkPath ...")
         val base = apkPath.substringAfterLast('/').substringBeforeLast('.').ifBlank { "app" }
