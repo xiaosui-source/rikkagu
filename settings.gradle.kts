@@ -15,6 +15,8 @@ dependencyResolutionManagement {
     }
 }
 
+includeBuild("build-logic")
+
 rootProject.name = "lingxi"
 include(":app")
 include(":common")
