@@ -137,12 +137,7 @@ class ModelListState internal constructor(
         this.type = type
     }
 
-    companion object {
-        val Saver: Saver<ModelListState, *> = Saver(
-            save = { it.modelId },
-            restore = { Uuid.parse(it) }
-        )
-    }
+
 }
 
 @Composable
