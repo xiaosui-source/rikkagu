@@ -333,10 +333,18 @@ class SettingsStore(
             providers = providers.map { provider ->
                 val defaultProvider = DEFAULT_PROVIDERS.find { it.id == provider.id }
                 if (defaultProvider != null) {
+                    // 预置模型不自动添加：迁移时移除配置中已有的预置模型（仅作为"添加模型"候选），
+                    // 用户自己勾选才添加；用户自定义添加的模型（非预置 modelId）保留
+                    val builtinModelIds = defaultProvider.models.map { it.modelId }.toSet()
                     provider.copyProvider(
                         builtIn = defaultProvider.builtIn,
                         description = defaultProvider.description,
                         shortDescription = defaultProvider.shortDescription,
+                        models = if (builtinModelIds.isEmpty()) {
+                            provider.models
+                        } else {
+                            provider.models.filterNot { it.modelId in builtinModelIds }
+                        },
                     )
                 } else provider
             }.toMutableList()
