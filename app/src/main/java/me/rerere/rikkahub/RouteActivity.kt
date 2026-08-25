@@ -700,10 +700,6 @@ entry<Screen.Extensions> {
                                 SecuritySettingPage()
                             }
 
-                            entry<Screen.SettingAgents> {
-                                me.rerere.rikkahub.ui.pages.setting.AgentSettingsPage()
-                            }
-
                             entry<Screen.SettingWeixinBot> {
                                 SettingWeixinBotPage()
                             }
@@ -1087,9 +1083,6 @@ sealed interface Screen : NavKey {
 
     @Serializable
     data object SettingSecurity : Screen
-
-    @Serializable
-    data object SettingAgents : Screen
 
     @Serializable
     data object SettingGomoku : Screen
