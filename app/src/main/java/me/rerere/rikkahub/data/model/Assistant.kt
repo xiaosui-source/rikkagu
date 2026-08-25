@@ -50,7 +50,7 @@ data class Assistant(
     val builtinMcpIds: Set<String> = setOf(
         "douyin", "files", "memory",
         "12306", "apk", "http", "context7",
-        "xingce", "filesystem", "minecraft",
+        "xingce", "filesystem",
     ),
     val localTools: List<LocalToolOption> = listOf(LocalToolOption.TimeInfo),
     val workspaceId: Uuid? = null,

@@ -44,7 +44,7 @@ import kotlin.uuid.Uuid
  * MCP 管理器。
  *
  * 会话生命周期由 [McpSessionRegistry] 管理，OAuth 协议细节由 [McpOAuthCoordinator] 管理。
- * 额外保留本项目的独有能力：内置 MCP 服务器工具（抖音/12306/APK/Minecraft 等）、
+ * 额外保留本项目的独有能力：内置 MCP 服务器工具（抖音/12306/APK 等）、
  * 内置服务器信息、手动重连。
  */
 class McpManager(
@@ -149,9 +149,6 @@ class McpManager(
         if ("xingce" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.buildXingceMcpTools(context)
         }
-        if ("minecraft" in enabled) {
-            list += me.rerere.rikkahub.data.ai.tools.buildMinecraftMcpTools(context)
-        }
         if ("filesystem" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.buildFileSystemMcpTools(context)
         }
@@ -190,12 +187,6 @@ class McpManager(
                 name = "花生十三行测 MCP 📝",
                 description = "内置442张行测方法卡片：搜索/分类/解题引导（资料分析/数量关系/判断推理/言语理解）",
                 toolCount = 5,
-            ) to 1,
-            me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
-                id = "builtin-minecraft",
-                name = "Minecraft MCP ⛏️",
-                description = "内置Minecraft：AI就是机器人自主通关，支持Java版（bot协议+微软账号）和基岩版（RCON），自主游玩+进度汇报",
-                toolCount = 7,
             ) to 1,
             me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
                 id = "builtin-fetch",
