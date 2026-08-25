@@ -71,6 +71,7 @@ import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -844,11 +845,24 @@ private fun ModelPicker(
     onAllModelSelected: (List<Model>) -> Unit,
     onAllModelDeselected: (List<Model>) -> Unit
 ) {
-    var showModal by remember { mutableStateOf(false) }
+    var showModal by rememberSaveable { mutableStateOf(false) }
     if (showModal) {
+        val bottomSheetState = rememberBottomSheetState(
+            initialValue = SheetValue.Hidden,
+            enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+        )
+        val scope = rememberCoroutineScope()
+        LaunchedEffect(Unit) {
+            bottomSheetState.show()
+        }
         ModalBottomSheet(
-            onDismissRequest = { showModal = false },
-            sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden, enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)),
+            onDismissRequest = {
+                scope.launch {
+                    bottomSheetState.hide()
+                    showModal = false
+                }
+            },
+            sheetState = bottomSheetState,
         ) {
             var filterText by remember { mutableStateOf("") }
             val filterKeywords = filterText.split(" ").filter { it.isNotBlank() }
