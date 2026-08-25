@@ -151,19 +151,13 @@ fun rememberModelListState(
     providers: List<ProviderSetting>,
     type: ModelType,
 ): ModelListState {
-    return rememberSaveable(saver = ModelListState.Saver) {
-        ModelListState(
-            modelId = modelId,
-            providers = providers,
-            type = type,
-        )
-    }.also {
-        it.update(
-            modelId = modelId,
-            providers = providers,
-            type = type,
-        )
+    val state = remember {
+        mutableStateOf(ModelListState(modelId = modelId, providers = providers, type = type))
     }
+    LaunchedEffect(modelId, providers, type) {
+        state.value.update(modelId, providers, type)
+    }
+    return state.value
 }
 
 @Composable
