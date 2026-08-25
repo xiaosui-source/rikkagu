@@ -133,6 +133,7 @@ class SettingsStore(
         val FAVORITE_MODELS = stringPreferencesKey("favorite_models")
         val SELECT_MODEL = stringPreferencesKey("chat_model")
         val FAST_MODEL = stringPreferencesKey("fast_model")
+        val ENABLE_SUGGESTION = booleanPreferencesKey("enable_suggestion")
         val TITLE_MODEL = stringPreferencesKey("title_model")
         val TRANSLATE_MODEL = stringPreferencesKey("translate_model")
         val SUGGESTION_MODEL = stringPreferencesKey("suggestion_model")
@@ -256,6 +257,7 @@ class SettingsStore(
                 chatModelId = preferences[SELECT_MODEL]?.let { Uuid.parse(it) }
                     ?: DEFAULT_NVIDIA_MODEL_ID,
                 fastModelId = preferences[FAST_MODEL]?.let { Uuid.parse(it) } ?: DEFAULT_NVIDIA_MODEL_ID,
+                enableSuggestion = preferences[ENABLE_SUGGESTION] != false,
                 titleModelId = preferences[TITLE_MODEL]?.let { Uuid.parse(it) }
                     ?: DEFAULT_NVIDIA_MODEL_ID,
                 translateModeId = preferences[TRANSLATE_MODEL]?.let { Uuid.parse(it) }
@@ -472,6 +474,7 @@ class SettingsStore(
             preferences[ENABLE_WEB_SEARCH] = settings.enableWebSearch
             preferences[FAVORITE_MODELS] = JsonInstant.encodeToString(settings.favoriteModels)
             preferences[SELECT_MODEL] = settings.chatModelId.toString()
+            preferences[ENABLE_SUGGESTION] = settings.enableSuggestion
             preferences[FAST_MODEL] = settings.fastModelId.toString()
             preferences[TITLE_MODEL] = settings.titleModelId.toString()
             preferences[TRANSLATE_MODEL] = settings.translateModeId.toString()
@@ -626,7 +629,9 @@ data class Settings(
     val chatModelId: Uuid = DEFAULT_NVIDIA_MODEL_ID,
     // 快速模型（后台任务/标题建议回退用，上游新增）
     val fastModelId: Uuid = DEFAULT_NVIDIA_MODEL_ID,
-    val titleModelId: Uuid = DEFAULT_NVIDIA_MODEL_ID,
+    // 聊天建议开关（上游新增）
+    val enableSuggestion: Boolean = true,
+    val titleModelId: Uuid? = null,
     val imageGenerationModelId: Uuid = DEFAULT_NVIDIA_MODEL_ID,
     val titlePrompt: String = DEFAULT_TITLE_PROMPT,
     // #34: 标题总结默认走本地规则（不依赖网络模型、不消耗 token）
@@ -634,7 +639,7 @@ data class Settings(
     val translateModeId: Uuid = DEFAULT_NVIDIA_MODEL_ID,
     val translatePrompt: String = DEFAULT_TRANSLATION_PROMPT,
     val translateThinkingBudget: Int = 0,
-    val suggestionModelId: Uuid = DEFAULT_NVIDIA_MODEL_ID,
+    val suggestionModelId: Uuid? = null,
     val suggestionPrompt: String = DEFAULT_SUGGESTION_PROMPT,
     val ocrModelId: Uuid = DEFAULT_NVIDIA_MODEL_ID,
     val ocrPrompt: String = DEFAULT_OCR_PROMPT,

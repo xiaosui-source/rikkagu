@@ -1,14 +1,7 @@
-﻿/*
- * 灵犀 Lingxi
- * 衍生自 Lingxi (https://github.com/xiaosui-source/rikkagu)，原作者 xiaosui-source
- * 本项目基于 GNU AGPL v3 开源，详见根目录 LICENSE 文件
- */
-
 package me.rerere.rikkahub.ui.pages.translator
 
 import android.content.ClipData
 import me.rerere.hugeicons.HugeIcons
-import me.rerere.hugeicons.*
 import me.rerere.hugeicons.stroke.Clipboard
 import me.rerere.hugeicons.stroke.LanguageCircle
 import androidx.compose.animation.AnimatedVisibility
@@ -27,6 +20,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -37,7 +31,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
