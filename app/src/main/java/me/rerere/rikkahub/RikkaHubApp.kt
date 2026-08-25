@@ -161,7 +161,12 @@ class LingxiApp : Application() {
                         Log.i(TAG, "installing reverse tools: $step")
                     }
 
-                    // 5. 关联默认助手
+                    // 5. Android 编译环境 (Java17 + Android SDK + Gradle), 支持 workspace_build_apk / workspace_apk_rework
+                    workspaceRepo.installAndroidBuildEnv(ws.id) { step ->
+                        Log.i(TAG, "installing android build env: $step")
+                    }
+
+                    // 6. 关联默认助手
                     prefs.update { s ->
                         s.copy(
                             assistants = s.assistants.map {
