@@ -13,8 +13,6 @@
 ./gradlew lint                   # 运行 Android Lint
 ```
 
-构建应用需要在 `app/` 下提供 `google-services.json`（用于 Firebase）。
-
 ## Coding Style & Naming Conventions
 
 本仓库使用 `.editorconfig` 统一格式：
@@ -23,7 +21,7 @@
 - XML/JSON：2 空格缩进。
 - Markdown/YAML：2 空格缩进，允许尾随空格（用于对齐）。
 
-命名习惯：模块名为小写目录（如 `ai/`、`tts/`），Kotlin 类遵循 PascalCase，测试类以 `*Test` 结尾。
+命名习惯：模块名为小写目录（如 `ai/`、`speech/`），Kotlin 类遵循 PascalCase，测试类以 `*Test` 结尾。
 
 ## Testing Guidelines
 
@@ -40,9 +38,7 @@
 - **document**: Document parsing module for handling PDF, DOCX, and PPTX files
 - **highlight**: Code syntax highlighting implementation
 - **search**: Search functionality SDK (Exa, Tavily, Zhipu)
-- **tts**: Text-to-speech implementation for different providers
-- **web**: Embedded web server module that provides Ktor server startup function and hosts static frontend build files (
-  built from web-ui/ React project)
+- **speech**: Text-to-speech & speech recognition implementation for different providers
 
 ## Concepts
 
@@ -88,4 +84,3 @@
 - Page-specific strings should use page prefix (e.g., `setting_page_`)
 - If the user does not explicitly request localization, prioritize implementing functionality without considering
   localization. (e.g `Text("Hello world")`)
-- For `locale-tui` operations, use the `locale-tui-localization` skill.

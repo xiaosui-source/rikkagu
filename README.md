@@ -43,9 +43,6 @@
 ### ⌚ 健康数据
 - **Gadgetbridge 同步** — 从 Gadgetbridge 读取智能手环/手表的健康数据（步数、心率、睡眠等），让 AI 了解你的身体状况
 
-### ☁️ 数据同步
-- **Supabase 同步** — 基础数据通过 Supabase 云端同步，多设备无缝切换
-
 ### 🔍 搜索增强
 - **Custom JS 搜索** — 通过 QuickJS 引擎支持自定义 JavaScript 脚本编写搜索服务，灵活扩展搜索能力
 
@@ -71,7 +68,6 @@
 
 ### 🛠️ Extensions
 - **APK Reverse Engineering** — Analyze APK files, decompile to Java source
-- **RailGo** — Train schedules & station lookup
 - **Gomoku** — 15×15 board, play against AI
 - **Voice Call** — AI-powered voice conversation
 - **SSH Remote** — Terminal SSH/SFTP in workspace
@@ -90,8 +86,6 @@
 - **AI 翻译** — 一键翻译消息内容
 - **会话独立系统提示词** — 每个会话可单独定义系统提示词
 - **Chatbox 聊天记录导入** — 从 Chatbox 导入历史对话
-- **🤖 多智能体联合** — 配置不同专长智能体（写作/翻译/代码…），主助手自动把子任务转交给对应智能体处理，结果回传后继续作答（设置 → 智能体管理）
-- **🎮 Minecraft 机器人** — AI 作为游戏内机器人进服游玩：离线模式（无需正版）或微软正版登录（PCL2 同款设备码网页授权，无需账号密码）；支持基岩版 RCON 操作与 AI 自主通关模式
 - **⚙️ proot 工作区** — 完整 APK 流水线：**免root脱壳**（Unicorn 模拟执行加固 so 自动 dump dex）→ **二改**（apktool/jadx 反编译+重打包+apksigner 签名）→ **编译 APK**（自动装 Java17+Android SDK+Gradle，**按手机内存自动调节 JVM 堆/worker 防卡死**）；另支持 **本地文件夹工作区**（SAF 授权后 AI 直接读写手机项目文件夹，`local_ws_*` 工具）
 
 ### 📝 富文本渲染
@@ -121,8 +115,7 @@
 ```
 灵犀/
 ├── app/          # 主应用模块（UI、ViewModel、核心逻辑、工具、扩展）
-│   └── data/ai/agents/   # 多智能体（AgentProfile / AgentRunner / AgentTools）
-│   └── data/ai/tools/    # 工具系统（Minecraft/本地文件夹工作区/APK脱壳二改等）
+│   └── data/ai/tools/    # 工具系统（本地文件夹工作区/APK脱壳二改等）
 ├── ai/           # AI SDK 抽象层（OpenAI / Google / Anthropic）
 ├── common/       # 通用工具与扩展
 ├── document/     # 文档解析（PDF / DOCX / PPTX / EPUB）
@@ -130,8 +123,7 @@
 ├── search/       # 搜索功能 SDK（Exa / Tavily / 智谱 / Custom JS）
 ├── speech/       # 语音识别与 TTS
 ├── material3/    # Material3 组件（vendored material-color-utilities）
-├── workspace/    # proot 沙箱工作区（shell 执行 / 文件系统 / rootfs 安装）
-└── locale-tui/   # 国际化工具
+└── workspace/    # proot 沙箱工作区（shell 执行 / 文件系统 / rootfs 安装）
 ```
 
 ---
@@ -173,7 +165,6 @@
 | [kotlinx.serialization](https://github.com/Kotlin/kotlinx.serialization) | JSON 序列化 |
 | [Navigation Compose](https://developer.android.com/develop/ui/compose/navigation) | 页面导航 |
 | [QuickJS](https://github.com/nicholasgasior/quickjs-java) | 自定义 JS 搜索引擎 |
-| [Supabase](https://supabase.com/) | 云端数据同步 |
 | [高德地图 SDK](https://lbs.amap.com/) | 定位与附近搜索 |
 | AGP 9.1.1 / Gradle 9.4.1 | Android 构建 |
 
