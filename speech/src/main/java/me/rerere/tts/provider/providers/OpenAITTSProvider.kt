@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.serialization.json.Json
 import me.rerere.tts.model.AudioChunk
 import me.rerere.tts.model.AudioFormat
 import me.rerere.tts.model.TTSRequest
@@ -16,32 +17,30 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
-private const val TAG = "ElevenLabsTTSProvider"
+private const val TAG = "OpenAITTSProvider"
 
-class ElevenLabsTTSProvider : TTSProvider<TTSProviderSetting.ElevenLabs> {
+class OpenAITTSProvider : TTSProvider<TTSProviderSetting.OpenAI> {
     private val httpClient = OkHttpClient.Builder()
         .readTimeout(120, TimeUnit.SECONDS)
         .build()
 
     override fun generateSpeech(
         context: Context,
-        providerSetting: TTSProviderSetting.ElevenLabs,
+        providerSetting: TTSProviderSetting.OpenAI,
         request: TTSRequest
     ): Flow<AudioChunk> = flow {
         val requestBody = JSONObject().apply {
-            put("text", request.text)
-            put("model_id", providerSetting.model)
-            put("voice_settings", JSONObject().apply {
-                put("stability", providerSetting.stability.toDouble())
-                put("similarity_boost", providerSetting.similarityBoost.toDouble())
-            })
+            put("model", providerSetting.model)
+            put("input", request.text)
+            put("voice", providerSetting.voice)
+            put("response_format", "mp3") // Default to MP3
         }
 
-        Log.i(TAG, "generateSpeech: model=${providerSetting.model}, voiceId=${providerSetting.voiceId}")
+        Log.i(TAG, "generateSpeech: $requestBody")
 
         val httpRequest = Request.Builder()
-            .url("${providerSetting.baseUrl}/v1/text-to-speech/${providerSetting.voiceId}?output_format=mp3_44100_128")
-            .addHeader("xi-api-key", providerSetting.apiKey)
+            .url("${providerSetting.baseUrl}/audio/speech")
+            .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
             .addHeader("Content-Type", "application/json")
             .post(requestBody.toString().toRequestBody("application/json".toMediaType()))
             .build()
@@ -49,10 +48,7 @@ class ElevenLabsTTSProvider : TTSProvider<TTSProviderSetting.ElevenLabs> {
         val response = httpClient.newCall(httpRequest).execute()
 
         if (!response.isSuccessful) {
-            val errorBody = response.body?.string()
-            Log.e(TAG, "generateSpeech: ${response.code} ${response.message}")
-            Log.e(TAG, "generateSpeech: $errorBody")
-            throw Exception("ElevenLabs TTS request failed: ${response.code} ${response.message}")
+            throw Exception("TTS request failed: ${response.code} ${response.message}")
         }
 
         val audioData = response.body.bytes()
@@ -63,9 +59,9 @@ class ElevenLabsTTSProvider : TTSProvider<TTSProviderSetting.ElevenLabs> {
                 format = AudioFormat.MP3,
                 isLast = true,
                 metadata = mapOf(
-                    "provider" to "elevenlabs",
+                    "provider" to "openai",
                     "model" to providerSetting.model,
-                    "voiceId" to providerSetting.voiceId
+                    "voice" to providerSetting.voice
                 )
             )
         )

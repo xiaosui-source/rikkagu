@@ -16,32 +16,30 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
-private const val TAG = "ElevenLabsTTSProvider"
+private const val TAG = "GroqTTSProvider"
 
-class ElevenLabsTTSProvider : TTSProvider<TTSProviderSetting.ElevenLabs> {
+class GroqTTSProvider : TTSProvider<TTSProviderSetting.Groq> {
     private val httpClient = OkHttpClient.Builder()
         .readTimeout(120, TimeUnit.SECONDS)
         .build()
 
     override fun generateSpeech(
         context: Context,
-        providerSetting: TTSProviderSetting.ElevenLabs,
+        providerSetting: TTSProviderSetting.Groq,
         request: TTSRequest
     ): Flow<AudioChunk> = flow {
         val requestBody = JSONObject().apply {
-            put("text", request.text)
-            put("model_id", providerSetting.model)
-            put("voice_settings", JSONObject().apply {
-                put("stability", providerSetting.stability.toDouble())
-                put("similarity_boost", providerSetting.similarityBoost.toDouble())
-            })
+            put("model", providerSetting.model)
+            put("input", request.text)
+            put("voice", providerSetting.voice)
+            put("response_format", "wav")
         }
 
-        Log.i(TAG, "generateSpeech: model=${providerSetting.model}, voiceId=${providerSetting.voiceId}")
+        Log.i(TAG, "generateSpeech: $requestBody")
 
         val httpRequest = Request.Builder()
-            .url("${providerSetting.baseUrl}/v1/text-to-speech/${providerSetting.voiceId}?output_format=mp3_44100_128")
-            .addHeader("xi-api-key", providerSetting.apiKey)
+            .url("${providerSetting.baseUrl}/audio/speech")
+            .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
             .addHeader("Content-Type", "application/json")
             .post(requestBody.toString().toRequestBody("application/json".toMediaType()))
             .build()
@@ -49,10 +47,9 @@ class ElevenLabsTTSProvider : TTSProvider<TTSProviderSetting.ElevenLabs> {
         val response = httpClient.newCall(httpRequest).execute()
 
         if (!response.isSuccessful) {
-            val errorBody = response.body?.string()
             Log.e(TAG, "generateSpeech: ${response.code} ${response.message}")
-            Log.e(TAG, "generateSpeech: $errorBody")
-            throw Exception("ElevenLabs TTS request failed: ${response.code} ${response.message}")
+            Log.e(TAG, "generateSpeech: ${response.body?.string()}")
+            throw Exception("Groq TTS request failed: ${response.code} ${response.message}")
         }
 
         val audioData = response.body.bytes()
@@ -60,12 +57,13 @@ class ElevenLabsTTSProvider : TTSProvider<TTSProviderSetting.ElevenLabs> {
         emit(
             AudioChunk(
                 data = audioData,
-                format = AudioFormat.MP3,
+                format = AudioFormat.WAV,
                 isLast = true,
                 metadata = mapOf(
-                    "provider" to "elevenlabs",
+                    "provider" to "groq",
                     "model" to providerSetting.model,
-                    "voiceId" to providerSetting.voiceId
+                    "voice" to providerSetting.voice,
+                    "response_format" to "wav"
                 )
             )
         )

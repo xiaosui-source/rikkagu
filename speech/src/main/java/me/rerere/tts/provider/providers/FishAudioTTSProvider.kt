@@ -16,33 +16,41 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
-private const val TAG = "ElevenLabsTTSProvider"
+private const val TAG = "FishAudioTTSProvider"
 
-class ElevenLabsTTSProvider : TTSProvider<TTSProviderSetting.ElevenLabs> {
+class FishAudioTTSProvider : TTSProvider<TTSProviderSetting.FishAudio> {
     private val httpClient = OkHttpClient.Builder()
         .readTimeout(120, TimeUnit.SECONDS)
         .build()
 
     override fun generateSpeech(
         context: Context,
-        providerSetting: TTSProviderSetting.ElevenLabs,
+        providerSetting: TTSProviderSetting.FishAudio,
         request: TTSRequest
     ): Flow<AudioChunk> = flow {
         val requestBody = JSONObject().apply {
             put("text", request.text)
-            put("model_id", providerSetting.model)
-            put("voice_settings", JSONObject().apply {
-                put("stability", providerSetting.stability.toDouble())
-                put("similarity_boost", providerSetting.similarityBoost.toDouble())
+            if (providerSetting.referenceId.isNotBlank()) {
+                put("reference_id", providerSetting.referenceId)
+            }
+            put("format", providerSetting.format)
+            put("temperature", providerSetting.temperature.toDouble())
+            put("top_p", providerSetting.topP.toDouble())
+            put("prosody", JSONObject().apply {
+                put("speed", providerSetting.speed.toDouble())
             })
+            put("chunk_length", providerSetting.chunkLength)
+            put("normalize", providerSetting.normalize)
+            put("latency", providerSetting.latency)
         }
 
-        Log.i(TAG, "generateSpeech: model=${providerSetting.model}, voiceId=${providerSetting.voiceId}")
+        Log.i(TAG, "generateSpeech: model=${providerSetting.model}, referenceId=${providerSetting.referenceId}")
 
         val httpRequest = Request.Builder()
-            .url("${providerSetting.baseUrl}/v1/text-to-speech/${providerSetting.voiceId}?output_format=mp3_44100_128")
-            .addHeader("xi-api-key", providerSetting.apiKey)
+            .url("${providerSetting.baseUrl}/v1/tts")
+            .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
             .addHeader("Content-Type", "application/json")
+            .addHeader("model", providerSetting.model)
             .post(requestBody.toString().toRequestBody("application/json".toMediaType()))
             .build()
 
@@ -52,20 +60,28 @@ class ElevenLabsTTSProvider : TTSProvider<TTSProviderSetting.ElevenLabs> {
             val errorBody = response.body?.string()
             Log.e(TAG, "generateSpeech: ${response.code} ${response.message}")
             Log.e(TAG, "generateSpeech: $errorBody")
-            throw Exception("ElevenLabs TTS request failed: ${response.code} ${response.message}")
+            throw Exception("Fish Audio TTS request failed: ${response.code} ${response.message}")
         }
 
         val audioData = response.body.bytes()
 
+        val audioFormat = when (providerSetting.format.lowercase()) {
+            "mp3" -> AudioFormat.MP3
+            "wav" -> AudioFormat.WAV
+            "pcm" -> AudioFormat.PCM
+            "opus" -> AudioFormat.OPUS
+            else -> AudioFormat.MP3
+        }
+
         emit(
             AudioChunk(
                 data = audioData,
-                format = AudioFormat.MP3,
+                format = audioFormat,
                 isLast = true,
                 metadata = mapOf(
-                    "provider" to "elevenlabs",
+                    "provider" to "fish-audio",
                     "model" to providerSetting.model,
-                    "voiceId" to providerSetting.voiceId
+                    "referenceId" to providerSetting.referenceId
                 )
             )
         )

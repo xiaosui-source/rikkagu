@@ -16,32 +16,29 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
-private const val TAG = "ElevenLabsTTSProvider"
+private const val TAG = "XAITTSProvider"
 
-class ElevenLabsTTSProvider : TTSProvider<TTSProviderSetting.ElevenLabs> {
+class XAITTSProvider : TTSProvider<TTSProviderSetting.XAI> {
     private val httpClient = OkHttpClient.Builder()
         .readTimeout(120, TimeUnit.SECONDS)
         .build()
 
     override fun generateSpeech(
         context: Context,
-        providerSetting: TTSProviderSetting.ElevenLabs,
+        providerSetting: TTSProviderSetting.XAI,
         request: TTSRequest
     ): Flow<AudioChunk> = flow {
         val requestBody = JSONObject().apply {
             put("text", request.text)
-            put("model_id", providerSetting.model)
-            put("voice_settings", JSONObject().apply {
-                put("stability", providerSetting.stability.toDouble())
-                put("similarity_boost", providerSetting.similarityBoost.toDouble())
-            })
+            put("voice_id", providerSetting.voiceId)
+            put("language", providerSetting.language)
         }
 
-        Log.i(TAG, "generateSpeech: model=${providerSetting.model}, voiceId=${providerSetting.voiceId}")
+        Log.i(TAG, "generateSpeech: $requestBody")
 
         val httpRequest = Request.Builder()
-            .url("${providerSetting.baseUrl}/v1/text-to-speech/${providerSetting.voiceId}?output_format=mp3_44100_128")
-            .addHeader("xi-api-key", providerSetting.apiKey)
+            .url("${providerSetting.baseUrl}/tts")
+            .addHeader("Authorization", "Bearer ${providerSetting.apiKey}")
             .addHeader("Content-Type", "application/json")
             .post(requestBody.toString().toRequestBody("application/json".toMediaType()))
             .build()
@@ -52,7 +49,7 @@ class ElevenLabsTTSProvider : TTSProvider<TTSProviderSetting.ElevenLabs> {
             val errorBody = response.body?.string()
             Log.e(TAG, "generateSpeech: ${response.code} ${response.message}")
             Log.e(TAG, "generateSpeech: $errorBody")
-            throw Exception("ElevenLabs TTS request failed: ${response.code} ${response.message}")
+            throw Exception("xAI TTS request failed: ${response.code} ${response.message}")
         }
 
         val audioData = response.body.bytes()
@@ -63,9 +60,9 @@ class ElevenLabsTTSProvider : TTSProvider<TTSProviderSetting.ElevenLabs> {
                 format = AudioFormat.MP3,
                 isLast = true,
                 metadata = mapOf(
-                    "provider" to "elevenlabs",
-                    "model" to providerSetting.model,
-                    "voiceId" to providerSetting.voiceId
+                    "provider" to "xai",
+                    "voice_id" to providerSetting.voiceId,
+                    "language" to providerSetting.language
                 )
             )
         )
