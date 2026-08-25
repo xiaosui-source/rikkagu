@@ -1,21 +1,18 @@
-﻿/*
- * 灵犀 Lingxi
- * 衍生自 Lingxi (https://github.com/xiaosui-source/rikkagu)，原作者 xiaosui-source
- * 本项目基于 GNU AGPL v3 开源，详见根目录 LICENSE 文件
- */
-
 package me.rerere.rikkahub.ui.pages.assistant.detail
- 
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -26,6 +23,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,9 +32,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -59,7 +60,7 @@ import org.koin.core.parameter.parametersOf
 import kotlin.math.roundToInt
 import kotlin.uuid.Uuid
 import me.rerere.rikkahub.data.model.Tag as DataTag
- 
+
 @Composable
 fun AssistantBasicPage(id: String) {
     val vm: AssistantDetailVM = koinViewModel(
@@ -72,7 +73,7 @@ fun AssistantBasicPage(id: String) {
     val tags by vm.tags.collectAsStateWithLifecycle()
     val workspaces by vm.workspaces.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
- 
+
     Scaffold(
         topBar = {
             LargeFlexibleTopAppBar(
@@ -90,7 +91,7 @@ fun AssistantBasicPage(id: String) {
         containerColor = CustomColors.topBarColors.containerColor,
     ) { innerPadding ->
         AssistantBasicContent(
-            modifier = Modifier.padding(innerPadding),
+            innerPadding = innerPadding,
             assistant = assistant,
             providers = providers,
             tags = tags,
@@ -100,10 +101,10 @@ fun AssistantBasicPage(id: String) {
         )
     }
 }
- 
+
 @Composable
 internal fun AssistantBasicContent(
-    modifier: Modifier = Modifier,
+    innerPadding: PaddingValues,
     assistant: Assistant,
     providers: List<me.rerere.ai.provider.ProviderSetting>,
     tags: List<DataTag>,
@@ -112,10 +113,11 @@ internal fun AssistantBasicContent(
     vm: AssistantDetailVM
 ) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
             .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp)
+            .padding(innerPadding)
             .imePadding(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -141,7 +143,7 @@ internal fun AssistantBasicContent(
                     .heroAnimation("assistant_${assistant.id}")
             )
         }
- 
+
         Card(
             colors = CustomColors.cardColorsOnSurfaceContainer
         ) {
@@ -150,8 +152,8 @@ internal fun AssistantBasicContent(
                     Text(stringResource(R.string.assistant_page_name))
                 },
                 modifier = Modifier.padding(8.dp),
- 
-            ) {
+
+                ) {
                 OutlinedTextField(
                     value = assistant.name,
                     onValueChange = {
@@ -164,9 +166,9 @@ internal fun AssistantBasicContent(
                     modifier = Modifier.fillMaxWidth()
                 )
             }
- 
+
             HorizontalDivider()
- 
+
             FormItem(
                 label = {
                     Text(stringResource(R.string.assistant_page_tags))
@@ -181,36 +183,38 @@ internal fun AssistantBasicContent(
                     },
                 )
             }
- 
+
             HorizontalDivider()
- 
+
             FormItem(
                 label = {
-                    Text(stringResource(R.string.assistant_page_workspace_binding))
+                    Text(stringResource(R.string.assistant_page_workspace))
                 },
                 description = {
-                    Text(stringResource(R.string.assistant_page_workspace_binding_desc))
+                    Text(stringResource(R.string.assistant_page_workspace_desc))
                 },
                 modifier = Modifier.padding(8.dp),
             ) {
-                val options = remember(workspaces) { listOf<WorkspaceEntity?>(null) + workspaces }
+                val selectedWorkspace = workspaces.find { it.id == assistant.workspaceId?.toString() }
                 Select(
-                    options = options,
-                    selectedOption = workspaces.find { it.id == assistant.workspaceId?.toString() },
-                    onOptionSelected = { selected ->
+                    options = listOf<WorkspaceEntity?>(null) + workspaces,
+                    selectedOption = selectedWorkspace,
+                    onOptionSelected = { workspace ->
                         onUpdate(
                             assistant.copy(
-                                workspaceId = selected?.id?.let { Uuid.parse(it) }
+                                workspaceId = workspace?.id?.let { Uuid.parse(it) }
                             )
                         )
                     },
-                    optionToString = { it?.name ?: stringResource(R.string.workspace_no_binding) },
                     modifier = Modifier.fillMaxWidth(),
+                    optionToString = { workspace ->
+                        workspace?.name ?: stringResource(R.string.workspace_no_binding)
+                    },
                 )
             }
- 
+
             HorizontalDivider()
- 
+
             FormItem(
                 modifier = Modifier.padding(8.dp),
                 label = {
@@ -232,54 +236,8 @@ internal fun AssistantBasicContent(
                     )
                 }
             )
- 
-            HorizontalDivider()
- 
-            FormItem(
-                modifier = Modifier.padding(8.dp),
-                label = {
-                    Text(stringResource(R.string.assistant_page_split_bubble_by_line_title))
-                },
-                description = {
-                    Text(stringResource(R.string.assistant_page_split_bubble_by_line_desc))
-                },
-                tail = {
-                    Switch(
-                        checked = assistant.splitBubbleByLine,
-                        onCheckedChange = {
-                            onUpdate(
-                                assistant.copy(
-                                    splitBubbleByLine = it
-                                )
-                            )
-                        }
-                    )
-                }
-            )
-
-            FormItem(
-                modifier = Modifier.padding(8.dp),
-                label = {
-                    Text(stringResource(R.string.assistant_page_split_user_bubble_by_line_title))
-                },
-                description = {
-                    Text(stringResource(R.string.assistant_page_split_user_bubble_by_line_desc))
-                },
-                tail = {
-                    Switch(
-                        checked = assistant.splitUserBubbleByLine,
-                        onCheckedChange = {
-                            onUpdate(
-                                assistant.copy(
-                                    splitUserBubbleByLine = it
-                                )
-                            )
-                        }
-                    )
-                }
-            )
         }
- 
+
         Card(
             colors = CustomColors.cardColorsOnSurfaceContainer
         ) {
@@ -416,40 +374,115 @@ internal fun AssistantBasicContent(
             FormItem(
                 modifier = Modifier.padding(8.dp),
                 label = {
-                    Text(stringResource(R.string.assistant_page_context_message_size))
+                    Text(stringResource(R.string.assistant_page_context_message_limit))
                 },
                 description = {
                     Text(
-                        text = stringResource(R.string.assistant_page_context_message_desc),
+                        text = stringResource(R.string.assistant_page_context_message_limit_desc),
                     )
                 }
             ) {
-                val contextSliderValue = remember(assistant.contextMessageSize) {
-                    mutableStateOf(assistant.contextMessageSize.toFloat())
+                var contextMessageLimitInput by remember(
+                    assistant.id,
+                    assistant.contextMessageLimit
+                ) {
+                    mutableStateOf(assistant.contextMessageLimit.toString())
                 }
-                Slider(
-                    value = contextSliderValue.value,
-                    onValueChange = { contextSliderValue.value = it },
-                    onValueChangeFinished = {
-                        onUpdate(
-                            assistant.copy(
-                                contextMessageSize = contextSliderValue.value.roundToInt()
+                var contextMessageLimitFocused by remember(assistant.id) {
+                    mutableStateOf(false)
+                }
+                var showContextMessageLimitDialog by remember(assistant.id) {
+                    mutableStateOf(false)
+                }
+                val focusManager = LocalFocusManager.current
+
+                fun commitContextMessageLimit() {
+                    val value = contextMessageLimitInput.toIntOrNull()
+                    if (value == null) {
+                        contextMessageLimitInput = assistant.contextMessageLimit.toString()
+                        return
+                    }
+
+                    val normalizedValue = normalizeContextMessageLimit(value)
+                    contextMessageLimitInput = normalizedValue.toString()
+                    if (normalizedValue != assistant.contextMessageLimit) {
+                        onUpdate(assistant.copy(contextMessageLimit = normalizedValue))
+                    }
+                    if (normalizedValue != value) {
+                        showContextMessageLimitDialog = true
+                    }
+                }
+
+                val contextMessageLimitValue = contextMessageLimitInput.toIntOrNull()
+                OutlinedTextField(
+                    value = contextMessageLimitInput,
+                    onValueChange = { input ->
+                        if (input.all(Char::isDigit) &&
+                            (input.isEmpty() || input.toIntOrNull() != null)
+                        ) {
+                            contextMessageLimitInput = input
+                            input.toIntOrNull()
+                                ?.takeIf { it == 0 || it >= MIN_CONTEXT_MESSAGE_LIMIT }
+                                ?.takeIf { it != assistant.contextMessageLimit }
+                                ?.let { onUpdate(assistant.copy(contextMessageLimit = it)) }
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onFocusChanged { focusState ->
+                            if (contextMessageLimitFocused && !focusState.isFocused) {
+                                commitContextMessageLimit()
+                            }
+                            contextMessageLimitFocused = focusState.isFocused
+                        },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = { focusManager.clearFocus() }
+                    ),
+                    singleLine = true,
+                    isError = contextMessageLimitValue in 1 until MIN_CONTEXT_MESSAGE_LIMIT,
+                    supportingText = {
+                        Text(
+                            stringResource(
+                                R.string.assistant_page_context_message_limit_hint,
+                                MIN_CONTEXT_MESSAGE_LIMIT
                             )
                         )
-                    },
-                    valueRange = 0f..512f,
-                    steps = 15, // #663: 每档 32 条，方便整数选择
-                    modifier = Modifier.fillMaxWidth()
+                    }
                 )
- 
-                Text(
-                    text = if (assistant.contextMessageSize > 0) stringResource(
-                        R.string.assistant_page_context_message_count,
-                        assistant.contextMessageSize
-                    ) else stringResource(R.string.assistant_page_context_message_unlimited),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
-                )
+
+                if (showContextMessageLimitDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showContextMessageLimitDialog = false },
+                        title = {
+                            Text(stringResource(R.string.assistant_page_context_message_limit))
+                        },
+                        text = {
+                            Text(
+                                stringResource(
+                                    R.string.assistant_page_context_message_limit_too_small,
+                                    MIN_CONTEXT_MESSAGE_LIMIT
+                                )
+                            )
+                        },
+                        confirmButton = {
+                            TextButton(onClick = { showContextMessageLimitDialog = false }) {
+                                Text(stringResource(R.string.common_confirm))
+                            }
+                        }
+                    )
+                }
+
+                if (assistant.contextMessageLimit > 0) {
+                    Text(
+                        text = stringResource(R.string.assistant_page_context_message_limit_warning),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
             }
             HorizontalDivider()
             FormItem(
@@ -525,24 +558,50 @@ internal fun AssistantBasicContent(
                 )
             }
         }
- 
+
         Card(
             colors = CustomColors.cardColorsOnSurfaceContainer
         ) {
-            BackgroundPicker(
+            FormItem(
                 modifier = Modifier.padding(8.dp),
-                background = assistant.background,
-                backgroundOpacity = assistant.backgroundOpacity,
-                onUpdate = { background ->
-                    onUpdate(
-                        assistant.copy(
-                            background = background
-                        )
+                label = {
+                    Text(stringResource(R.string.assistant_page_gradient_background))
+                },
+                description = {
+                    Text(stringResource(R.string.assistant_page_gradient_background_desc))
+                },
+                tail = {
+                    Switch(
+                        checked = assistant.useGradientBackground,
+                        onCheckedChange = {
+                            onUpdate(
+                                assistant.copy(
+                                    useGradientBackground = it
+                                )
+                            )
+                        }
                     )
                 }
             )
- 
-            if (assistant.background != null) {
+
+            if (!assistant.useGradientBackground) {
+                HorizontalDivider()
+
+                BackgroundPicker(
+                    modifier = Modifier.padding(8.dp),
+                    background = assistant.background,
+                    backgroundOpacity = assistant.backgroundOpacity,
+                    onUpdate = { background ->
+                        onUpdate(
+                            assistant.copy(
+                                background = background
+                            )
+                        )
+                    }
+                )
+            }
+
+            if (!assistant.useGradientBackground && assistant.background != null) {
                 val backgroundOpacity = assistant.backgroundOpacity.coerceIn(0f, 1f)
                 HorizontalDivider()
                 FormItem(
@@ -554,17 +613,12 @@ internal fun AssistantBasicContent(
                         Text(stringResource(R.string.assistant_page_background_opacity_desc))
                     }
                 ) {
-                    val opacitySliderValue = remember(backgroundOpacity) {
-                        mutableStateOf(backgroundOpacity)
-                    }
                     Slider(
-                        value = opacitySliderValue.value,
-                        onValueChange = { opacitySliderValue.value = it },
-                        onValueChangeFinished = {
+                        value = backgroundOpacity,
+                        onValueChange = {
                             onUpdate(
                                 assistant.copy(
-                                    backgroundOpacity = opacitySliderValue.value
-                                        .toFixed(2).toFloatOrNull()?.coerceIn(0f, 1f) ?: 1.0f
+                                    backgroundOpacity = it.toFixed(2).toFloatOrNull()?.coerceIn(0f, 1f) ?: 1.0f
                                 )
                             )
                         },
@@ -575,7 +629,7 @@ internal fun AssistantBasicContent(
                     Text(
                         text = stringResource(
                             R.string.assistant_page_background_opacity_value,
-                            (opacitySliderValue.value * 100).roundToInt()
+                            (backgroundOpacity * 100).roundToInt()
                         ),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.75f),
@@ -585,4 +639,14 @@ internal fun AssistantBasicContent(
         }
     }
 }
- 
+
+/**
+ * 上下文限制的最小有效值
+ *
+ * 低于此值时截断点几乎每轮都在移动, 提示词缓存命中率跌破 90%,
+ * 且保留的上下文通常达不到可缓存的最小长度, 限制本身失去意义
+ */
+private const val MIN_CONTEXT_MESSAGE_LIMIT = 20
+
+internal fun normalizeContextMessageLimit(value: Int): Int =
+    if (value in 1 until MIN_CONTEXT_MESSAGE_LIMIT) MIN_CONTEXT_MESSAGE_LIMIT else value
