@@ -1073,18 +1073,7 @@ private fun ModelPicker(
                     contentPadding = PaddingValues(8.dp),
                 ) {
                     items(filteredModels) {
-                        Card(
-                            onClick = {
-                                if (selectedModels.any { model -> model.modelId == it.modelId }) {
-                                    // 从selectedModels中计算出要删除的model，因为删除需要id匹配，而不是ModelId
-                                    onModelDeselected(selectedModels.firstOrNull { model -> model.modelId == it.modelId }
-                                        ?: it)
-                                } else {
-                                    onModelSelected(it)
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
+                        Card {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(
@@ -1128,21 +1117,23 @@ private fun ModelPicker(
                                         )
                                     }
                                 }
-                                // 图标仅作状态指示：点击走卡片整行 onClick（避免 IconButton+Card 双重触发导致添加后又取消）
-                                Icon(
-                                    imageVector = if (selectedModels.any { model -> model.modelId == it.modelId }) {
-                                        HugeIcons.Cancel01
+                                IconButton(
+                                    onClick = {
+                                        if (selectedModels.any { model -> model.modelId == it.modelId }) {
+                                            // 从selectedModels中计算出要删除的model，因为删除需要id匹配，而不是ModelId
+                                            onModelDeselected(selectedModels.firstOrNull { model -> model.modelId == it.modelId }
+                                                ?: it)
+                                        } else {
+                                            onModelSelected(it)
+                                        }
+                                    }
+                                ) {
+                                    if (selectedModels.any { model -> model.modelId == it.modelId }) {
+                                        Icon(HugeIcons.Cancel01, null)
                                     } else {
-                                        HugeIcons.Add01
-                                    },
-                                    contentDescription = null,
-                                    tint = if (selectedModels.any { model -> model.modelId == it.modelId }) {
-                                        MaterialTheme.colorScheme.primary
-                                    } else {
-                                        MaterialTheme.colorScheme.onSurfaceVariant
-                                    },
-                                    modifier = Modifier.size(24.dp),
-                                )
+                                        Icon(HugeIcons.Add01, null)
+                                    }
+                                }
                             }
                         }
                     }
