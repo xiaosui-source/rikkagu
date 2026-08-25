@@ -28,6 +28,10 @@ class TTSManager(private val context: Context) {
     private val stepProvider = StepTTSProvider()
     private val elevenLabsProvider = ElevenLabsTTSProvider()
     private val fishAudioProvider = FishAudioTTSProvider()
+    private val baiduProvider = BaiduTTSProvider()
+    private val edgeProvider = EdgeTTSProvider()
+    private val youdaoProvider = YoudaoTTSProvider()
+    private val googleFreeProvider = GoogleFreeTTSProvider()
 
     fun generateSpeech(
         providerSetting: TTSProviderSetting,
@@ -45,6 +49,10 @@ class TTSManager(private val context: Context) {
             is TTSProviderSetting.ElevenLabs -> elevenLabsProvider.generateSpeech(context, providerSetting, request)
             is TTSProviderSetting.FishAudio -> fishAudioProvider.generateSpeech(context, providerSetting, request)
             is TTSProviderSetting.Step -> stepProvider.generateSpeech(context, providerSetting, request)
+            is TTSProviderSetting.BaiduTTS -> baiduProvider.generateSpeech(context, providerSetting, request)
+            is TTSProviderSetting.EdgeTTS -> edgeProvider.generateSpeech(context, providerSetting, request)
+            is TTSProviderSetting.YoudaoTTS -> youdaoProvider.generateSpeech(context, providerSetting, request)
+            is TTSProviderSetting.GoogleFreeTTS -> googleFreeProvider.generateSpeech(context, providerSetting, request)
         }
     }
 
@@ -65,6 +73,10 @@ class TTSManager(private val context: Context) {
             is TTSProviderSetting.ElevenLabs -> elevenLabsProvider.promptGuidance
             is TTSProviderSetting.FishAudio -> fishAudioProvider.promptGuidance
             is TTSProviderSetting.Step -> stepProvider.promptGuidance
+            is TTSProviderSetting.BaiduTTS -> baiduProvider.promptGuidance
+            is TTSProviderSetting.EdgeTTS -> edgeProvider.promptGuidance
+            is TTSProviderSetting.YoudaoTTS -> youdaoProvider.promptGuidance
+            is TTSProviderSetting.GoogleFreeTTS -> googleFreeProvider.promptGuidance
         }
     }
 }
