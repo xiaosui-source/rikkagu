@@ -1417,7 +1417,7 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
         // 尝试 AI 总结标题；模型不可用 / 请求失败时静默跳过（不生成标题、不弹窗打扰）
         val aiTitle = runCatching {
             val settings = settingsStore.settingsFlow.first()
-            val model = settings.findModelById(settings.titleModelId) ?: return@runCatching null
+            val model = settings.titleModelId?.let { settings.findModelById(it) } ?: return@runCatching null
             val provider = model.findProvider(settings.providers) ?: return@runCatching null
 
             val providerHandler = providerManager.getProviderByType(provider)
@@ -1463,7 +1463,7 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
     suspend fun generateSuggestion(conversationId: Uuid, conversation: Conversation) {
         runCatching {
             val settings = settingsStore.settingsFlow.first()
-            val model = settings.findModelById(settings.suggestionModelId) ?: return
+            val model = settings.suggestionModelId?.let { settings.findModelById(it) } ?: return
             val provider = model.findProvider(settings.providers) ?: return
 
             val session = getOrCreateSession(conversationId)
