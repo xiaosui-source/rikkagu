@@ -120,6 +120,7 @@ class ModelListState internal constructor(
 
     fun open() {
         visible = true
+        android.util.Log.d("ModelList", "open() called, visible=$visible")
     }
 
     fun close() {
