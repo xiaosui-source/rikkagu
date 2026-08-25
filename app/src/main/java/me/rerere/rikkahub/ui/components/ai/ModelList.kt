@@ -147,12 +147,12 @@ fun rememberModelListState(
     type: ModelType,
 ): ModelListState {
     val state = remember {
-        mutableStateOf(ModelListState(modelId = modelId, providers = providers, type = type))
+        ModelListState(modelId = modelId, providers = providers, type = type)
     }
     LaunchedEffect(modelId, providers, type) {
-        state.value.update(modelId, providers, type)
+        state.update(modelId, providers, type)
     }
-    return state.value
+    return state
 }
 
 @Composable
