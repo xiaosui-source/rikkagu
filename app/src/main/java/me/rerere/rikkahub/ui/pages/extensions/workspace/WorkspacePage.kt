@@ -141,12 +141,8 @@ fun WorkspacePage() {
         AddWorkspaceDialog(
             onDismiss = { showAddDialog = false },
             onConfirm = { name ->
-                vm.createWorkspace(name) { result ->
-                    showAddDialog = false
-                    result.onFailure {
-                        toaster.show(it.message ?: context.getString(R.string.workspace_page_create_failed))
-                    }
-                }
+                showAddDialog = false
+                vm.create(name)
             },
         )
     }
@@ -157,7 +153,7 @@ fun WorkspacePage() {
         confirmText = stringResource(R.string.delete),
         dismissText = stringResource(R.string.cancel),
         onConfirm = {
-            deleteTarget?.let { vm.deleteWorkspace(it.id) }
+            deleteTarget?.let { vm.delete(it) }
             deleteTarget = null
         },
         onDismiss = { deleteTarget = null },

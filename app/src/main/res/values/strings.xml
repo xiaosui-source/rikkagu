@@ -1282,4 +1282,14 @@
   <string name="setting_page_preferences_network_proxy">Proxy</string>
   <string name="setting_page_preferences_network_proxy_desc">Supports HTTP and SOCKS5 proxy URLs. Leave blank to use system settings.</string>
   <string name="setting_page_preferences_network_proxy_invalid">Enter a valid proxy URL with a host and port.</string>
+  <string name="assistant_page_context_message_size_too_small">Too small</string>
+  <string name="common_confirm">Confirm</string>
+  <string name="assistant_page_context_message_size_warning">Value too small, reset to minimum</string>
+  <string name="assistant_page_gradient_background">Gradient Background</string>
+  <string name="assistant_page_gradient_background_desc">Use gradient background for this assistant</string>
+  <string name="assistant_page_allow_conversation_prompt_injection">Allow Conversation Prompt Injection</string>
+  <string name="assistant_page_allow_conversation_prompt_injection_desc">Allow injecting prompt from conversation system prompt</string>
+  <string name="workspace_terminal_title_with_name">Terminal - %1$s</string>
+  <string name="workspace_terminal_new_tab">New Tab</string>
+  <string name="workspace_terminal_no_tabs">No terminal sessions</string>
 </resources>

@@ -37,6 +37,10 @@ data class Assistant(
     val presetMessages: List<UIMessage> = emptyList(),
     val quickMessageIds: Set<Uuid> = emptySet(),
     val regexes: List<AssistantRegex> = emptyList(),
+    // 对话渐变背景（上游新增）
+    val useGradientBackground: Boolean = false,
+    // 允许会话级提示注入（上游新增）
+    val allowConversationPromptInjection: Boolean = false,
     val reasoningLevel: ReasoningLevel = ReasoningLevel.AUTO,
     val maxTokens: Int? = null,
     val customHeaders: List<CustomHeader> = emptyList(),

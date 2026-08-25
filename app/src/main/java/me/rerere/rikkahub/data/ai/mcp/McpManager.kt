@@ -268,7 +268,7 @@ class McpManager(
     }
 
     private suspend fun convertImageContentToFilePart(image: ImageContent): UIMessagePart.Image {
-        val bytes = Base64.decode(image.data)
+        val bytes = Base64.decode(image.data, Base64.NO_WRAP)
         val extension = android.webkit.MimeTypeMap.getSingleton()
             .getExtensionFromMimeType(image.mimeType) ?: "bin"
         val entity = filesManager.saveManagedFromBytes(

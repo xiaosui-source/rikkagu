@@ -75,7 +75,7 @@ fun WorkspaceTerminalPage(id: String) {
         root?.let { sessionManager.ensureSession(it) }
     }
 
-    RikkahubTheme(colorMode = ColorMode.DARK) {
+    RikkahubTheme {
         Scaffold(
             topBar = {
                 TopAppBar(

@@ -777,6 +777,7 @@ data class NetworkSetting(
     val proxyPassword: String = "",
 )
 
+@Serializable
 data class WebDavConfig(
     val url: String = "",
     val username: String = "",
