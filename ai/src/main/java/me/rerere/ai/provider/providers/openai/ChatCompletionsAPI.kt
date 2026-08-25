@@ -440,6 +440,7 @@ class ChatCompletionsAPI(
 
         return buildJsonObject {
             put("model", params.model.modelId)
+            params.sessionId?.let { put("session_id", it) }
             put("messages", buildMessages(messages, params.model, providerSetting, params.tools, effectivePromptToolCalling, usePromptReasoning, useNativeReasoning))
 
             val thinkingEnabled = useNativeReasoning

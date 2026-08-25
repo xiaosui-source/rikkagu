@@ -689,6 +689,7 @@ class GenerationHandler(
             topP = assistant.topP,
             maxTokens = assistant.maxTokens,
             tools = tools,
+            sessionId = conversationId,
             // 强制推理：任何模型都启用推理（OFF 强制转为 AUTO），
             // 原生不支持推理的模型自动走提示词式推理
             reasoningLevel = if (assistant.reasoningLevel == me.rerere.ai.core.ReasoningLevel.OFF) {
