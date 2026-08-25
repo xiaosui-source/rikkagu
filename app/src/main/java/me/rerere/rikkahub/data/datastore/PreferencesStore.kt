@@ -320,13 +320,14 @@ class SettingsStore(
                 workflowHeadlessBlockSensitive = preferences[WORKFLOW_HEADLESS_BLOCK_SENSITIVE] != false,
                 autoApproveAllTools = preferences[AUTO_APPROVE_ALL_TOOLS] == true,
             )
-            }.getOrElse { Settings(providers = DEFAULT_PROVIDERS) }
+            }.getOrElse { Settings(providers = DEFAULT_PROVIDERS.map { it.copyProvider(models = emptyList()) }) }
         }
         .map {
             var providers = it.providers.ifEmpty { DEFAULT_PROVIDERS }.toMutableList()
             DEFAULT_PROVIDERS.forEach { defaultProvider ->
                 if (providers.none { it.id == defaultProvider.id }) {
-                    providers.add(defaultProvider.copyProvider())
+                    // 预置模型不自动添加：只作为"添加模型"候选，用户自己勾选
+                    providers.add(defaultProvider.copyProvider(models = emptyList()))
                 }
             }
             providers = providers.map { provider ->
