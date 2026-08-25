@@ -469,7 +469,9 @@ class ChatCompletionsAPI(
                 }
             }
 
-            if (params.reasoningLevel != ReasoningLevel.OFF) {
+            // #1768: 快速模型(OFF)也进入 reasoning 分支，显式下发 disabled/effort=none，
+            // 避免部分提供商(如 qwen3/doubao)在无参数时默认开启推理导致变慢
+            if (params.reasoningLevel != ReasoningLevel.OFF || params.reasoningLevel == ReasoningLevel.OFF) {
                 val level = params.reasoningLevel
                 when (host) {
                     "openrouter.ai" -> {
