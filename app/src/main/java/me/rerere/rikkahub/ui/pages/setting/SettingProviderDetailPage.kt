@@ -1,13 +1,6 @@
-﻿/*
- * 灵犀 Lingxi
- * 衍生自 Lingxi (https://github.com/xiaosui-source/rikkagu)，原作者 xiaosui-source
- * 本项目基于 GNU AGPL v3 开源，详见根目录 LICENSE 文件
- */
-
 package me.rerere.rikkahub.ui.pages.setting
 
 import me.rerere.hugeicons.HugeIcons
-import me.rerere.hugeicons.*
 import me.rerere.hugeicons.stroke.Package01
 import me.rerere.hugeicons.stroke.Connect
 import me.rerere.hugeicons.stroke.ArrowDown01
@@ -60,10 +53,6 @@ import androidx.compose.material3.MultiChoiceSegmentedButtonRow
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SecondaryTabRow
@@ -77,14 +66,14 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -135,6 +124,7 @@ import me.rerere.rikkahub.ui.pages.setting.components.ProviderConnectionTester
 import me.rerere.rikkahub.ui.pages.setting.components.SettingProviderBalanceOption
 import me.rerere.rikkahub.ui.pages.setting.components.isUsingDefaultBaseUrl
 import me.rerere.rikkahub.ui.pages.setting.components.resetBaseUrlToDefault
+import me.rerere.rikkahub.ui.theme.CustomColors
 import me.rerere.rikkahub.ui.theme.extendColors
 import me.rerere.rikkahub.utils.UiState
 import me.rerere.rikkahub.utils.plus
@@ -175,11 +165,13 @@ fun SettingProviderDetailPage(id: Uuid, vm: SettingVM = koinViewModel()) {
     }
 
     Scaffold(
+        containerColor = CustomColors.topBarColors.containerColor,
         topBar = {
             TopAppBar(
                 navigationIcon = {
                     BackButton()
                 },
+                colors = CustomColors.topBarColors,
                 title = {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -203,7 +195,9 @@ fun SettingProviderDetailPage(id: Uuid, vm: SettingVM = koinViewModel()) {
             )
         },
         bottomBar = {
-            NavigationBar {
+            NavigationBar(
+                containerColor = CustomColors.cardColorsOnSurfaceContainer.containerColor
+            ) {
                 NavigationBarItem(
                     selected = pager.currentPage == 0,
                     label = { Text(stringResource(id = R.string.setting_provider_page_configuration)) },
@@ -280,7 +274,9 @@ private fun SettingProviderConfigPage(
     ) {
         ProviderConfigure(
             provider = internalProvider,
-            onEdit = { internalProvider = it }
+            onEdit = {
+                internalProvider = it
+            }
         )
 
         if (internalProvider is ProviderSetting.OpenAI) {
@@ -297,7 +293,9 @@ private fun SettingProviderConfigPage(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            ProviderConnectionTester(internalProvider)
+            ProviderConnectionTester(
+                internalProvider = internalProvider,
+            )
 
             Spacer(Modifier.weight(1f))
 
@@ -312,10 +310,15 @@ private fun SettingProviderConfigPage(
             }
 
             IconButton(
-                onClick = { internalProvider = internalProvider.resetBaseUrlToDefault() },
+                onClick = {
+                    internalProvider = internalProvider.resetBaseUrlToDefault()
+                },
                 enabled = !internalProvider.isUsingDefaultBaseUrl(),
             ) {
-                Icon(HugeIcons.Refresh03, stringResource(R.string.setting_model_page_reset_to_default))
+                Icon(
+                    imageVector = HugeIcons.Refresh03,
+                    contentDescription = stringResource(R.string.setting_model_page_reset_to_default)
+                )
             }
 
             Button(
@@ -383,110 +386,21 @@ private fun ModelList(
     onUpdateProvider: (ProviderSetting) -> Unit
 ) {
     val providerManager = koinInject<ProviderManager>()
-    val context = LocalContext.current
-    val toaster = LocalToaster.current
-    val scope = rememberCoroutineScope()
-    // 不再拉取供应商 API 模型（避免几百个模型让界面暴涨），
-    // 模型全部手动添加管理。
-    val modelList = providerSetting.models
-    // 可用模型 = 内置预置模型 + 已添加的模型（去重）。
-    // 预置模型即使被删除，也始终在候选列表里可重新添加。
-    val builtinModels = me.rerere.rikkahub.data.datastore.DEFAULT_PROVIDERS
-        .firstOrNull { it.name == providerSetting.name }
-        ?.models.orEmpty()
-    val displayModels = (builtinModels + providerSetting.models).distinctBy { it.modelId }
-
-    // 自动验证 API Key：保存 key 后自动检测，有效才显示预置模型，无效不显示
-    val apiKey = when (providerSetting) {
-        is ProviderSetting.OpenAI -> providerSetting.apiKey
-        is ProviderSetting.Google -> providerSetting.apiKey
-        is ProviderSetting.Claude -> providerSetting.apiKey
-    }
-    var keyValidated by remember(providerSetting.id) { mutableStateOf<Boolean?>(null) }
-    var keyChecking by remember(providerSetting.id) { mutableStateOf(false) }
-    LaunchedEffect(apiKey) {
-        if (apiKey.isBlank()) {
-            keyValidated = null
-            keyChecking = false
-        } else {
-            keyChecking = true
-            keyValidated = try {
-                providerManager.getProviderByType(providerSetting)
-                    .listModels(providerSetting)
-                true
-            } catch (e: Exception) {
-                false
-            }
-            keyChecking = false
+    val modelList by produceState(emptyList(), providerSetting) {
+        runCatching {
+            println("loading models...")
+            value = providerManager.getProviderByType(providerSetting)
+                .listModels(providerSetting)
+                .sortedBy { it.modelId }
+                .toList()
+        }.onFailure {
+            it.printStackTrace()
         }
     }
-    // 浮动工具栏展开状态
     var expanded by rememberSaveable { mutableStateOf(true) }
-    // 多选模式：勾选多个模型后可批量测试 / 批量删除
-    var selectionMode by rememberSaveable { mutableStateOf(false) }
-    val selected = remember { mutableStateListOf<Uuid>() }
-    var testing by remember { mutableStateOf(false) }
-    val testResults = remember { mutableStateListOf<Pair<String, Boolean>>() }
     val lazyListState = rememberLazyListState()
     val reorderableLazyListState = rememberReorderableLazyListState(lazyListState) { from, to ->
         onUpdateProvider(providerSetting.moveMove(from.index, to.index))
-    }
-
-    fun toggleSelect(modelId: Uuid) {
-        if (modelId in selected) selected.remove(modelId) else selected.add(modelId)
-    }
-
-    fun testSelectedModels() {
-        if (selected.isEmpty()) return
-        scope.launch {
-            testing = true
-            testResults.clear()
-            val providerImpl = providerManager.getProviderByType(providerSetting)
-            val failedModels = mutableListOf<me.rerere.ai.provider.Model>()
-            selected.toList().forEach { modelId ->
-                val model = providerSetting.models.firstOrNull { it.id == modelId }
-                if (model == null) return@forEach
-                val ok = runCatching {
-                    providerImpl.generateText(
-                        providerSetting = providerSetting,
-                        messages = listOf(me.rerere.ai.ui.UIMessage.user("ping")),
-                        params = TextGenerationParams(model = model, maxTokens = 8)
-                    )
-                    true
-                }.getOrDefault(false)
-                testResults += (model.modelId to ok)
-                if (!ok) failedModels += model
-            }
-            // 测试失败的模型自动移除（用不了的模型不保留，API 版本会补位显示）
-            if (failedModels.isNotEmpty()) {
-                var updated = providerSetting
-                failedModels.forEach { updated = updated.delModel(it) }
-                onUpdateProvider(updated)
-            }
-            testing = false
-            val failed = testResults.count { !it.second }
-            val msg = if (failed == 0) {
-                "测试完成: ${testResults.size} 个模型全部可用"
-            } else {
-                "测试完成: ${testResults.size - failed} 可用, $failed 个失败（已自动移除不可用模型）"
-            }
-            toaster.show(msg, type = if (failed == 0) ToastType.Success else ToastType.Warning)
-            selectionMode = false
-            selected.clear()
-        }
-    }
-
-    fun deleteSelectedModels() {
-        if (selected.isEmpty()) return
-        var updated = providerSetting
-        selected.toList().forEach { modelId ->
-            providerSetting.models.firstOrNull { it.id == modelId }?.let {
-                updated = updated.delModel(it)
-            }
-        }
-        onUpdateProvider(updated)
-        selectionMode = false
-        selected.clear()
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -503,9 +417,8 @@ private fun ModelList(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             state = lazyListState
         ) {
-            // 模型列表：仅当 API Key 有效时才显示预置模型（自动验证，无需手动操作）
-            if (keyValidated == true) {
-                if (providerSetting.models.isEmpty()) {
+            // 模型列表
+            if (providerSetting.models.isEmpty()) {
                 item {
                     Column(
                         modifier = Modifier
@@ -532,123 +445,50 @@ private fun ModelList(
                         state = reorderableLazyListState,
                         key = item.id
                     ) { isDragging ->
-                        if (selectionMode) {
-                            // 多选模式：点击整卡切换选中，左上角显示 Checkbox
-                            OutlinedCard(
-                                onClick = { toggleSelect(item.id) },
-                                colors = CardDefaults.outlinedCardColors(
-                                    containerColor = if (item.id in selected)
-                                        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
-                                    else MaterialTheme.colorScheme.surface
-                                ),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .graphicsLayer {
-                                        if (isDragging) { scaleX = 1.05f; scaleY = 1.05f } else { scaleX = 1f; scaleY = 1f }
+                        ModelCard(
+                            model = item,
+                            onDelete = {
+                                onUpdateProvider(providerSetting.delModel(item))
+                            },
+                            onEdit = { editedModel ->
+                                onUpdateProvider(providerSetting.editModel(editedModel))
+                            },
+                            parentProvider = providerSetting,
+                            modifier = Modifier
+                                .longPressDraggableHandle()
+                                .graphicsLayer {
+                                    if (isDragging) {
+                                        scaleX = 1.05f
+                                        scaleY = 1.05f
+                                    } else {
+                                        scaleX = 1f
+                                        scaleY = 1f
                                     }
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                ) {
-                                    Checkbox(
-                                        checked = item.id in selected,
-                                        onCheckedChange = { toggleSelect(item.id) }
-                                    )
-                                    ModelCard(
-                                        model = item,
-                                        onDelete = {},
-                                        onEdit = {},
-                                        parentProvider = providerSetting,
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                }
-                            }
-                        } else {
-                            ModelCard(
-                                model = item,
-                                onDelete = {
-                                    onUpdateProvider(providerSetting.delModel(item))
                                 },
-                                onEdit = { editedModel ->
-                                    onUpdateProvider(providerSetting.editModel(editedModel))
-                                },
-                                parentProvider = providerSetting,
-                                modifier = Modifier
-                                    .longPressDraggableHandle()
-                                    .graphicsLayer {
-                                        if (isDragging) {
-                                            scaleX = 1.05f
-                                            scaleY = 1.05f
-                                        } else {
-                                            scaleX = 1f
-                                            scaleY = 1f
-                                        }
-                                    },
-                            )
-                        }
+                        )
                     }
                 }
             }
         }
-            }
         HorizontalFloatingToolbar(
             expanded = expanded,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .offset(y = -ScreenOffset),
         ) {
-            if (selectionMode) {
-                // 多选模式工具栏
-                TextButton(
-                    onClick = {
-                        selected.clear()
-                        selectionMode = false
-                    }
-                ) {
-                    Text("取消 (${selected.size})")
-                }
-                TextButton(
-                    enabled = selected.isNotEmpty() && !testing,
-                    onClick = { testSelectedModels() }
-                ) {
-                    Text(if (testing) "测试中..." else "测试选中(${selected.size})")
-                }
-                TextButton(
-                    enabled = selected.isNotEmpty() && !testing,
-                    onClick = { deleteSelectedModels() },
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text("删除选中(${selected.size})")
-                }
-            } else {
-                // 普通模式：多选入口 + 添加模型
-                TextButton(
-                    onClick = {
-                        selectionMode = true
-                        selected.clear()
-                    }
-                ) {
-                    Text("多选")
-                }
-                AddModelButton(
-                    // 可用模型 = 已添加的（不自动拉取 API 模型）
-                    models = displayModels,
-                    selectedModels = providerSetting.models,
-                    onAddModel = {
-                        onUpdateProvider(providerSetting.addModel(it))
-                    },
-                    onRemoveModel = {
-                        onUpdateProvider(providerSetting.delModel(it))
-                    },
-                    expanded = expanded,
-                    parentProvider = providerSetting,
-                    onUpdateProvider = onUpdateProvider
-                )
-            }
+            AddModelButton(
+                models = modelList,
+                selectedModels = providerSetting.models,
+                onAddModel = {
+                    onUpdateProvider(providerSetting.addModel(it))
+                },
+                onRemoveModel = {
+                    onUpdateProvider(providerSetting.delModel(it))
+                },
+                expanded = expanded,
+                parentProvider = providerSetting,
+                onUpdateProvider = onUpdateProvider
+            )
         }
     }
 }
@@ -922,7 +762,7 @@ private fun AddModelButton(
 
     if (dialogState.isEditing) {
         dialogState.currentState?.let { modelState ->
-            val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden, enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded))
             ModalBottomSheet(
                 onDismissRequest = {
                     dialogState.dismiss()
@@ -945,7 +785,7 @@ private fun AddModelButton(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .fillMaxHeight(0.7f)
+                        .fillMaxHeight(0.95f)
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -1008,7 +848,7 @@ private fun ModelPicker(
     if (showModal) {
         ModalBottomSheet(
             onDismissRequest = { showModal = false },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden, enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)),
         ) {
             var filterText by remember { mutableStateOf("") }
             val filterKeywords = filterText.split(" ").filter { it.isNotBlank() }
@@ -1025,7 +865,7 @@ private fun ModelPicker(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.8f)
+                    .fillMaxHeight(0.9f)
                     .padding(8.dp)
                     .imePadding(),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -1332,7 +1172,7 @@ private fun ModelCard(
 
     if (dialogState.isEditing) {
         dialogState.currentState?.let { editingModel ->
-            val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden, enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded))
             ModalBottomSheet(
                 onDismissRequest = {
                     dialogState.dismiss()
@@ -1675,7 +1515,7 @@ private fun ProviderOverrideSettings(
                     showProviderConfig = false
                     editingProvider = null
                 },
-                sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+                sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden, enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded))
             ) {
                 var internalProvider by remember(editingProvider) { mutableStateOf(editingProvider!!) }
 
