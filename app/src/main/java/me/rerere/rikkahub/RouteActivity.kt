@@ -155,6 +155,7 @@ import me.rerere.rikkahub.ui.pages.setting.SettingSearchDetailPage
 import me.rerere.rikkahub.ui.pages.setting.SettingSearchPage
 import me.rerere.rikkahub.ui.pages.setting.SettingSpeechPage
 import me.rerere.rikkahub.ui.pages.setting.SettingSystemToolsPage
+import me.rerere.rikkahub.ui.pages.setting.SettingPreferencesNetworkPage
 import me.rerere.rikkahub.ui.pages.setting.SettingPreferencesPage
 import me.rerere.rikkahub.ui.pages.setting.SettingPreferencesThemePage
 import me.rerere.rikkahub.ui.pages.setting.SettingPreferencesNotificationPage
@@ -542,6 +543,9 @@ class RouteActivity : ComponentActivity() {
 
                             entry<Screen.SettingPreferences> {
                                 SettingPreferencesPage()
+                            }
+                            entry<Screen.SettingPreferencesNetwork> {
+                                SettingPreferencesNetworkPage()
                             }
 
                             entry<Screen.SettingPreferencesTheme> {
@@ -969,6 +973,9 @@ sealed interface Screen : NavKey {
 
     @Serializable
     data object SettingPreferences : Screen
+
+    @Serializable
+    data object SettingPreferencesNetwork : Screen
 
     @Serializable
     data object SettingPreferencesTheme : Screen

@@ -166,6 +166,7 @@ class SettingsStore(
         val MCP_SERVERS = stringPreferencesKey("mcp_servers")
 
         // WebDAV
+        val NETWORK_SETTING = stringPreferencesKey("network_setting")
         val WEBDAV_CONFIG = stringPreferencesKey("webdav_config")
 
         // S3
@@ -290,6 +291,7 @@ class SettingsStore(
                 searchCommonOptions = preferences[SEARCH_COMMON].decodeOrNull(SearchCommonOptions()),
                 searchServiceSelected = preferences[SEARCH_SELECTED] ?: 0,
                 mcpServers = preferences[MCP_SERVERS].decodeOrNull(emptyList()),
+                networkSetting = JsonInstant.decodeFromString(preferences[NETWORK_SETTING] ?: "{}"),
                 webDavConfig = preferences[WEBDAV_CONFIG]?.let { raw ->
                     runCatching {
                         JsonInstant.decodeFromString<WebDavConfig>(SecureStorage.decrypt(raw).ifEmpty { raw })
@@ -492,6 +494,7 @@ class SettingsStore(
             preferences[SEARCH_SELECTED] = settings.searchServiceSelected.coerceIn(0, settings.searchServices.size - 1)
 
             preferences[MCP_SERVERS] = JsonInstant.encodeToString(settings.mcpServers)
+            preferences[NETWORK_SETTING] = JsonInstant.encodeToString(settings.networkSetting)
             preferences[WEBDAV_CONFIG] = SecureStorage.encrypt(JsonInstant.encodeToString(settings.webDavConfig))
             preferences[S3_CONFIG] = SecureStorage.encrypt(JsonInstant.encodeToString(settings.s3Config))
             preferences[TTS_PROVIDERS] = JsonInstant.encodeToString(settings.ttsProviders)
@@ -641,6 +644,8 @@ data class Settings(
     val searchServiceSelected: Int = 0,
     val mcpServers: List<McpServerConfig> = emptyList(),
     val webDavConfig: WebDavConfig = WebDavConfig(),
+    // 网络配置：User-Agent + 代理
+    val networkSetting: NetworkSetting = NetworkSetting(),
     val s3Config: S3Config = S3Config(),
     // TTS 提供商列表（默认只含系统 TTS，其余由用户手动添加）
     val ttsProviders: List<TTSProviderSetting> = listOf(
@@ -765,6 +770,14 @@ data class DisplaySetting(
 )
 
 @Serializable
+@Serializable
+data class NetworkSetting(
+    val userAgent: String = "",
+    val proxyUrl: String = "",
+    val proxyUsername: String = "",
+    val proxyPassword: String = "",
+)
+
 data class WebDavConfig(
     val url: String = "",
     val username: String = "",
