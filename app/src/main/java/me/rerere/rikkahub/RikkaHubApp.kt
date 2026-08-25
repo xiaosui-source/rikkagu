@@ -166,7 +166,14 @@ class LingxiApp : Application() {
                         Log.i(TAG, "installing android build env: $step")
                     }
 
-                    // 6. 关联默认助手
+                    // 6. 免root脱壳工具 (Unicorn + Capstone), 支持 workspace_apk_unpack
+                    workspaceRepo.executeCommand(
+                        ws.id,
+                        "pip3 install -q unicorn capstone 2>/dev/null || pip3 install -q unicorn 2>/dev/null || true",
+                        timeoutMillis = 600_000,
+                    )
+
+                    // 7. 关联默认助手
                     prefs.update { s ->
                         s.copy(
                             assistants = s.assistants.map {
