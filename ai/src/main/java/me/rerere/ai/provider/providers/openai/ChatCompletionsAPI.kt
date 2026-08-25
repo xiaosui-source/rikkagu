@@ -547,6 +547,13 @@ class ChatCompletionsAPI(
                         })
                     }
 
+                    // 小米 MiMo：使用 thinking 参数
+                    "api.xiaomimimo.com", "token-plan-cn.xiaomimimo.com" -> {
+                        put("thinking", buildJsonObject {
+                            put("type", if (!level.isEnabled) "disabled" else "enabled")
+                        })
+                    }
+
                     // 月之暗面（moonshot）系列：按模型区分思考参数体系
                     "api.moonshot.cn", "api.moonshot.ai" -> {
                         val moonshotModelId = params.model.modelId.lowercase()
