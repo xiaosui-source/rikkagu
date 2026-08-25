@@ -1073,7 +1073,18 @@ private fun ModelPicker(
                     contentPadding = PaddingValues(8.dp),
                 ) {
                     items(filteredModels) {
-                        Card {
+                        Card(
+                            onClick = {
+                                if (selectedModels.any { model -> model.modelId == it.modelId }) {
+                                    // 从selectedModels中计算出要删除的model，因为删除需要id匹配，而不是ModelId
+                                    onModelDeselected(selectedModels.firstOrNull { model -> model.modelId == it.modelId }
+                                        ?: it)
+                                } else {
+                                    onModelSelected(it)
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(
