@@ -151,15 +151,6 @@ class LingxiApp : Application() {
                     // 2. 补打 patch (passwd/group)
                     workspaceRepo.patchRootfs(ws.id)
 
-                    // 3. 编程工具 (git/python3/gcc/make), 内部含验证, 失败抛异常
-                    workspaceRepo.installProgrammingTools(ws.id) { step ->
-                        Log.i(TAG, "installing programming tools: $step")
-                    }
-
-                    // 4. 反编译工具 (Java + apktool + jadx), 内部含验证, 失败抛异常
-                    workspaceRepo.installReverseTools(ws.id) { step ->
-                        Log.i(TAG, "installing reverse tools: $step")
-                    }
 
                     // 5. 关联默认助手
                     prefs.update { s ->
