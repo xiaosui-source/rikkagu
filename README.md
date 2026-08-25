@@ -207,3 +207,5 @@
 - 商业用途、用户超过 10 人，或希望免除 AGPL v3 义务 —— 需购买商业许可证（联系原作者 `re_dev@qq.com`）。
 
 详见 [LICENSE](LICENSE)。
+
+<!-- Fix applied: 移除 ModelListSaver，使用 mutableStateOf -->
