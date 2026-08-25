@@ -51,6 +51,16 @@ class SkillFrontmatter internal constructor(
 ) {
     operator fun get(key: String): String? = values[key] as? String
 
+    /** 读取布尔值（YAML 的 true/false 解析为 Boolean；兼容字符串 "true"/"false"） */
+    fun getBoolean(key: String): Boolean {
+        val value = values[key] ?: return false
+        return when (value) {
+            is Boolean -> value
+            is String -> value.toBooleanStrictOrNull() ?: false
+            else -> false
+        }
+    }
+
     companion object {
         internal val Empty = SkillFrontmatter(emptyMap())
     }

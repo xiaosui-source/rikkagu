@@ -23,6 +23,9 @@ fun createSkillTools(
 ): List<Tool> {
     val available = allSkills.filter { it.name in enabledSkills }
     if (available.isEmpty()) return emptyList()
+    // #1763: disable-model-invocation 的 skill 不注入模型上下文（不列在可用技能），
+    // 仅当用户明确提供名字时通过 use_skill 调用
+    val modelVisible = available.filter { !it.disableModelInvocation }
 
     return listOf(
         Tool(
@@ -36,7 +39,7 @@ fun createSkillTools(
                     appendLine("**Skills**")
                     appendLine("You have access to the following skills. Use the `use_skill` tool to load a skill's instructions when the user's request matches.")
                     appendLine("<available_skills>")
-                    available.forEach { skill ->
+                    modelVisible.forEach { skill ->
                         appendLine("  <skill>")
                         appendLine("    <name>${skill.name}</name>")
                         appendLine("    <description>${skill.description}</description>")

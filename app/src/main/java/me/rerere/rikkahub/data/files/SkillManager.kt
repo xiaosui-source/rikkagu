@@ -432,6 +432,7 @@ description: 从业30年民间顶级玄学顾问：八字/古典占星/六爻纳
                 description = description,
                 compatibility = frontmatter["compatibility"],
                 allowedTools = frontmatter["allowed-tools"]?.split(" ")?.filter { it.isNotBlank() } ?: emptyList(),
+                disableModelInvocation = frontmatter.getBoolean("disable-model-invocation"),
                 skillDir = skillDir,
             )
         }.getOrElse {
@@ -446,6 +447,8 @@ data class SkillMetadata(
     val description: String,
     val compatibility: String? = null,
     val allowedTools: List<String> = emptyList(),
+    /** #1763: true 时不注入模型上下文（不列在可用技能中），仅在用户明确调用时使用 */
+    val disableModelInvocation: Boolean = false,
     val skillDir: File,
 ) {
     val skillFile: File get() = skillDir.resolve("SKILL.md")
