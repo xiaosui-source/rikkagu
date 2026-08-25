@@ -48,6 +48,11 @@ fun TTSProviderConfigure(
                     is TTSProviderSetting.Step -> "Step"
                     is TTSProviderSetting.ElevenLabs -> "ElevenLabs"
                     is TTSProviderSetting.FishAudio -> "Fish Audio"
+                    is TTSProviderSetting.BaiduTTS -> "百度"
+                    is TTSProviderSetting.EdgeTTS -> "Edge"
+                    is TTSProviderSetting.YoudaoTTS -> "有道"
+                    is TTSProviderSetting.GoogleFreeTTS -> "Google"
+                    else -> setting.name
                 },
                 options = providers,
                 readOnly = true,
