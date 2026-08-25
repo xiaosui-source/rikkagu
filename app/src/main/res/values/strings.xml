@@ -1299,4 +1299,7 @@
   <string name="setting_model_page_fast_model_desc">Model for fast or background tasks, also used as fallback for title and suggestion models when not set</string>
   <string name="setting_model_page_tab_model">Model</string>
   <string name="setting_model_page_tab_prompt">Prompts</string>
+  <string name="setting_tts_page_temperature">Temperature</string>
+  <string name="setting_tts_page_temperature_description">Temperature for TTS generation</string>
+  <string name="setting_tts_page_fish_audio_speed_description">Speed adjustment for Fish Audio TTS</string>
 </resources>

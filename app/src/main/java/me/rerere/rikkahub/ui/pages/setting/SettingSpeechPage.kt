@@ -656,10 +656,11 @@ private fun TTSProviderItem(
                         text = when (provider) {
                             is TTSProviderSetting.SystemTTS -> stringResource(R.string.setting_tts_page_provider_system)
                             is TTSProviderSetting.EdgeTTS -> "Edge"
-                    is TTSProviderSetting.BaiduTTS -> "百度"
-                    is TTSProviderSetting.YoudaoTTS -> "有道"
-                    is TTSProviderSetting.GoogleFreeTTS -> "Google"
-                    is TTSProviderSetting.ElevenLabs -> "ElevenLabs"
+                            is TTSProviderSetting.BaiduTTS -> "百度"
+                            is TTSProviderSetting.YoudaoTTS -> "有道"
+                            is TTSProviderSetting.GoogleFreeTTS -> "Google"
+                            is TTSProviderSetting.ElevenLabs -> "ElevenLabs"
+                            else -> provider.name
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
