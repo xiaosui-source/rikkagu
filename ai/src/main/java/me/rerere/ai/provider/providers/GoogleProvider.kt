@@ -428,54 +428,54 @@ class GoogleProvider(private val client: OkHttpClient, context: Context? = null)
             buildContents(messages)
         )
 
-        // Tools
-        if (params.tools.isNotEmpty() && params.model.abilities.contains(ModelAbility.TOOL)) {
+        // Tools（MCP 工具 + 模型内置工具合并，禁止互相覆盖）
+        val hasMcpTools = params.tools.isNotEmpty() && params.model.abilities.contains(ModelAbility.TOOL)
+        val hasBuiltInTools = params.model.tools.isNotEmpty()
+        if (hasMcpTools || hasBuiltInTools) {
             put("tools", buildJsonArray {
-                add(buildJsonObject {
-                    put("functionDeclarations", buildJsonArray {
-                        params.tools.forEach { tool ->
-                            add(buildJsonObject {
-                                put("name", JsonPrimitive(tool.name))
-                                put("description", JsonPrimitive(tool.description))
-                                put(
-                                    key = "parameters",
-                                    element = json.encodeToJsonElement(tool.parameters())
-                                        .removeElements(
-                                            listOf(
-                                                "const",
-                                                "exclusiveMaximum",
-                                                "exclusiveMinimum",
-                                                "format",
-                                                "additionalProperties",
-                                                "enum",
+                if (hasMcpTools) {
+                    add(buildJsonObject {
+                        put("functionDeclarations", buildJsonArray {
+                            params.tools.forEach { tool ->
+                                add(buildJsonObject {
+                                    put("name", JsonPrimitive(tool.name))
+                                    put("description", JsonPrimitive(tool.description))
+                                    put(
+                                        key = "parameters",
+                                        element = json.encodeToJsonElement(tool.parameters())
+                                            .removeElements(
+                                                listOf(
+                                                    "const",
+                                                    "exclusiveMaximum",
+                                                    "exclusiveMinimum",
+                                                    "format",
+                                                    "additionalProperties",
+                                                    "enum",
+                                                )
                                             )
-                                        )
-                                )
-                            })
-                        }
+                                    )
+                                })
+                            }
+                        })
                     })
-                })
-            })
-        }
-        // Model BuiltIn Tools
-        // 目前不能和工具调用兼容
-        if (params.model.tools.isNotEmpty()) {
-            put("tools", buildJsonArray {
-                params.model.tools.forEach { builtInTool ->
-                    when (builtInTool) {
-                        BuiltInTools.Search -> {
-                            add(buildJsonObject {
-                                put("googleSearch", buildJsonObject {})
-                            })
-                        }
+                }
+                if (hasBuiltInTools) {
+                    params.model.tools.forEach { builtInTool ->
+                        when (builtInTool) {
+                            BuiltInTools.Search -> {
+                                add(buildJsonObject {
+                                    put("googleSearch", buildJsonObject {})
+                                })
+                            }
 
-                        BuiltInTools.UrlContext -> {
-                            add(buildJsonObject {
-                                put("urlContext", buildJsonObject {})
-                            })
-                        }
+                            BuiltInTools.UrlContext -> {
+                                add(buildJsonObject {
+                                    put("urlContext", buildJsonObject {})
+                                })
+                            }
 
-                        else -> {}
+                            else -> {}
+                        }
                     }
                 }
             })
