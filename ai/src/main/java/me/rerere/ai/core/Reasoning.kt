@@ -1,9 +1,3 @@
-﻿/*
- * 灵犀 Lingxi
- * 衍生自 Lingxi (https://github.com/xiaosui-source/rikkagu)，原作者 xiaosui-source
- * 本项目基于 GNU AGPL v3 开源，详见根目录 LICENSE 文件
- */
-
 package me.rerere.ai.core
 
 import kotlinx.serialization.SerialName
@@ -16,23 +10,35 @@ enum class ReasoningLevel(
 ) {
     @SerialName("off")
     OFF(0, "none"),
+
     @SerialName("auto")
     AUTO(-1, "auto"),
+
     @SerialName("low")
     LOW(1_000, "low"),
+
     @SerialName("medium")
     MEDIUM(2_000, "medium"),
+
     @SerialName("high")
     HIGH(8_000, "high"),
+
     @SerialName("xhigh")
-    XHIGH(16_000, "max");
+    XHIGH(16_000, "xhigh"),
+
+    @SerialName("max")
+    MAX(32_000, "max");
 
     val isEnabled: Boolean
         get() = this != OFF
 
     companion object {
         fun fromBudgetTokens(budgetTokens: Int?): ReasoningLevel {
-            return entries.minByOrNull { kotlin.math.abs(it.budgetTokens - (budgetTokens ?: AUTO.budgetTokens)) } ?: AUTO
+            return entries.minByOrNull {
+                kotlin.math.abs(
+                    it.budgetTokens - (budgetTokens ?: AUTO.budgetTokens)
+                )
+            } ?: AUTO
         }
     }
 }

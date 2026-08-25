@@ -1,9 +1,3 @@
-﻿/*
- * 灵犀 Lingxi
- * 衍生自 Lingxi (https://github.com/xiaosui-source/rikkagu)，原作者 xiaosui-source
- * 本项目基于 GNU AGPL v3 开源，详见根目录 LICENSE 文件
- */
-
 package me.rerere.ai.registry
 
 import me.rerere.ai.provider.Modality
@@ -17,7 +11,8 @@ class ModelDefinition(
     private val matcher: TokenMatcher,
     val inputModalities: Set<Modality>,
     val outputModalities: Set<Modality>,
-    val abilities: Set<ModelAbility>
+    val abilities: Set<ModelAbility>,
+    val contextLength: Int? = null
 ) : ModelSelector {
     override fun match(modelId: String): Boolean {
         val tokens = tokenize(modelId)
@@ -52,6 +47,7 @@ class ModelDefinitionBuilder {
     private val inputModalities = mutableSetOf(Modality.TEXT)
     private val outputModalities = mutableSetOf(Modality.TEXT)
     private val abilities = mutableSetOf<ModelAbility>()
+    private var contextLength: Int? = null
 
     fun tokens(vararg specs: String) {
         matchers += TokenSequenceMatcher(specs.map(::parseTokenSpec))
@@ -87,6 +83,10 @@ class ModelDefinitionBuilder {
         this.abilities.addAll(abilities)
     }
 
+    fun contextLength(tokens: Int) {
+        contextLength = tokens
+    }
+
     fun build(): ModelDefinition {
         val matcher = when {
             matchers.isEmpty() -> MatchNone
@@ -97,7 +97,8 @@ class ModelDefinitionBuilder {
             matcher = matcher,
             inputModalities = inputModalities.toSet(),
             outputModalities = outputModalities.toSet(),
-            abilities = abilities.toSet()
+            abilities = abilities.toSet(),
+            contextLength = contextLength
         )
     }
 }

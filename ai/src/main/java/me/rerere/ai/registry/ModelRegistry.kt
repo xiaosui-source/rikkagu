@@ -1,9 +1,3 @@
-﻿/*
- * 灵犀 Lingxi
- * 衍生自 Lingxi (https://github.com/xiaosui-source/rikkagu)，原作者 xiaosui-source
- * 本项目基于 GNU AGPL v3 开源，详见根目录 LICENSE 文件
- */
-
 package me.rerere.ai.registry
 
 import me.rerere.ai.provider.Modality
@@ -233,8 +227,41 @@ object ModelRegistry {
         toolReasoningAbility()
     }
 
+    private val CLAUDE_OPUS_4_8 = defineModel {
+        tokens("claude", "opus", "4", "8")
+        visionInput()
+        toolReasoningAbility()
+    }
+
+    private val CLAUDE_SONNET_5 = defineModel {
+        tokens("claude", "sonnet", "5")
+        notTokens("claude", "sonnet", "4")
+        visionInput()
+        toolReasoningAbility()
+        contextLength(1.m)
+    }
+
+    private val CLAUDE_OPUS_5 = defineModel {
+        tokens("claude", "opus", "5")
+        notTokens("claude", "opus", "4")
+        visionInput()
+        toolReasoningAbility()
+        contextLength(1.m)
+    }
+
     val CLAUDE_SERIES = defineGroup {
-        add(CLAUDE_SONNET_3_5, CLAUDE_SONNET_3_7, CLAUDE_4, CLAUDE_4_5, CLAUDE_SONNET_4_6, CLAUDE_OPUS_4_6, CLAUDE_OPUS_4_7)
+        add(
+            CLAUDE_SONNET_3_5,
+            CLAUDE_SONNET_3_7,
+            CLAUDE_4,
+            CLAUDE_4_5,
+            CLAUDE_SONNET_4_6,
+            CLAUDE_OPUS_4_6,
+            CLAUDE_OPUS_4_7,
+            CLAUDE_OPUS_4_8,
+            CLAUDE_SONNET_5,
+            CLAUDE_OPUS_5
+        )
     }
 
     private val DEEPSEEK_V3_MODEL = defineModel {
@@ -264,17 +291,20 @@ object ModelRegistry {
     private val DEEPSEEK_V4_FLASH = defineModel {
         tokens("deepseek", "v", "4", "flash")
         toolReasoningAbility()
+        contextLength(1.m)
     }
 
     private val DEEPSEEK_V4_FLASH_VISION_EXP = defineModel {
         tokens("deepseek", "v", "4", "flash", "vision", "exp")
         visionInput()
         toolReasoningAbility()
+        contextLength(1.m)
     }
 
     private val DEEPSEEK_V4_PRO = defineModel {
         tokens("deepseek", "v", "4", "pro")
         toolReasoningAbility()
+        contextLength(1.m)
     }
 
     private val DEEPSEEK_R1 = defineGroup {
@@ -308,6 +338,32 @@ object ModelRegistry {
         toolReasoningAbility()
     }
 
+    private val QWEN_3_7 = defineModel {
+        tokens("qwen", "3", "7")
+        visionInput()
+        toolReasoningAbility()
+    }
+
+    private val QWEN_3_5_MAX = defineModel {
+        tokens("qwen", "3", "5", "max")
+        toolReasoningAbility()
+    }
+
+    private val QWEN_3_6_MAX = defineModel {
+        tokens("qwen", "3", "6", "max")
+        toolReasoningAbility()
+    }
+
+    private val QWEN_3_7_MAX = defineModel {
+        tokens("qwen", "3", "7", "max")
+        toolReasoningAbility()
+    }
+
+    private val QWEN_3_8_MAX = defineModel {
+        tokens("qwen", "3", "8", "max")
+        toolReasoningAbility()
+    }
+
     private val DOUBAO_1_6 = defineModel {
         tokens("doubao", "1", "6")
         visionInput()
@@ -316,6 +372,18 @@ object ModelRegistry {
 
     private val DOUBAO_1_8 = defineModel {
         tokens("doubao", "1", "8")
+        visionInput()
+        toolReasoningAbility()
+    }
+
+    private val DOUBAO_2_0 = defineModel {
+        tokens("doubao", "2", "0")
+        visionInput()
+        toolReasoningAbility()
+    }
+
+    private val DOUBAO_2_1 = defineModel {
+        tokens("doubao", "2", "1")
         visionInput()
         toolReasoningAbility()
     }
@@ -331,20 +399,39 @@ object ModelRegistry {
         toolReasoningAbility()
     }
 
-    private val KIMI_K2_5 = defineModel {
+    val KIMI_K2_5 = defineModel {
         tokens("kimi", "k", "2", "5")
         visionInput()
         toolReasoningAbility()
     }
 
-    private val KIMI_K2_6 = defineModel {
+    val KIMI_K2_6 = defineModel {
         tokens("kimi", "k", "2", "6")
+        visionInput()
+        toolReasoningAbility()
+    }
+
+    val KIMI_K3 = defineModel {
+        tokens("kimi", "k", "3")
+        visionInput()
+        toolReasoningAbility()
+    }
+
+    // 兼容不带 kimi 前缀的裸 id "k3"
+    val KIMI_K3_ALIAS = defineModel {
+        exact("k3")
         visionInput()
         toolReasoningAbility()
     }
 
     private val STEP_3 = defineModel {
         tokens("step", "3")
+        visionInput()
+        toolReasoningAbility()
+    }
+
+    private val STEP_3_7_FLASH = defineModel {
+        tokens("step", "3", "7", "flash")
         visionInput()
         toolReasoningAbility()
     }
@@ -380,6 +467,11 @@ object ModelRegistry {
         toolReasoningAbility()
     }
 
+    private val GLM_5_2 = defineModel {
+        tokens("glm", "5", "2")
+        toolReasoningAbility()
+    }
+
     private val MINIMAX_M2 = defineModel {
         tokens("minimax", "m", "2")
         toolReasoningAbility()
@@ -392,6 +484,12 @@ object ModelRegistry {
 
     private val MINIMAX_M2_7 = defineModel {
         tokens("minimax", "m", "2", "7")
+        toolReasoningAbility()
+    }
+
+    private val MINIMAX_M3 = defineModel {
+        tokens("minimax", "m", "3")
+        visionInput()
         toolReasoningAbility()
     }
 
@@ -413,6 +511,23 @@ object ModelRegistry {
 
     private val XIAOMI_MIMO_V2_5_PRO = defineModel {
         tokens("mimo", "v", "2", "5", "pro")
+        toolReasoningAbility()
+    }
+
+    private val XIAOMI_MIMO_V3 = defineModel {
+        tokens("mimo", "v", "3")
+        visionInput()
+        toolReasoningAbility()
+    }
+
+    private val XIAOMI_MIMO_V3_PRO = defineModel {
+        tokens("mimo", "v", "3", "pro")
+        visionInput()
+        toolReasoningAbility()
+    }
+
+    private val HY3 = defineModel {
+        tokens("hy", "3")
         toolReasoningAbility()
     }
 
@@ -472,6 +587,9 @@ object ModelRegistry {
         CLAUDE_SONNET_4_6,
         CLAUDE_OPUS_4_6,
         CLAUDE_OPUS_4_7,
+        CLAUDE_OPUS_4_8,
+        CLAUDE_SONNET_5,
+        CLAUDE_OPUS_5,
         DEEPSEEK_V3_MODEL,
         DEEPSEEK_CHAT,
         DEEPSEEK_R1_MODEL,
@@ -484,26 +602,41 @@ object ModelRegistry {
         QWEN_3,
         QWEN_3_5,
         QWEN_3_6,
+        QWEN_3_7,
+        QWEN_3_5_MAX,
+        QWEN_3_6_MAX,
+        QWEN_3_7_MAX,
+        QWEN_3_8_MAX,
         DOUBAO_1_6,
         DOUBAO_1_8,
+        DOUBAO_2_0,
+        DOUBAO_2_1,
         GROK_4,
         KIMI_K2,
         KIMI_K2_5,
         KIMI_K2_6,
+        KIMI_K3,
+        KIMI_K3_ALIAS,
         STEP_3,
+        STEP_3_7_FLASH,
         INTERN_S1,
         GLM_4_5,
         GLM_4_6,
         GLM_4_7,
         GLM_5,
         GLM_5_1,
+        GLM_5_2,
         MINIMAX_M2,
         MINIMAX_M2_5,
         MINIMAX_M2_7,
+        MINIMAX_M3,
         XIAOMI_MIMO_V2,
         XIAOMI_MIMO_V2_PRO,
         XIAOMI_MIMO_V2_5,
         XIAOMI_MIMO_V2_5_PRO,
+        XIAOMI_MIMO_V3,
+        XIAOMI_MIMO_V3_PRO,
+        HY3,
         LONGCAT_2,
         MUSE_SPARK,
         MUSE_GLIMMER,
@@ -526,6 +659,10 @@ object ModelRegistry {
             if (ModelAbility.TOOL in abilities) add(ModelAbility.TOOL)
             if (ModelAbility.REASONING in abilities) add(ModelAbility.REASONING)
         }
+    }
+
+    val MODEL_CONTEXT_LENGTH = ModelData { modelId ->
+        resolveModels(modelId).firstNotNullOfOrNull { it.contextLength }
     }
 
     private fun resolveModels(modelId: String): List<ModelDefinition> {
@@ -579,4 +716,7 @@ object ModelRegistry {
     private fun ModelDefinitionBuilder.toolReasoningAbility() {
         ability(ModelAbility.TOOL, ModelAbility.REASONING)
     }
+
+    private val Int.k: Int get() = this * 1_000
+    private val Int.m: Int get() = this * 1_000_000
 }
