@@ -64,6 +64,7 @@ data class WorkspaceTerminalState(
 class WorkspaceDetailVM(
     private val id: String,
     private val repository: WorkspaceRepository,
+    private val terminalSessionManager: WorkspaceTerminalSessionManager,
 ) : ViewModel() {
 
     val workspaceFlow: StateFlow<WorkspaceEntity?> = repository.listFlow()
@@ -230,6 +231,8 @@ class WorkspaceDetailVM(
         if (_state.value.installing) return
         installJob = viewModelScope.launch {
             _state.value = _state.value.copy(installing = true, installProgress = null, errorMessage = null)
+            // 重装前关闭该工作区的所有终端会话
+            _state.value.workspace?.let { terminalSessionManager.closeWorkspace(it.root) }
             val result = runCatching {
                 repository.installRootfs(id, url) { progress ->
                     _state.value = _state.value.copy(installProgress = progress)

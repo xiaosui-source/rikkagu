@@ -1,42 +1,41 @@
-﻿/*
- * 灵犀 Lingxi
- * 衍生自 Lingxi (https://github.com/xiaosui-source/rikkagu)，原作者 xiaosui-source
- * 本项目基于 GNU AGPL v3 开源，详见根目录 LICENSE 文件
- */
-
 package me.rerere.rikkahub.ui.pages.extensions.workspace
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import me.rerere.rikkahub.data.db.entity.WorkspaceEntity
 import me.rerere.rikkahub.data.repository.WorkspaceRepository
+import me.rerere.workspace.RootfsInstallProgress
 
 class WorkspaceVM(
     private val repository: WorkspaceRepository,
+    private val terminalSessionManager: WorkspaceTerminalSessionManager,
 ) : ViewModel() {
-    val workspaces: StateFlow<List<WorkspaceEntity>> = repository.listFlow()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val workspaces = repository.listFlow()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    init {
+    fun create(name: String) {
         viewModelScope.launch {
-            runCatching { repository.checkIntegrity() }
+            runCatching { repository.create(name) }
         }
     }
 
-    fun createWorkspace(name: String, onResult: (Result<WorkspaceEntity>) -> Unit) {
+    fun rename(workspace: WorkspaceEntity, name: String) {
         viewModelScope.launch {
-            val result = runCatching { repository.create(name) }
-            onResult(result)
+            runCatching { repository.rename(workspace.id, name) }
         }
     }
 
-    fun deleteWorkspace(id: String) {
+    fun delete(workspace: WorkspaceEntity) {
         viewModelScope.launch {
-            runCatching { repository.delete(id) }
+            terminalSessionManager.closeWorkspace(workspace.root)
+            repository.delete(workspace.id)
         }
     }
 }

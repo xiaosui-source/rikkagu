@@ -27,6 +27,7 @@ import me.rerere.rikkahub.ui.pages.extensions.QuickMessagesVM
 import me.rerere.rikkahub.ui.pages.extensions.SkillDetailVM
 import me.rerere.rikkahub.ui.pages.extensions.SkillsVM
 import me.rerere.rikkahub.ui.pages.extensions.workspace.WorkspaceDetailVM
+import me.rerere.rikkahub.ui.pages.extensions.workspace.WorkspaceTerminalSessionManager
 import me.rerere.rikkahub.ui.pages.extensions.workspace.WorkspaceVM
 import me.rerere.rikkahub.ui.pages.security.SecurityAuditVM
 import me.rerere.rikkahub.ui.pages.setting.SettingVM
@@ -80,7 +81,7 @@ val viewModelModule = module {
     viewModelOf(::SkillsVM)
     viewModelOf(::SkillDetailVM)
     viewModelOf(::WorkspaceVM)
-    viewModel<WorkspaceDetailVM> { WorkspaceDetailVM(id = it.get(), repository = get()) }
+    viewModel<WorkspaceDetailVM> { WorkspaceDetailVM(id = it.get(), repository = get(), terminalSessionManager = get()) }
     viewModelOf(::FavoriteVM)
     viewModelOf(::SearchVM)
     viewModelOf(::StatsVM)
