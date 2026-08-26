@@ -903,27 +903,5 @@ val DEFAULT_PROVIDERS = listOf(
             ),),
         // 不内置任何模型：模型全部由用户自己添加（API 拉取或手动添加）
     ),
-    ProviderSetting.LocalRule(
-        id = Uuid.parse("00000000-0000-4000-8000-00000000a11d"),
-        name = "离线小助手",
-        enabled = true,
-        builtIn = true,
-        models = listOf(
-            me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("00000000-0000-4000-8000-00000000a11d"),
-                modelId = "local-rule",
-                displayName = "离线小助手",
-                inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-                outputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-                abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL),
-            ),
-        ),
-        description = {
-            Text(text = "完全本地的规则型小助手：无需网络、无需模型文件，可进行简单对话。")
-        },
-        shortDescription = {
-            Text(text = "离线小助手（本地规则）")
-        },
-    ),
 )
 

@@ -199,7 +199,6 @@ internal fun ProviderSetting.defaultBaseUrlForReset(): String {
             is ProviderSetting.OpenAI -> if (defaultProvider is ProviderSetting.OpenAI) return defaultProvider.baseUrl
             is ProviderSetting.Google -> if (defaultProvider is ProviderSetting.Google) return defaultProvider.baseUrl
             is ProviderSetting.Claude -> if (defaultProvider is ProviderSetting.Claude) return defaultProvider.baseUrl
-            is ProviderSetting.LocalRule -> return ""
         }
     }
 
