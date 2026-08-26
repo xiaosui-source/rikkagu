@@ -243,7 +243,6 @@ fun SettingSystemToolsPage(vm: SettingVM = koinViewModel()) {
 
 
 
-            // 本地文件夹工作区（所有文件访问：AI 读写手机全部文件夹）
             // 位置服务
             item {
             CardGroup(
