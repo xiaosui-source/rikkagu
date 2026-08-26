@@ -902,7 +902,7 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),),
         // 不内置任何模型：模型全部由用户自己添加（API 拉取或手动添加）
-
+    ),
     ProviderSetting.LocalRule(
         id = Uuid.parse("00000000-0000-4000-8000-00000000a11d"),
         name = "离线小助手",
