@@ -81,7 +81,6 @@ import me.rerere.rikkahub.data.ai.tools.createTodoTools
 import me.rerere.rikkahub.data.ai.tools.createReadPendingMessagesTool
 import me.rerere.rikkahub.data.ai.tools.createSendMessageBridgeTool
 import me.rerere.rikkahub.data.ai.tools.createRegisterPollingTaskTool
-import me.rerere.rikkahub.data.ai.tools.createLocalWorkspaceTools
 import me.rerere.rikkahub.data.ai.tools.createSkillTools
 import me.rerere.rikkahub.data.ai.tools.createWorkspaceTools
 import me.rerere.rikkahub.data.files.SkillManager
@@ -868,8 +867,6 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
                     add(createReadPendingMessagesTool(context))
                     add(createSendMessageBridgeTool(context))
                     add(createRegisterPollingTaskTool(context))
-                    // 本地文件夹工作区（SAF 授权后 AI 可读写本地项目文件夹）
-                    addAll(createLocalWorkspaceTools(context))
                 },
                 pluginPromptInjections = pluginToolProvider.getPluginPromptInjections(),
                 conversationId = conversationId.toString(),
@@ -1236,8 +1233,6 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
                     add(createReadPendingMessagesTool(context))
                     add(createSendMessageBridgeTool(context))
                     add(createRegisterPollingTaskTool(context))
-                    // 本地文件夹工作区（SAF 授权后 AI 可读写本地项目文件夹）
-                    addAll(createLocalWorkspaceTools(context))
                 },
                 pluginPromptInjections = pluginToolProvider.getPluginPromptInjections(),
                 conversationId = conversationId.toString(),

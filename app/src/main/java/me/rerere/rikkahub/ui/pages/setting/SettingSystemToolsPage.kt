@@ -244,55 +244,6 @@ fun SettingSystemToolsPage(vm: SettingVM = koinViewModel()) {
 
 
             // 本地文件夹工作区（所有文件访问：AI 读写手机全部文件夹）
-            item {
-                CardGroup(
-                    title = { Text("本地文件夹工作区") },
-                    modifier = Modifier.padding(horizontal = 8.dp)
-                ) {
-                    val hasAllFiles = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                        android.os.Environment.isExternalStorageManager()
-                    } else {
-                        true
-                    }
-                    item(
-                        leadingContent = { Icon(imageVector = HugeIcons.Folder02, contentDescription = null) },
-                        headlineContent = { Text(if (hasAllFiles) "所有文件访问已开启" else "开启「所有文件访问」") },
-                        supportingContent = {
-                            Text(
-                                if (hasAllFiles)
-                                    "AI 可读写 /storage/emulated/0 下全部文件夹，无需选目录"
-                                else "开启后 AI 可访问手机全部文件夹；Android 11+ 需在系统设置授权"
-                            )
-                        },
-                        trailingContent = {
-                            if (hasAllFiles) {
-                                TextButton(onClick = {
-                                    try {
-                                        val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
-                                        intent.data = android.net.Uri.parse("package:${context.packageName}")
-                                        context.startActivity(intent)
-                                    } catch (_: Exception) {
-                                        try { context.startActivity(Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)) } catch (_: Exception) {}
-                                    }
-                                }) { Text("管理") }
-                            } else {
-                                FilledTonalButton(onClick = {
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                                        try {
-                                            val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
-                                            intent.data = android.net.Uri.parse("package:${context.packageName}")
-                                            context.startActivity(intent)
-                                        } catch (_: Exception) {
-                                            try { context.startActivity(Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)) } catch (_: Exception) {}
-                                        }
-                                    }
-                                }) { Text("去开启") }
-                            }
-                        }
-                    )
-                }
-            }
-
             // 位置服务
             item {
             CardGroup(
