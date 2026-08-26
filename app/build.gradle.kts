@@ -102,7 +102,6 @@ dependencies {
 
     // ===== AndroidX 基础 =====
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.documentfile)
     implementation(libs.snakeyaml)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
