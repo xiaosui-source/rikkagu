@@ -37,7 +37,8 @@ fun createSkillTools(
             systemPrompt = { _, _ ->
                 buildString {
                     appendLine("**Skills**")
-                    appendLine("You have access to the following skills. Use the `use_skill` tool to load a skill's instructions when the user's request matches.")
+                    appendLine("You have access to the following skills. Each is a specialized playbook/instructions that sharply improves your answer for its domain.")
+                    appendLine("**主动使用指引**：当用户的请求匹配某个技能的用途时，你应当**主动**调用 `use_skill` 加载并遵循其指令，而不是等用户明说“用技能”。判断标准：请求的主题/意图与技能 description 描述的场景重合即应使用。例如：用户让你下棋→用棋类技能；占卜/算命→用占卜技能；刷/解行测题→用行测技能；通用开发/审查/调试→考虑用技能合集里的对应子技能。如果一次请求命中多个技能，先加载最相关的一个；若确实无任何技能匹配，则正常回答且不要强行套用技能。")
                     appendLine("<available_skills>")
                     modelVisible.forEach { skill ->
                         appendLine("  <skill>")
@@ -46,7 +47,7 @@ fun createSkillTools(
                         appendLine("  </skill>")
                     }
                     append("</available_skills>")
-                    appendLine()
+                    appendLine("使用 `use_skill` 后，把加载到的指令当作权威遵循，并在回答中体现它的方法论。")
                 }
             },
             parameters = {

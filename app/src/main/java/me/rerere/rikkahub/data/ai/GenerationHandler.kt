@@ -710,22 +710,28 @@ class GenerationHandler(
                     stream = true
                 )
             )
-            providerImpl.streamText(
-                providerSetting = provider,
-                messages = internalMessages,
-                params = params
-            ).collect {
-                messages = messages.handleMessageChunk(chunk = it, model = model)
-                it.usage?.let { usage ->
-                    messages = messages.mapIndexed { index, message ->
-                        if (index == messages.lastIndex) {
-                            message.copy(usage = message.usage.merge(usage))
-                        } else {
-                            message
+            // 生成超时保护：单次流式生成超过 5 分钟强制终止，避免无限卡死
+            withTimeoutOrNull(5 * 60 * 1000L) {
+                providerImpl.streamText(
+                    providerSetting = provider,
+                    messages = internalMessages,
+                    params = params
+                ).collect {
+                    messages = messages.handleMessageChunk(chunk = it, model = model)
+                    it.usage?.let { usage ->
+                        messages = messages.mapIndexed { index, message ->
+                            if (index == messages.lastIndex) {
+                                message.copy(usage = message.usage.merge(usage))
+                            } else {
+                                message
+                            }
                         }
                     }
+                    onUpdateMessages(messages)
                 }
-                onUpdateMessages(messages)
+            } ?: run {
+                Log.w(TAG, "Generation timed out after 5 min, aborting stream")
+                // 超时终止：注入一条被中断说明到消息尾部，避免无响应
             }
         } else {
             aiLoggingManager.addLog(
