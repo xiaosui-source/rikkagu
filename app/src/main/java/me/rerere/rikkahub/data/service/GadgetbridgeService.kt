@@ -94,7 +94,9 @@ class GadgetbridgeService {
                 null, null
             )
             directCopy.waitFor()
-            val directCopyError = directCopy.errorStream.bufferedReader().readText().trim()
+            val directCopyError = runCatching {
+                directCopy.errorStream.bufferedReader().use { it.readText().trim() }
+            }.getOrDefault("")
 
             if (directCopy.exitValue() != 0) {
                 Log.w(TAG, "Direct copy failed: $directCopyError, trying run-as fallback...")
@@ -104,7 +106,9 @@ class GadgetbridgeService {
                     null, null
                 )
                 runAsCopy.waitFor()
-                val runAsError = runAsCopy.errorStream.bufferedReader().readText().trim()
+                val runAsError = runCatching {
+                    runAsCopy.errorStream.bufferedReader().use { it.readText().trim() }
+                }.getOrDefault("")
 
                 if (runAsCopy.exitValue() != 0) {
                     Log.e(TAG, "run-as copy also failed: $runAsError")
@@ -114,7 +118,9 @@ class GadgetbridgeService {
                         null, null
                     )
                     suCopy.waitFor()
-                    val suError = suCopy.errorStream.bufferedReader().readText().trim()
+                    val suError = runCatching {
+                        suCopy.errorStream.bufferedReader().use { it.readText().trim() }
+                    }.getOrDefault("")
                     if (suCopy.exitValue() != 0) {
                         Log.e(TAG, "All copy methods failed. su error: $suError")
                         throw Exception("Failed to access Gadgetbridge database. Please ensure Shizuku is running with ADB or root.")

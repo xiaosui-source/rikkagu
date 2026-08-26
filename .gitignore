@@ -36,8 +36,13 @@ _projB_*.txt
 gen_*.py
 _gen.py
 
-# 签名密钥（绝不可提交）
+# 签名密钥（极不可提交）
 *.keystore
 keystore.properties
+*.jks
+*.pk8
+*.pem
+*.key
+*.p12
 # 打包产物
 *.zip

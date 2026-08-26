@@ -202,7 +202,10 @@ fun Context.exportImageFile(
             val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
             uri?.let {
                 outputStream = contentResolver.openOutputStream(it)
-                file.inputStream().copyTo(outputStream!!)
+                // 同时关闭 input 流, 避免文件句柄泄漏
+                file.inputStream().use { input ->
+                    input.copyTo(outputStream!!)
+                }
             }
         } else {
             // Android 9及以下直接写入文件

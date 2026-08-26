@@ -195,8 +195,7 @@ fun PluginWebViewPage(
             if (uri != null) {
                 try {
                     val inputStream = context.contentResolver.openInputStream(uri)
-                    val content = inputStream?.bufferedReader()?.readText()
-                    inputStream?.close()
+                    val content = inputStream?.bufferedReader()?.use { it.readText() }
                     val fileName = uri.lastPathSegment ?: "unknown.txt"
                     val escapedContent = content?.replace("\\", "\\\\")?.replace("'", "\\'")?.replace("\n", "\\n")?.replace("\r", "\\r") ?: ""
                     val escapedName = fileName.replace("\\", "\\\\").replace("'", "\\'")

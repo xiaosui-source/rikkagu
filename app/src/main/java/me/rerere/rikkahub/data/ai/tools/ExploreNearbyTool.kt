@@ -12,7 +12,7 @@ import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.location.LocationManager
 import androidx.core.content.ContextCompat
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.intOrNull
@@ -88,7 +88,8 @@ fun createExploreNearbyTool(context: Context, settings: Settings): Tool = Tool(
             }
 
             val amapService = AmapService(apiKey)
-            val pois = runBlocking {
+            // 用 withContext(IO) 执行耗时网络请求, 避免阻塞主线程
+            val pois = withContext(kotlinx.coroutines.Dispatchers.IO) {
                 amapService.searchNearbyPoi(
                     latitude = loc.latitude,
                     longitude = loc.longitude,
@@ -110,7 +111,7 @@ fun createExploreNearbyTool(context: Context, settings: Settings): Tool = Tool(
             }
 
             // Get current address
-            val addressResult = runBlocking { amapService.getAddressFromGps(loc.latitude, loc.longitude) }
+            val addressResult = withContext(kotlinx.coroutines.Dispatchers.IO) { amapService.getAddressFromGps(loc.latitude, loc.longitude) }
 
             val arr = buildJsonArray {
                 pois.forEach { poi ->

@@ -29,8 +29,13 @@ class RequestLoggingInterceptor : Interceptor {
         val requestHeaders = request.headers.toMap()
         val requestBody = request.body?.let { body ->
             val buffer = Buffer()
-            body.writeTo(buffer)
-            buffer.readUtf8()
+            try {
+                body.writeTo(buffer)
+            } catch (e: Exception) {
+                // 某些 body 只能读一次, 读取失败时降级为空, 避免拦截器抛异常阻断请求
+                return@let null
+            }
+            buffer.readUtf8()?.let { sanitizeRequestBody(it) }
         }
 
         val response: Response
@@ -87,8 +92,29 @@ class RequestLoggingInterceptor : Interceptor {
         return response
     }
 
+    private val SENSITIVE_HEADERS = setOf(
+        "Authorization", "Proxy-Authorization", "Cookie", "Set-Cookie", "X-Api-Key",
+        "Api-Key", "X-Key", "X-API-Key"
+    )
+
     private fun okhttp3.Headers.toMap(): Map<String, String> {
-        return names().associateWith { get(it) ?: "" }
+        return names().associate { name ->
+            name to (if (name in SENSITIVE_HEADERS) "***REDACTED***" else (get(name) ?: ""))
+        }
+    }
+
+    /**
+     * Sanitize a given request body by masking potential API keys/tokens.
+     * Mirrors [sanitizeResponseBody] logic so request bodies (which may carry
+     * sensitive content to the LLM endpoint) are also protected.
+     */
+    private fun sanitizeRequestBody(body: String): String {
+        if (body.length > MAX_RESPONSE_BODY_LOG_BYTES.toInt()) {
+            return body.take(MAX_RESPONSE_BODY_LOG_BYTES.toInt()) + "...[truncated]"
+        }
+        return API_KEY_PATTERN.replace(body) { matchResult ->
+            matchResult.value.take(10) + "***REDACTED***"
+        }
     }
 
     /**

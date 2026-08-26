@@ -29,7 +29,10 @@ private suspend fun initStations() {
         val map = mutableMapOf<String,Pair<String,String>>()
         raw.split("@").forEach { item -> val parts = item.split("|"); if (parts.size >= 3) map[parts[2]] = parts[1] to parts[0] }
         tStations = map
-    } catch (_: Exception) {}
+    } catch (e: Exception) {
+        // 不静默吞异常:车站数据加载失败会影响所有车票查询,记录原因便于排查
+        android.util.Log.w("Ticket12306", "initStations failed: ${e.message}")
+    }
 }
 
 private fun resolveCode(input: String): String {
@@ -75,7 +78,10 @@ private fun getTrainStops(trainNo: String, date: String): Set<String> {
         val resp = call("/otn/queryTrainInfo/query", mapOf("leftTicketDTO.train_no" to trainNo,"leftTicketDTO.train_date" to date,"rand_code" to ""))
         val data = Json.parseToJsonElement(resp).jsonObject["data"]?.jsonObject?.get("data")?.jsonArray ?: return emptySet()
         return data.map { it.jsonObject["station_name"]?.jsonPrimitive?.content ?: "" }.filter { it.isNotBlank() }.toSet()
-    } catch (_: Exception) { return emptySet() }
+    } catch (e: Exception) {
+        android.util.Log.w("Ticket12306", "getTrainStops failed: ${e.message}")
+        return emptySet()
+    }
 }
 
 fun buildTicket12306McpTools(): List<Tool> = buildList {
@@ -229,7 +235,7 @@ fun buildTicket12306McpTools(): List<Tool> = buildList {
             try {
                 val data=Json.parseToJsonElement(resp).jsonObject["data"]?.jsonObject?.get("data")?.jsonArray
                 if(data!=null&&data.isNotEmpty()){ text="【${s[code]?.first?:st}】车次：\n车次|始发→终到|出发|到达\n"; data.take(30).forEach{ val obj=it.jsonObject; text+="${obj["station_train_code"]?.jsonPrimitive?.content}|${obj["start_station_name"]?.jsonPrimitive?.content}→${obj["end_station_name"]?.jsonPrimitive?.content}|${obj["start_time"]?.jsonPrimitive?.content}|${obj["arrive_time"]?.jsonPrimitive?.content}\n" } }
-            } catch(_:Exception){}
+            } catch(e: Exception){ android.util.Log.w("Ticket12306","station_trains parse failed: ${e.message}") }
             listOf(UIMessagePart.Text(text))
         },
     ))

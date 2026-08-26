@@ -221,14 +221,6 @@ val DEFAULT_PROVIDERS = listOf(
                 abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
             ),
             me.rerere.ai.provider.Model(
-                id = kotlin.uuid.Uuid.parse("00000134-0000-4000-8000-000000000134"),
-                modelId = "gemini-1.5-pro",
-                displayName = "Gemini 1.5 Pro",
-                inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-                outputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-                abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL, me.rerere.ai.provider.ModelAbility.REASONING),
-            ),
-            me.rerere.ai.provider.Model(
                 id = kotlin.uuid.Uuid.parse("00000135-0000-4000-8000-000000000135"),
                 modelId = "gemini-1.5-flash",
                 displayName = "Gemini 1.5 Flash",

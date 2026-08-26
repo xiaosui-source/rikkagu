@@ -505,7 +505,7 @@ private fun ColumnScope.ProviderConfigureGoogle(
         try {
             val content = context.contentResolver.openInputStream(uri)
                 ?.bufferedReader()
-                ?.readText()
+                ?.use { it.readText() }
                 ?: return@rememberLauncherForActivityResult
             val json = Json.parseToJsonElement(content).jsonObject
             onEdit(

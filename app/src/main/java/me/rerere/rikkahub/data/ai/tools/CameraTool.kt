@@ -8,7 +8,7 @@ package me.rerere.rikkahub.data.ai.tools
 
 import android.content.Context
 import android.graphics.BitmapFactory
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -49,7 +49,8 @@ fun createCameraTool(context: Context): Tool {
                 val useFrontCamera = params["front_camera"]?.jsonPrimitive?.content?.toBooleanStrictOrNull() ?: false
 
                 // Take photo using CameraService (suspend function)
-                val result = runBlocking {
+                // 用 withContext(IO) 避免阻塞主线程导致 ANR（若 execute 被调度到主线程）
+                val result = withContext(kotlinx.coroutines.Dispatchers.IO) {
                     kotlinx.coroutines.withTimeout(15_000) {
                         cameraService.capturePhoto(
                             useFrontCamera = useFrontCamera,

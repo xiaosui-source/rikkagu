@@ -53,6 +53,7 @@ class QwenTTSProvider : TTSProvider<TTSProviderSetting.Qwen> {
         if (!response.isSuccessful) {
             val errorBody = response.body.string()
             Log.e(TAG, "Qwen TTS request failed: ${response.code} ${response.message}, body: $errorBody")
+            response.close()
             throw Exception("Qwen TTS request failed: ${response.code} ${response.message}")
         }
 

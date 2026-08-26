@@ -23,15 +23,22 @@ import java.util.concurrent.ConcurrentHashMap
  * 文件缓存：按 conversationId 隔离，存储最近一次 write_files 工具调用的文件内容
  * 用于后续的增量修改（edits）模式
  * 修复：之前是全局单例，不同对话之间会互相串文件
+ *
+ * 内存保护：每个对话的缓存内容总大小超过上限后，
+ * 清空该对话缓存（下次需完整重写文件），避免长期运行内存无限增长。
  */
 object WriteFilesCache {
+    private const val MAX_CACHE_BYTES_PER_CONVERSATION = 8L * 1024 * 1024 // 8MB
+
     private val caches = ConcurrentHashMap<String, MutableMap<String, String>>()
 
     fun get(conversationId: String, name: String): String? =
         caches[conversationId]?.get(name)
 
     fun put(conversationId: String, name: String, content: String) {
-        caches.computeIfAbsent(conversationId) { ConcurrentHashMap() }[name] = content
+        val map = caches.computeIfAbsent(conversationId) { ConcurrentHashMap() }
+        map[name] = content
+        evictIfOversized(conversationId, map)
     }
 
     fun getAll(conversationId: String): Map<String, String> =
@@ -49,6 +56,18 @@ object WriteFilesCache {
         val map = caches.computeIfAbsent(conversationId) { ConcurrentHashMap() }
         map.clear()
         map.putAll(files)
+        evictIfOversized(conversationId, map)
+    }
+
+    /** 估算占用内存（UTF-16 每字符 2 字节） */
+    private fun totalBytes(map: Map<String, String>): Long =
+        map.entries.sumOf { (it.key.length.toLong() * 2L) + (it.value.length.toLong() * 2L) }
+
+    /** 超限时清空该对话缓存，防止无界增长 */
+    private fun evictIfOversized(conversationId: String, map: MutableMap<String, String>) {
+        if (totalBytes(map) > MAX_CACHE_BYTES_PER_CONVERSATION) {
+            caches.remove(conversationId)
+        }
     }
 }
 
