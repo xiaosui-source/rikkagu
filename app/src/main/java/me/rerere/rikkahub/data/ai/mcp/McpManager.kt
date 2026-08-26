@@ -146,9 +146,6 @@ class McpManager(
         if ("imagegps" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.createImageGpsTools()
         }
-        if ("exam" in enabled) {
-            list += me.rerere.rikkahub.data.ai.tools.createAutoAnswerMcpTools()
-        }
         return list
     }
 
@@ -190,12 +187,6 @@ class McpManager(
                 name = "图片 GPS 位置修改器 📍",
                 description = "内置图片 GPS 位置修改：读取/写入/清除图片 EXIF 拍摄地经纬度信息",
                 toolCount = 3,
-            ) to 1,
-            me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
-                id = "builtin-exam",
-                name = "自动答题 MCP 📝",
-                description = "内置自动答题：AI 通过搜索快速查题出答案，适用于各类答题/作业平台，全平台通用",
-                toolCount = 2,
             ) to 1,
         )
 

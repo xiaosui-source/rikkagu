@@ -1,0 +1,1657 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <link rel="icon" href="https://file.xueanquan.com/favicon.ico">
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,Chrome=1" />
+    <meta name="renderer" content="webkit" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>首页_学校安全教育平台 </title>
+    <script src="//file.xueanquan.com/anjiaowang/scripts/jquery-3.6.4.min.js?r=20250114" type="text/javascript"></script>
+    <script src="//file.xueanquan.com/anjiaowang/scripts/store2.min.js?r=20250114" type="text/javascript"></script>
+    <script src="//file.xueanquan.com/anjiaowang/js/CSEECommon.js?r=20250114" type="text/javascript"></script>
+    <script src="//file.xueanquan.com/anjiaowang/js/Lockscreen.js?r=20250114" type="text/javascript"></script>
+    
+    
+    <link type="text/css" href="//file.xueanquan.com/anjiaowang/content/styles/css/index.css?r=20250114" rel="Stylesheet" />
+    <script src="//file.xueanquan.com/anjiaowang/content/styles/js/jquery.kxbdmarquee.js?r=20250114"></script>
+    <script type="text/javascript">
+        var datetime = new Date();
+        if (datetime > new Date('2026-02-10 00:00:00') && datetime < new Date('2026-03-04 00:00:00')) {
+            document.write('<link href="/css/newyear.css?r=20260206" type="text/css" rel="stylesheet" />');
+        }
+    </script>
+
+
+</head>
+<style>
+
+    #chatBtn img {
+        width: 25px;
+    }
+</style>
+<body>
+    <!--企微客服-->
+    <div style="position: fixed; right: 0; top: 128px; z-index: 1000; width: auto; text-align: center;">
+        <div id="chatbox" style="display: none; float: left;width: 126px;height: 168px; background: #e1e1e1; box-sizing: border-box; padding: 8px;">
+            <div style="width: 110px; height: 110px;">
+                <img src="https://ossfile.xueanquan.com/xueanquan/qrcode/27d73d9a0e944d47bafa80eca4f9f888.png" width="100%" />
+            </div>
+            <div style="margin-top:8px; font-size: 12px;line-height: 18px;">扫码添加专属客服<br />随时咨询更便捷</div>
+        </div>
+        <div id="WeChatbtn" style="float: right; margin-top: 8px; font-size: 16px;line-height: 24px; color: #fff;text-align: center;border-top-left-radius: 5px;border-top-right-radius: 5px;cursor: pointer;box-sizing: content-box!important;display: block; background-color: #D25456; border-radius: 5px 0px 0px 5px; padding: 10px 8px;">
+            <img width="25px" height="25px" src="https://css.xueanquan.com/shengpingtai/Styles/images/index/chat_icon.png"><span style="word-break: break-all; word-wrap: break-word; width: 14px; display: block; padding: 0px 6px;">在线咨询</span>
+        </div>
+    </div>
+
+        <!--首页Top-->
+        <div class="header">
+            <div class="container">
+                <a href="/Main/Index.aspx" class="f_left">学校安全教育平台移动版上线啦！</a>
+                <div class="downApp-btn">
+                    <h4>
+                        平台移动版
+                    </h4>
+                    <div class="wx-bd">
+                        <img src="//file.xueanquan.com/anjiaowang/Content/Styles/images/global/downApp_wechat.jpg?r=20250114" width="114" />
+                        <p>
+                            扫码下载
+                        </p>
+                    </div>
+                </div>
+                <div class="f_right text-right">
+                    <a id="loginLinkBtn" href="javascript:CSEE.showLoginDialog()" style="color: #209583;">
+                        您好，请登录
+                    </a>
+                    <div class="loginAfter" style="display: none;">
+                        <p class="single-line">
+                            您好，<span id="loginUserName"></span>
+                        </p>
+                        <ul class="text-center">
+                            <span></span>
+                            <li class="li-line"><a id="userSiteUrl" href="javascript:void(0)" target="_blank">进入我的平台</a></li>
+                            <li><a href="javascript:CSEE.loginOut()">退出</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+<!--头部end-->
+<div class="header_wp">
+    <div class="container">
+        <div class="header_logo">
+        </div>
+        <div class="city_btn">
+            <a href="javascript:;" onclick="areaGuide(1)">[选择地区]</a>
+        </div>
+        <div id="citybox" class="citybox" style="display: none;">
+            <h1>
+                <span>按省份首字母选择</span> <a href="javascript:;" class="active" onclick="areaGuide(1,this)">
+                    A B C D E F G</a> <a href="javascript:;" onclick="areaGuide(2,this)">H I J K L M N
+                </a><a href="javascript:;" onclick="areaGuide(3,this)">O P Q R S T U</a> <a href="javascript:;"
+                    onclick="areaGuide(4,this)">V W X Y Z</a>
+            </h1>
+        </div>
+        <div class="header-rt">
+            <p>
+            </p>
+        </div>
+    </div>
+</div>
+<!--header_wp end-->
+<script src="//file.xueanquan.com/anjiaowang/js/areaJson.js?r=20210420?r=20250114" type="text/javascript"></script>
+<script>
+    function prvGuide(id, x, y) {
+        $('#citybox div').remove();
+        $('#citybox p').attr('class', '');
+        $('#citybox p a').attr('class', '');
+        var prvAreas = areaJson[x].Area[y];
+        var html = '<div><a href="' + prvAreas.Url + '"  target="_blank">' + prvAreas.PrvName + '</a>';
+        var area = prvAreas.City;
+        for (var i = 0; i < area.length; i++) {
+            var citys = area[i].CityName.split(',');
+            var cityUrls = area[i].Url.split(',');
+            for (var j = 0; j < citys.length; j++) {
+                html += '<a href="' + cityUrls[j] + '" target="_blank">' + citys[j] + '</a>';
+            }
+        }
+        area = prvAreas.Country;
+        if (area != undefined) {
+            for (var i = 0; i < area.length; i++) {
+                var countrys = area[i].CountryName.split(',');
+                var countryUrls = area[i].Url.split(',');
+                for (var j = 0; j < countrys.length; j++) {
+                    html += '<a href="' + countryUrls[j] + '" target="_blank">' + countrys[j] + '</a>';
+                }
+            }
+        }
+        html += '</div>';
+        $(id).attr('class', 'active');
+        $(id).parent().attr('class', "pon");
+        $(id).parent().after(html);
+    }
+    function areaGuide(k, id) {
+        $(id).siblings().removeClass('active');
+        $(id).attr('class', 'active');
+        $('#citybox p').remove();
+        $('#citybox div').remove();
+        var PY1 = (k - 1) * 7;
+        var PY2 = k * 7;
+        var area1;
+        var area2;
+        var html = "";
+        for (var i = PY1; i < PY2; i++) {
+            area1 = areaJson[i];
+            if (area1.Area.length > 0) {
+                html += '<p><span>' + String.fromCharCode(65 + i) + '</span>';
+                for (var j = 0; j < area1.Area.length; j++) {
+                    area2 = area1.Area[j];
+                    html += '<a href="javascript:;" onclick="prvGuide(this,' + i + ',' + j + ')">' + area2.PrvName + '</a>';
+                }
+                html += '</p>';
+            }
+        }
+        $('#citybox').append(html);
+    }
+   
+//    $(".citybox div a").click(function () {
+//        $(".city_btnon").attr("class", "city_btn");
+//        $(".citybox").hide();
+//    }); $(".citybox div a").click(function () {
+//        $(".city_btnon").attr("class", "city_btn");
+//        $(".citybox").hide();
+//    }); 
+    $(document).bind("click", function (e) {
+        try {
+            var target = $(e.target);
+            if (target.closest(".citybox").length == 0) {
+                $(".citybox").hide();
+                $(".city_btnon").attr("class", "city_btn");
+            }
+        } catch (e) { }
+    });
+     $(".city_btn").click(function (e) {
+        if ($(this).attr("class") == "city_btn") {
+            $(this).next(".citybox").show(); 
+            $(this).attr("class", "city_btnon");
+        } else {
+            $(this).attr("class", "city_btn");
+            $(this).next(".citybox").hide();
+        }
+        e.stopPropagation();
+        e.preventDefault();
+    });
+//    $(document).click(function (e) {
+//        $(".city_btnon").attr("class", "city_btn");
+//        $(".citybox").hide();
+//    });  
+</script>
+
+<div class="menu_wp">
+    <div class="container">
+        <ul selected="a">
+            <li><a href="/News/List.aspx?sort=2&amp;currentPage=1">安全动态</a></li>
+            <li><a href="/News/List.aspx?sort=3&amp;currentPage=1">通知公告</a></li>
+            <li><a href="/News/List.aspx?sort=1&amp;currentPage=1">政策法规</a></li>
+            <li><a href="/SharedResource/ShareSortList.aspx">安全资源库</a></li>
+            <li><a href="/Seminar/DetailList.aspx?currentPage=1">专题课</a></li>
+            <li><a href="/Activity/Index.aspx?currentPage=1">活动专区</a></li>
+            <li style="display:none;"><a href="/ValueAddedService/ValueAdd.aspx">增值服务</a></li>
+        </ul>
+    </div>
+</div>
+<!--总导航-->
+<script>
+    $(function () {
+        $("ui").attr("selected");
+    });
+</script>
+
+<div style="border-bottom: 1px solid #e1e1e1"  class="newyearbg">
+    <div class="container" style="padding-top: 10px;">
+        <div class="YSlide_box">
+            <div id="YSlide">
+                <p class='YSample'><a href="https://huodong.xueanquan.com/2026summer/index.html" target="_blank"><img src="https://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2026/6/24/5097868542999862107.jpg" /></a></p><p class='YSample'><a href="https://huodong.xueanquan.com/2026yfns/index.html" target="_blank"><img src="https://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2026/6/25/5549383902355464741.jpg" /></a></p>
+                <p id="YSIndex">
+                    <a target="_blank" href="#1" class="current"></a><a target="_blank" href="#2"></a>
+                </p>
+            </div>
+            <script language="javascript" type="text/javascript" src=" //file.xueanquan.com/anjiaowang/scripts/yao.js?r=1?r=20250114"></script>
+            <script language="javascript" type="text/javascript">
+            <!--
+                YAO.YTabs({
+                    tabs: YAO.getEl('YSIndex').getElementsByTagName('a'),
+                    contents: YAO.getElByClassName('YSample', 'p', 'YSlide'),
+                    defaultIndex: 0,
+                    auto: true,
+                    fadeUp: true
+                });
+                                    //-->
+            </script>
+        </div>
+        <div class="f_left" style="width: 325px; height: 305px;">
+            <a href="#"
+               target="_blank">
+                <img src="//file.xueanquan.com/anjiaowang/Content/styles/images/experts/2025焦点图右侧微信图.jpg?r=20250114" width="100%" />
+            </a>
+        </div>
+    </div>
+    <div class="container" style="display:none;">
+        <div class="data_cont f_left">
+            已有<span>17.893万</span>所学校开展安全课程、<span>180.322万</span>名教师参与授课、<span>9815.6432万</span>学生参与学习
+        </div>
+    </div>
+</div>
+
+
+<div class="container">
+    <div class="cont_left">
+        <div class="head_pic">
+    <div class="head-tit">
+        <i class="icon icon-notice"></i>通知<span style="padding: 0 5px;font-size: 22px; color: #b5b5b5">&bull;</span>法规
+    </div>
+    <div class="nav">
+        <a href="javascript:;" id="taba1" onclick="setTab('taba',1,3)" class="current">安全动态</a>
+        <a href="javascript:;" id="taba2" onclick="setTab('taba',2,3)">通知公告</a>
+        <a href="javascript:;" id="taba3" onclick="setTab('taba',3,3)">政策法规</a>
+    </div>
+    <a href="/News/List.aspx?sort=2&currentPage=1" id="taba__1" class="f_right btn_more" target="_blank">更多</a>
+    <a href="/News/List.aspx?sort=3&currentPage=1" id="taba__2" class="f_right btn_more" target="_blank" style="display:none;">更多</a>
+    <a href="/News/List.aspx?sort=1&currentPage=1" id="taba__3" class="f_right btn_more" target="_blank" style="display:none;">更多</a>
+
+</div>
+<div class="newsNotice" id="taba_1">
+            <div class="leftbox f_left">
+                <h4>
+                    <a href="/News/Content.aspx?contentsid=65533&amp;sort=2" target="_blank">2026年中小学生（幼儿）“平安暑假”专项活动</a>
+                </h4>
+                <div class="img-box">
+                    <a href="/News/Content.aspx?contentsid=65533&amp;sort=2" target="_blank">
+                        <img src="https://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2026/6/24/5660184751414467288.jpg">
+                    </a>
+                </div>
+            </div>
+        <ul class="news_list f_left">
+                                        <li>
+                                            <p class="single-line">
+                                                <a href="/News/Content.aspx?contentsid=66016&amp;s=2" target="_blank" title="【本周提醒】守护平安假期，筑牢安全防线">【本周提醒】守护平安假期，筑牢安全防线</a>
+                                            </p>
+                                            <span>(08-21)</span>
+                                        </li>
+                                        <li>
+                                            <p class="single-line">
+                                                <a href="/News/Content.aspx?contentsid=66064&amp;s=2" target="_blank" title="“熊孩子”赌气骑车离家出走 舞钢警方一小时暖心寻回">“熊孩子”赌气骑车离家出走 舞钢警方一小时暖心寻回</a>
+                                            </p>
+                                            <span>(08-26)</span>
+                                        </li>
+                                        <li>
+                                            <p class="single-line">
+                                                <a href="/News/Content.aspx?contentsid=66063&amp;s=2" target="_blank" title="孩童贪玩卡困健身器材 宿州消防快速施救">孩童贪玩卡困健身器材 宿州消防快速施救</a>
+                                            </p>
+                                            <span>(08-26)</span>
+                                        </li>
+                                        <li>
+                                            <p class="single-line">
+                                                <a href="/News/Content.aspx?contentsid=66062&amp;s=2" target="_blank" title="危急！夜晚两孩童被困黄河浅滩，河水不断上涨 吴忠消防紧急施救！">危急！夜晚两孩童被困黄河浅滩，河水不断上涨 吴忠消防紧急施救！</a>
+                                            </p>
+                                            <span>(08-26)</span>
+                                        </li>
+                                        <li>
+                                            <p class="single-line">
+                                                <a href="/News/Content.aspx?contentsid=66061&amp;s=2" target="_blank" title="幼童独自居家攀爬防盗窗遇险 辅警下班途中紧急施救">幼童独自居家攀爬防盗窗遇险 辅警下班途中紧急施救</a>
+                                            </p>
+                                            <span>(08-26)</span>
+                                        </li>
+                                        <li>
+                                            <p class="single-line">
+                                                <a href="/News/Content.aspx?contentsid=66060&amp;s=2" target="_blank" title="孩子私自充值千元，民警协调全额退款">孩子私自充值千元，民警协调全额退款</a>
+                                            </p>
+                                            <span>(08-26)</span>
+                                        </li>
+                                        <li>
+                                            <p class="single-line">
+                                                <a href="/News/Content.aspx?contentsid=66059&amp;s=2" target="_blank" title="小女孩脚卡自行车，望城消防紧急救援">小女孩脚卡自行车，望城消防紧急救援</a>
+                                            </p>
+                                            <span>(08-26)</span>
+                                        </li>
+        </ul>
+        <div class="clearfix">
+        </div>
+    </div>
+<!--安全新闻 end-->
+<!--新闻通知 end-->
+
+        <div class="news_list news_50" id="taba_2" style="display:none;">
+            <ul>
+                        <li>
+                            <p class="single-line">
+                                <a href="/News/Content.aspx?contentsid=51804&amp;s=3" target="_blank" title="坚决防范遏制学生溺水事件发生——教育部基础教育司预防学生溺水工作预警">
+                                    坚决防范遏制学生溺水事件发生——教育部基础教育司预防学生溺水工作预警
+                                </a>
+                            </p>
+                        </li>
+                        <li>
+                            <p class="single-line">
+                                <a href="/News/Content.aspx?contentsid=51797&amp;s=3" target="_blank" title="九部门联合印发通知进一步加强涉险公共区域安全防护工作">
+                                    九部门联合印发通知进一步加强涉险公共区域安全防护工作
+                                </a>
+                            </p>
+                        </li>
+                        <li>
+                            <p class="single-line">
+                                <a href="/News/Content.aspx?contentsid=51611&amp;s=3" target="_blank" title="教育部等十七部门关于印发《全面加强和改进新时代学生心理健康工作专项行动计划（2023—2025年）》的通知">
+                                    教育部等十七部门关于印发《全面加强和改进新时代学生心理健康工作专项行动计划（2023—2025年）》的通知
+                                </a>
+                            </p>
+                        </li>
+                        <li>
+                            <p class="single-line">
+                                <a href="/News/Content.aspx?contentsid=51032&amp;s=3" target="_blank" title="关于强制修改平台弱密码的通知">
+                                    关于强制修改平台弱密码的通知
+                                </a>
+                            </p>
+                        </li>
+                        <li>
+                            <p class="single-line">
+                                <a href="/News/Content.aspx?contentsid=50328&amp;s=3" target="_blank" title="教育部等十三部门关于健全学校家庭社会协同育人机制的意见">
+                                    教育部等十三部门关于健全学校家庭社会协同育人机制的意见
+                                </a>
+                            </p>
+                        </li>
+                        <li>
+                            <p class="single-line">
+                                <a href="/News/Content.aspx?contentsid=50323&amp;s=3" target="_blank" title="孙春兰强调 扎实做好各项准备工作 确保如期安全开学">孙春兰强调 扎实做好各项准备工作 确保如期安全开学</a>
+                            </p>
+                        </li>
+                        <li>
+                            <p class="single-line">
+                                <a href="/News/Content.aspx?contentsid=47497&amp;s=3" target="_blank" title="教育部办公厅等五部门关于做好预防中小学生溺水工作的通知">
+                                    教育部办公厅等五部门关于做好预防中小学生溺水工作的通知
+                                </a>
+                            </p>
+                        </li>
+                        <li>
+                            <p class="single-line">
+                                <a href="/News/Content.aspx?contentsid=46569&amp;s=3" target="_blank" title="关于做好中小学生汛期安全工作的提示">
+                                    关于做好中小学生汛期安全工作的提示
+                                </a>
+                            </p>
+                        </li>
+                        <li>
+                            <p class="single-line">
+                                <a href="/News/Content.aspx?contentsid=46561&amp;s=3" target="_blank" title="教育部办公厅关于开展2022年教育系统“安全生产月”活动的通知">
+                                    教育部办公厅关于开展2022年教育系统“安全生产月”活动的通知
+                                </a>
+                            </p>
+                        </li>
+                        <li>
+                            <p class="single-line">
+                                <a href="/News/Content.aspx?contentsid=46560&amp;s=3" target="_blank" title="教育部办公厅关于做好教育系统2022年全国“爱眼日”宣传教育工作的通知">
+                                    教育部办公厅关于做好教育系统2022年全国“爱眼日”宣传教育工作的通知
+                                </a>
+                            </p>
+                        </li>
+            </ul>
+            <div class="clearfix">
+            </div>
+        </div>
+        <!--通知公告 end-->
+        <div class="news_list news_50" id="taba_3" style="display: none;">
+            <ul>
+                        <li>
+                            <p class="single-line">
+                                <a href="/News/Content.aspx?contentsid=24228&amp;s=1" title="《义务教育学校管理标准》">
+                                    《义务教育学校管理标准》
+                                </a>
+                            </p>
+                        </li>
+                        <li>
+                            <p class="single-line">
+                                <a href="/News/Content.aspx?contentsid=15358&amp;s=1" title="《中小学幼儿园安全管理办法》">
+                                    《中小学幼儿园安全管理办法》
+                                </a>
+                            </p>
+                        </li>
+                        <li>
+                            <p class="single-line">
+                                <a href="/News/Content.aspx?contentsid=42019&amp;s=1" title="未成年人学校保护规定">
+                                    未成年人学校保护规定
+                                </a>
+                            </p>
+                        </li>
+                        <li>
+                            <p class="single-line">
+                                <a href="/News/Content.aspx?contentsid=32674&amp;s=1" title="习近平：积极推进我国应急管理体系和能力现代化">
+                                    习近平：积极推进我国应急管理体系和能力现代化
+                                </a>
+                            </p>
+                        </li>
+                        <li>
+                            <p class="single-line">
+                                <a href="/News/Content.aspx?contentsid=32431&amp;s=1" title="中共中央办公厅、国务院办公厅印发《关于推行法律顾问制度和公职律师公司律师制度的意见》">
+                                    中共中央办公厅、国务院办公厅印发《关于推行法律顾问制度和公职律师公司律师制度的意见》
+                                </a>
+                            </p>
+                        </li>
+                        <li>
+                            <p class="single-line">
+                                <a href="/News/Content.aspx?contentsid=32430&amp;s=1" title="《中华人民共和国突发事件应对法》">
+                                    《中华人民共和国突发事件应对法》
+                                </a>
+                            </p>
+                        </li>
+                        <li>
+                            <p class="single-line">
+                                <a href="/News/Content.aspx?contentsid=31527&amp;s=1" title="《河北省学校安全条例》">
+                                    《河北省学校安全条例》
+                                </a>
+                            </p>
+                        </li>
+                        <li>
+                            <p class="single-line">
+                                <a href="/News/Content.aspx?contentsid=30828&amp;s=1" title="《儿童个人信息网络保护规定》">
+                                    《儿童个人信息网络保护规定》
+                                </a>
+                            </p>
+                        </li>
+                        <li>
+                            <p class="single-line">
+                                <a href="/News/Content.aspx?contentsid=30766&amp;s=1" title="教育部等五部门关于完善安全事故处理机制维护学校教育教学秩序的意见">
+                                    教育部等五部门关于完善安全事故处理机制维护学校教育教学秩序的意见
+                                </a>
+                            </p>
+                        </li>
+                        <li>
+                            <p class="single-line">
+                                <a href="/News/Content.aspx?contentsid=29578&amp;s=1" title="教育部等八部门关于印发《综合防控儿童青少年近视实施方案》的通知">
+                                    教育部等八部门关于印发《综合防控儿童青少年近视实施方案》的通知
+                                </a>
+                            </p>
+                        </li>
+            </ul>
+            <div class="clearfix">
+            </div>
+        </div>
+        <!--政策法规 end-->
+        
+<!--新闻动态 end-->
+<div class="news_list news_50" id="tabb_2" style="display: none;">
+    <ul>
+    </ul>
+    <div class="clearfix">
+    </div>
+</div>
+<!--经验交流 end-->
+<div class="process-box text-center" id="tabb_3" style="display: none; padding-bottom: 10px;">
+    <img src="//file.xueanquan.com/anjiaowang/Content/styles/images/index/img_create.jpg?r=20250114" />
+</div>
+<!--示范区展播 end-->
+<div class="head_pic">
+    <div class="head-tit">
+        <i class="icon icon-experiment"></i>各地经验交流
+    </div>
+    <div class="nav">
+        <a href="javascript:;" id="tabc1" onclick="setTab('tabc',1,3)" class="current">各地动态</a>
+        <a href="javascript:;" id="tabc2" onclick="setTab('tabc',2,3)">经验交流</a>
+    </div>
+    <a href="/News/ExperimentalList.aspx?sort=4&amp;currentPage=1" id="tabc__1" class="f_right btn_more" target="_blank">更多</a>
+    <a href="/News/ExperimentalList.aspx?sort=5&amp;currentPage=1" id="tabc__2" class="f_right btn_more" target="_blank" style="display: none;">更多</a>
+    <a href="//xagc.xueanquan.com/Views/SafeAreaStep" id="tabc__3" class="f_right btn_more" target="_blank" style="display: none;">更多</a>
+    <a href="//xagc.xueanquan.com/Views/JoinArea" id="tabc__4" class="f_right btn_more" target="_blank" style="display: none;">更多</a>
+</div>
+<div class="news_list news_50" id="tabc_1">
+    <ul>
+            <li>
+                <p class="single-line">
+                    <a href="/News/ExperimentalContent.aspx?contentsid=66055&amp;s=4" target="_blank">惠州市汝湖镇开展防溺水主题宣传教育活动</a>
+                </p>
+            </li>
+            <li>
+                <p class="single-line">
+                    <a href="/News/ExperimentalContent.aspx?contentsid=66054&amp;s=4" target="_blank">福州市仓山区金山街道金河社区开展“和你在一起”暑期安全守护主题活动</a>
+                </p>
+            </li>
+            <li>
+                <p class="single-line">
+                    <a href="/News/ExperimentalContent.aspx?contentsid=66053&amp;s=4" target="_blank">凉山州德昌县：安全教育润童心 文明实践伴成长</a>
+                </p>
+            </li>
+            <li>
+                <p class="single-line">
+                    <a href="/News/ExperimentalContent.aspx?contentsid=66043&amp;s=4" target="_blank">芜湖市繁昌交警联合区教育局开展校园交通安全宣讲</a>
+                </p>
+            </li>
+            <li>
+                <p class="single-line">
+                    <a href="/News/ExperimentalContent.aspx?contentsid=66042&amp;s=4" target="_blank">漯河市召陵区老窝镇二村小学开展暑期安全教育系列活动</a>
+                </p>
+            </li>
+            <li>
+                <p class="single-line">
+                    <a href="/News/ExperimentalContent.aspx?contentsid=66041&amp;s=4" target="_blank">重庆市多方联动进乡镇 筑牢暑运开学季道路安全防线</a>
+                </p>
+            </li>
+            <li>
+                <p class="single-line">
+                    <a href="/News/ExperimentalContent.aspx?contentsid=66031&amp;s=4" target="_blank">云浮市云安区教育局开展2026年“同守护 共成长”暑假安全主题党日志愿服务宣传活动</a>
+                </p>
+            </li>
+            <li>
+                <p class="single-line">
+                    <a href="/News/ExperimentalContent.aspx?contentsid=66030&amp;s=4" target="_blank">韶关市翁源县红十字会应急救护知识宣讲活动走进龙仙中学</a>
+                </p>
+            </li>
+    </ul>
+    <div class="clearfix">
+    </div>
+</div>
+<!--新闻动态 end-->
+<div class="news_list news_50" id="tabc_2" style="display: none;">
+    <ul>
+            <li>
+                <p class="single-line">
+                    <a href="/News/ExperimentalContent.aspx?contentsid=66058&amp;s=5" target="_blank">福建省消防站里练逃生 福建掀起暑期消防科普热</a>
+                </p>
+            </li>
+            <li>
+                <p class="single-line">
+                    <a href="/News/ExperimentalContent.aspx?contentsid=66057&amp;s=5" target="_blank">南通市通州区教育体育局：多点发力 守护青少年缤纷假期</a>
+                </p>
+            </li>
+            <li>
+                <p class="single-line">
+                    <a href="/News/ExperimentalContent.aspx?contentsid=66056&amp;s=5" target="_blank">雅安市天全县教育局召开2026年秋季学期开学工作会</a>
+                </p>
+            </li>
+            <li>
+                <p class="single-line">
+                    <a href="/News/ExperimentalContent.aspx?contentsid=66046&amp;s=5" target="_blank">护航开学季 食安不松懈 兰州市市场监管局全力守护师生“舌尖上的安全”</a>
+                </p>
+            </li>
+            <li>
+                <p class="single-line">
+                    <a href="/News/ExperimentalContent.aspx?contentsid=66045&amp;s=5" target="_blank">阜阳市部署2026年秋季校园食品安全工作 护航师生“开学第一餐”</a>
+                </p>
+            </li>
+            <li>
+                <p class="single-line">
+                    <a href="/News/ExperimentalContent.aspx?contentsid=66044&amp;s=5" target="_blank">无锡市：织密暑期“防护网” 全域护航假期安全</a>
+                </p>
+            </li>
+            <li>
+                <p class="single-line">
+                    <a href="/News/ExperimentalContent.aspx?contentsid=66034&amp;s=5" target="_blank">蚌埠市兰桥镇“三向发力”筑牢校园食品安全防线</a>
+                </p>
+            </li>
+            <li>
+                <p class="single-line">
+                    <a href="/News/ExperimentalContent.aspx?contentsid=66033&amp;s=5" target="_blank">雅安市石棉县教育系统全方位筑牢暑期学生安全防线</a>
+                </p>
+            </li>
+    </ul>
+    <div class="clearfix">
+    </div>
+</div>
+<!--经验交流 end-->
+<div class="process-box text-center" id="tabc_3" style="display: none;">
+    <img src="//file.xueanquan.com/anjiaowang/Content/styles/images/index/img_process.jpg?r=20250114" />
+</div>
+<!--申请流程 end-->
+<div class="city_list text-center" id="tabc_" style="display: none; padding-top: 15px;">
+    <ul>
+            <li>
+                <a href="https://chongqing.xueanquan.com" target="_blank" title="学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201705080951128020.jpg">
+                </a> <a href="https://chongqing.xueanquan.com" target="_blank" title="学校安全教育平台">
+                    <h4 class="single-line">学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://gushi.xueanquan.com" target="_blank" title="固始县学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201607061531402315.jpg">
+                </a> <a href="https://gushi.xueanquan.com" target="_blank" title="固始县学校安全教育平台">
+                    <h4 class="single-line">固始县学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://gongyi.xueanquan.com" target="_blank" title="巩义市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201607061532003087.jpg">
+                </a> <a href="https://gongyi.xueanquan.com" target="_blank" title="巩义市学校安全教育平台">
+                    <h4 class="single-line">巩义市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://dengzhou.xueanquan.com" target="_blank" title="邓州市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201607061532078592.jpg">
+                </a> <a href="https://dengzhou.xueanquan.com" target="_blank" title="邓州市学校安全教育平台">
+                    <h4 class="single-line">邓州市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://yongcheng.xueanquan.com" target="_blank" title="永城市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201607061532156436.jpg">
+                </a> <a href="https://yongcheng.xueanquan.com" target="_blank" title="永城市学校安全教育平台">
+                    <h4 class="single-line">永城市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://ruzhou.xueanquan.com" target="_blank" title="汝州市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201607061532213220.jpg">
+                </a> <a href="https://ruzhou.xueanquan.com" target="_blank" title="汝州市学校安全教育平台">
+                    <h4 class="single-line">汝州市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://changyuan.xueanquan.com" target="_blank" title="长垣市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201912061852005772.jpg">
+                </a> <a href="https://changyuan.xueanquan.com" target="_blank" title="长垣市学校安全教育平台">
+                    <h4 class="single-line">长垣市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://xincai.xueanquan.com" target="_blank" title="新蔡县学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201607061532366880.jpg">
+                </a> <a href="https://xincai.xueanquan.com" target="_blank" title="新蔡县学校安全教育平台">
+                    <h4 class="single-line">新蔡县学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://lankao.xueanquan.com" target="_blank" title="兰考县学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201607061532429124.jpg">
+                </a> <a href="https://lankao.xueanquan.com" target="_blank" title="兰考县学校安全教育平台">
+                    <h4 class="single-line">兰考县学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://huaxian.xueanquan.com" target="_blank" title="滑县学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201607061532509308.jpg">
+                </a> <a href="https://huaxian.xueanquan.com" target="_blank" title="滑县学校安全教育平台">
+                    <h4 class="single-line">滑县学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://luyi.xueanquan.com" target="_blank" title="鹿邑县学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201607061532582472.jpg">
+                </a> <a href="https://luyi.xueanquan.com" target="_blank" title="鹿邑县学校安全教育平台">
+                    <h4 class="single-line">鹿邑县学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://beijing.xueanquan.com" target="_blank" title="北京市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201605031653535530.jpg">
+                </a> <a href="https://beijing.xueanquan.com" target="_blank" title="北京市学校安全教育平台">
+                    <h4 class="single-line">北京市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://chongqing.xueanquan.com" target="_blank" title="重庆市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201605031758119702.jpg">
+                </a> <a href="https://chongqing.xueanquan.com" target="_blank" title="重庆市学校安全教育平台">
+                    <h4 class="single-line">重庆市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://neijiang.xueanquan.com" target="_blank" title="内江市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201605031901147116.jpg">
+                </a> <a href="https://neijiang.xueanquan.com" target="_blank" title="内江市学校安全教育平台">
+                    <h4 class="single-line">内江市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://dazhou.xueanquan.com" target="_blank" title="达州市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201605031903171094.jpg">
+                </a> <a href="https://dazhou.xueanquan.com" target="_blank" title="达州市学校安全教育平台">
+                    <h4 class="single-line">达州市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://beijing.xueanquan.com" target="_blank" title="学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201605031653535530.jpg">
+                </a> <a href="https://beijing.xueanquan.com" target="_blank" title="学校安全教育平台">
+                    <h4 class="single-line">学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://chaozhou.xueanquan.com" target="_blank" title="潮州市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201603221046563592.jpg">
+                </a> <a href="https://chaozhou.xueanquan.com" target="_blank" title="潮州市学校安全教育平台">
+                    <h4 class="single-line">潮州市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://dongguan.xueanquan.com" target="_blank" title="东莞市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201603221047239401.jpg">
+                </a> <a href="https://dongguan.xueanquan.com" target="_blank" title="东莞市学校安全教育平台">
+                    <h4 class="single-line">东莞市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://foshan.xueanquan.com" target="_blank" title="佛山市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201603221047402265.jpg">
+                </a> <a href="https://foshan.xueanquan.com" target="_blank" title="佛山市学校安全教育平台">
+                    <h4 class="single-line">佛山市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://guangzhou.xueanquan.com" target="_blank" title="广州市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201603221048244214.jpg">
+                </a> <a href="https://guangzhou.xueanquan.com" target="_blank" title="广州市学校安全教育平台">
+                    <h4 class="single-line">广州市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://heyuan.xueanquan.com" target="_blank" title="河源市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201603221048563547.jpg">
+                </a> <a href="https://heyuan.xueanquan.com" target="_blank" title="河源市学校安全教育平台">
+                    <h4 class="single-line">河源市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://huizhou.xueanquan.com" target="_blank" title="惠州市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201603221049246531.jpg">
+                </a> <a href="https://huizhou.xueanquan.com" target="_blank" title="惠州市学校安全教育平台">
+                    <h4 class="single-line">惠州市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://jiangmen.xueanquan.com" target="_blank" title="江门市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201603221049410019.jpg">
+                </a> <a href="https://jiangmen.xueanquan.com" target="_blank" title="江门市学校安全教育平台">
+                    <h4 class="single-line">江门市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://jieyang.xueanquan.com" target="_blank" title="揭阳市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201603221049597064.jpg">
+                </a> <a href="https://jieyang.xueanquan.com" target="_blank" title="揭阳市学校安全教育平台">
+                    <h4 class="single-line">揭阳市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://maoming.xueanquan.com" target="_blank" title="茂名市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201603221050229192.jpg">
+                </a> <a href="https://maoming.xueanquan.com" target="_blank" title="茂名市学校安全教育平台">
+                    <h4 class="single-line">茂名市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://meizhou.xueanquan.com" target="_blank" title="梅州市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201603221050405784.jpg">
+                </a> <a href="https://meizhou.xueanquan.com" target="_blank" title="梅州市学校安全教育平台">
+                    <h4 class="single-line">梅州市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://qingyuan.xueanquan.com" target="_blank" title="清远市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201603221050553673.jpg">
+                </a> <a href="https://qingyuan.xueanquan.com" target="_blank" title="清远市学校安全教育平台">
+                    <h4 class="single-line">清远市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://shantou.xueanquan.com" target="_blank" title="汕头市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201603221051136973.jpg">
+                </a> <a href="https://shantou.xueanquan.com" target="_blank" title="汕头市学校安全教育平台">
+                    <h4 class="single-line">汕头市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://shanwei.xueanquan.com" target="_blank" title="汕尾市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201603221051327449.jpg">
+                </a> <a href="https://shanwei.xueanquan.com" target="_blank" title="汕尾市学校安全教育平台">
+                    <h4 class="single-line">汕尾市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://shaoguan.xueanquan.com" target="_blank" title="韶关市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201603221051544914.jpg">
+                </a> <a href="https://shaoguan.xueanquan.com" target="_blank" title="韶关市学校安全教育平台">
+                    <h4 class="single-line">韶关市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://shenzhen.xueanquan.com" target="_blank" title="深圳市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201603221052120882.jpg">
+                </a> <a href="https://shenzhen.xueanquan.com" target="_blank" title="深圳市学校安全教育平台">
+                    <h4 class="single-line">深圳市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://yangjiang.xueanquan.com" target="_blank" title="阳江市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201603221052310110.jpg">
+                </a> <a href="https://yangjiang.xueanquan.com" target="_blank" title="阳江市学校安全教育平台">
+                    <h4 class="single-line">阳江市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://yunfu.xueanquan.com" target="_blank" title="云浮市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201603221052465487.jpg">
+                </a> <a href="https://yunfu.xueanquan.com" target="_blank" title="云浮市学校安全教育平台">
+                    <h4 class="single-line">云浮市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://zhanjiang.xueanquan.com" target="_blank" title="湛江市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201603221053121951.jpg">
+                </a> <a href="https://zhanjiang.xueanquan.com" target="_blank" title="湛江市学校安全教育平台">
+                    <h4 class="single-line">湛江市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://zhaoqing.xueanquan.com" target="_blank" title="肇庆市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201603221053355171.jpg">
+                </a> <a href="https://zhaoqing.xueanquan.com" target="_blank" title="肇庆市学校安全教育平台">
+                    <h4 class="single-line">肇庆市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://zhuhai.xueanquan.com" target="_blank" title="珠海市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201603221053502748.jpg">
+                </a> <a href="https://zhuhai.xueanquan.com" target="_blank" title="珠海市学校安全教育平台">
+                    <h4 class="single-line">珠海市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://baotou.xueanquan.com" target="_blank" title="包头市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201512291515092095.jpg">
+                </a> <a href="https://baotou.xueanquan.com" target="_blank" title="包头市学校安全教育平台">
+                    <h4 class="single-line">包头市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://ningdong.xueanquan.com" target="_blank" title="宁东管委会市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201512041253029489.jpg">
+                </a> <a href="https://ningdong.xueanquan.com" target="_blank" title="宁东管委会市学校安全教育平台">
+                    <h4 class="single-line">宁东管委会市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://xinji.xueanquan.com" target="_blank" title="辛集市学校安全教育平台">
+                    <img src="https://file.xueanquan.com/NavIco/Site/202206071645325867.jpg">
+                </a> <a href="https://xinji.xueanquan.com" target="_blank" title="辛集市学校安全教育平台">
+                    <h4 class="single-line">辛集市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://dingzhou.xueanquan.com" target="_blank" title="定州市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201511091805004789.jpg">
+                </a> <a href="https://dingzhou.xueanquan.com" target="_blank" title="定州市学校安全教育平台">
+                    <h4 class="single-line">定州市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://henan.xueanquan.com" target="_blank" title="学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201511031101037923.jpg">
+                </a> <a href="https://henan.xueanquan.com" target="_blank" title="学校安全教育平台">
+                    <h4 class="single-line">学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://zhengzhou.xueanquan.com" target="_blank" title="郑州市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201511031100541203.jpg">
+                </a> <a href="https://zhengzhou.xueanquan.com" target="_blank" title="郑州市学校安全教育平台">
+                    <h4 class="single-line">郑州市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://kaifeng.xueanquan.com" target="_blank" title="开封市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201511031059139369.jpg">
+                </a> <a href="https://kaifeng.xueanquan.com" target="_blank" title="开封市学校安全教育平台">
+                    <h4 class="single-line">开封市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://luoyang.xueanquan.com" target="_blank" title="洛阳市学校安全教育平台">
+                    <img src="https://file.xueanquan.com/NavIco/Site/202306081806438738.jpg">
+                </a> <a href="https://luoyang.xueanquan.com" target="_blank" title="洛阳市学校安全教育平台">
+                    <h4 class="single-line">洛阳市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://pingdingshan.xueanquan.com" target="_blank" title="平顶山市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201511031058254209.jpg">
+                </a> <a href="https://pingdingshan.xueanquan.com" target="_blank" title="平顶山市学校安全教育平台">
+                    <h4 class="single-line">平顶山市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://anyang.xueanquan.com" target="_blank" title="安阳市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201511031058166692.jpg">
+                </a> <a href="https://anyang.xueanquan.com" target="_blank" title="安阳市学校安全教育平台">
+                    <h4 class="single-line">安阳市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://hebi.xueanquan.com" target="_blank" title="鹤壁市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201511031058053904.jpg">
+                </a> <a href="https://hebi.xueanquan.com" target="_blank" title="鹤壁市学校安全教育平台">
+                    <h4 class="single-line">鹤壁市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://xinxiang.xueanquan.com" target="_blank" title="新乡市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201511031057563112.jpg">
+                </a> <a href="https://xinxiang.xueanquan.com" target="_blank" title="新乡市学校安全教育平台">
+                    <h4 class="single-line">新乡市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://jiaozuo.xueanquan.com" target="_blank" title="焦作市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201511031057041603.jpg">
+                </a> <a href="https://jiaozuo.xueanquan.com" target="_blank" title="焦作市学校安全教育平台">
+                    <h4 class="single-line">焦作市学校安全教育平台</h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://puyang.xueanquan.com" target="_blank" title="濮阳市学校安全教育平台">
+                    <img src="//file.xueanquan.com/NavIco/Site/201511031056556739.jpg">
+                </a> <a href="https://puyang.xueanquan.com" target="_blank" title="濮阳市学校安全教育平台">
+                    <h4 class="single-line">濮阳市学校安全教育平台</h4>
+                </a>
+            </li>
+    </ul>
+</div>
+<!--实验区展播 end-->
+<!--安全教育实验区 end-->
+<!--创建流程 end-->
+<script type="text/javascript">
+    $(function () {
+        $(".pmbox").kxbdMarquee({ isEqual: false });
+    });
+</script>
+            <div class="head_pic head_pica">
+        <strong>安全资源库</strong> <a href="/SharedResource/ShareSortList.aspx" class="f_right btn_more" target="_blank">更多</a>
+    </div>
+    <div class="share_list text-center">
+        <ul>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=79&amp;parentId=43" target="_blank">
+                        <img src="https://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2023/3/16/5384943357509119382.jpg" width="100%">
+                        <p>学校安全教育平台</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=87&amp;parentId=43" target="_blank">
+                        <img src="https://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2024/6/3/5080902490614318295.jpg" width="100%">
+                        <p>应急管理部宣传教育中心</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=59&amp;parentId=43" target="_blank">
+                        <img src="https://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2023/3/16/5714961929943355392.jpg" width="100%">
+                        <p>公安部道路交通安全研究中心</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="http://www.cneb.gov.cn/kepu/" target="_blank">
+                        <img src="https://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2021/7/12/5559467919034734691.jpg" width="100%">
+                        <p>国家应急广播</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=91&amp;parentId=43" target="_blank">
+                        <img src="https://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2023/5/11/5148321359464222386.jpg" width="100%">
+                        <p>浙江省拱宸强制隔离戒毒所</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=58&amp;parentId=43" target="_blank">
+                        <img src="http://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2020/8/10/5184404809667815160.jpg" width="100%">
+                        <p>浙江地区提供</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=45&amp;parentId=43" target="_blank">
+                        <img src="http://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2020/8/10/5686807639682490429.jpg" width="100%">
+                        <p>山东地区提供</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=44&amp;parentId=43" target="_blank">
+                        <img src="http://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2020/8/10/5200559536396458711.jpg" width="100%">
+                        <p>河北地区提供</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=60&amp;parentId=43" target="_blank">
+                        <img src="http://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2020/8/11/4927895642477860102.jpg" width="100%">
+                        <p>河南地区提供</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=61&amp;parentId=43" target="_blank">
+                        <img src="http://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2020/8/11/5280769503248756944.jpg" width="100%">
+                        <p>重庆地区提供</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=62&amp;parentId=43" target="_blank">
+                        <img src="http://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2020/8/11/5211112233701882556.jpg" width="100%">
+                        <p>福建地区提供</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=63&amp;parentId=43" target="_blank">
+                        <img src="http://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2020/8/11/5222430493782406044.jpg" width="100%">
+                        <p>广东地区提供</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=64&amp;parentId=43" target="_blank">
+                        <img src="http://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2020/8/11/4800161971677958934.jpg" width="100%">
+                        <p>江苏地区提供</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=65&amp;parentId=43" target="_blank">
+                        <img src="http://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2020/8/11/5627348389536349080.jpg" width="100%">
+                        <p>四川地区提供</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=69&amp;parentId=43" target="_blank">
+                        <img src="http://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2020/8/11/5678849472090114763.jpg" width="100%">
+                        <p>山西地区提供</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=70&amp;parentId=43" target="_blank">
+                        <img src="http://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2020/8/13/5152850511531545230.jpg" width="100%">
+                        <p>广西地区提供</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=75&amp;parentId=43" target="_blank">
+                        <img src="http://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2021/3/18/5556773842673201724.jpg" width="100%">
+                        <p>上海地区提供</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=88&amp;parentId=43" target="_blank">
+                        <img src="https://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/png/2022/10/14/5406597579558032446.png" width="100%">
+                        <p>安徽地区提供</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=95&amp;parentId=43" target="_blank">
+                        <img src="https://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/png/2023/10/11/5097538897798549271.png" width="100%">
+                        <p>甘肃地区提供</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=94&amp;parentId=43" target="_blank">
+                        <img src="https://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/png/2023/7/6/5651599939779133147.png" width="100%">
+                        <p>泉州全生命周期消防安全教育</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=93&amp;parentId=43" target="_blank">
+                        <img src="https://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2023/6/7/4903639410811072596.jpg" width="100%">
+                        <p>重庆市安全教育课堂优秀案例</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=92&amp;parentId=43" target="_blank">
+                        <img src="https://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2023/6/1/5149312247099638614.jpg" width="100%">
+                        <p>南阳市西峡县反邪教主题活动</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=89&amp;parentId=43" target="_blank">
+                        <img src="https://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2022/11/24/5372202907025046905.jpg" width="100%">
+                        <p>青岛市生命关爱主题活动</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=81&amp;parentId=43" target="_blank">
+                        <img src="https://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2021/12/23/5345282375477342556.jpg" width="100%">
+                        <p>湖南省安全教育优质课</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=84&amp;parentId=42" target="_blank">
+                        <img src="https://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2022/6/14/4706509402563781197.jpg" width="100%">
+                        <p>学生欺凌</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=97&amp;parentId=42" target="_blank">
+                        <img src="https://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2026/2/24/5025451502678361994.jpg" width="100%">
+                        <p>校园安全</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=47&amp;parentId=42" target="_blank">
+                        <img src="http://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2020/8/10/4616794873669151606.jpg" width="100%">
+                        <p>网络安全</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=46&amp;parentId=42" target="_blank">
+                        <img src="http://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2020/8/10/4922316030804992993.jpg" width="100%">
+                        <p>交通安全</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=48&amp;parentId=42" target="_blank">
+                        <img src="http://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2020/8/10/5666821968124920108.jpg" width="100%">
+                        <p>消防安全</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=51&amp;parentId=42" target="_blank">
+                        <img src="http://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2020/8/10/5128725223670458799.jpg" width="100%">
+                        <p>自然灾害</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=96&amp;parentId=42" target="_blank">
+                        <img src="https://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/png/2024/3/19/5065528490045314872.png" width="100%">
+                        <p>性教育</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=49&amp;parentId=42" target="_blank">
+                        <img src="http://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2020/8/10/5427657397858086567.jpg" width="100%">
+                        <p>意外伤害</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=50&amp;parentId=42" target="_blank">
+                        <img src="http://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2020/8/10/5080702749744585248.jpg" width="100%">
+                        <p>预防溺水</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=85&amp;parentId=42" target="_blank">
+                        <img src="https://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2022/6/14/5056489798962581051.jpg" width="100%">
+                        <p>急救知识</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=80&amp;parentId=42" target="_blank">
+                        <img src="https://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/png/2021/10/14/4714719177779885257.png" width="100%">
+                        <p>食品安全</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=53&amp;parentId=42" target="_blank">
+                        <img src="http://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2020/8/10/5151463254639769536.jpg" width="100%">
+                        <p>心理健康</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=52&amp;parentId=42" target="_blank">
+                        <img src="http://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2020/8/10/5311955627749028873.jpg" width="100%">
+                        <p>公共卫生</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/SharedResource/ShareSortList.aspx?sortId=98&amp;parentId=42" target="_blank">
+                        <img src="https://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2026/2/24/5583073920808052579.jpg" width="100%">
+                        <p>假期安全</p>
+                        <div class="look-div"></div>
+                        <span>点击查看</span>
+                    </a>
+                </li>
+        </ul>
+    </div>
+
+<!--专家团队 start-->
+<div class="head_pic">
+    <div class="head-tit">
+        <i class="icon icon-zhuanjia"></i>专家团队
+    </div>
+    <a href="/ServiceCenter/ExpertTeam_list.aspx" class="f_right btn_more" target="_blank">更多</a>
+</div>
+<div class="expert_list text-center">
+    <ul>
+        <li>
+            <a href="/ServiceCenter/ExpertTeam_text.aspx?id=e6" target="_blank">
+                <img src="//file.xueanquan.com/anjiaowang/Content/styles/images/experts/zcs.png?r=20250114" width="100%" />
+                <p>
+                    宗春山
+                </p>
+            </a>
+        </li>
+        <li>
+            <a href="/ServiceCenter/ExpertTeam_text.aspx?id=e2" target="_blank">
+                <img src="//file.xueanquan.com/anjiaowang/Content/styles/images/experts/lxh.jpg?r=20250114" width="100%" />
+                <p>
+                    罗秀华
+                </p>
+            </a>
+        </li>
+        <li>
+            <a href="/ServiceCenter/ExpertTeam_text.aspx?id=e12" target="_blank">
+                <img src="//file.xueanquan.com/anjiaowang/Content/styles/images/experts/zyh.png?r=20250114" width="100%" />
+                <p>
+                    张永华
+                </p>
+            </a>
+        </li>
+        <li>
+            <a href="/ServiceCenter/ExpertTeam_text.aspx?id=e11" target="_blank">
+                <img src="//file.xueanquan.com/anjiaowang/Content/styles/images/experts/mlj.jpg?r=20250114" width="100%" />
+                <p>
+                    马雷军
+                </p>
+            </a>
+        </li>
+        <li>
+            <a href="/ServiceCenter/ExpertTeam_text.aspx?id=e13" target="_blank">
+                <img src="https://file.xueanquan.com/fileupload/UploadFile/cdn/untemp/WorkersTraining/jpg/2019/5/17/5543176654157664629.jpg" width="100%" />
+                <p>
+                    谢志东
+                </p>
+            </a>
+        </li>
+        <li>
+            <a href="/ServiceCenter/ExpertTeam_text.aspx?id=e14" target="_blank">
+                <img src="//file.xueanquan.com/anjiaowang/Content/styles/images/experts/cxl.jpg?r=20250114" width="100%" />
+                <p>
+                    崔祥烈
+                </p>
+            </a>
+        </li>
+    </ul>
+</div>
+<!--专家团队 end-->
+<script type="text/javascript">
+    //图片滚动功能
+    //    $(".ul_ziyuan ul").html($(".ul_ziyuan ul").html()).each(function () {
+    //        var _this = this;
+    //        var t2 = 0;
+    //        t2 = setInterval(function () {
+    //            var b1 = $(_this).find('li:first');
+    //            var b2 = $(_this).find('li:last');
+    //            $(b1).insertAfter($(b2));
+    //        }, 2000);
+    //    });
+    $(document).ready(function () {
+        $(".share_list").kxbdMarquee({ isEqual: false });
+        $(".lrkfbtn").click(function() {
+            $(".lrkfbox").toggle();
+        });
+    });
+
+</script>
+
+        <div class="head_pic">
+            <div class="head-tit">
+                <i class="icon icon-unit"></i>支持单位
+            </div>
+            <a href="/ServiceCenter/SupportUnits.aspx" class="f_right btn_more"
+               target="_blank">更多</a>
+        </div>
+        <ul class="partner_list">
+            <li>
+                <a href="http://www.cctf.org.cn/" target="_blank">
+                    <img src="//file.xueanquan.com/anjiaowang/Content/styles/images/Service/partner_zc02.jpg?r=20250114" title="中国儿童少年基金会" width="100%" />
+                </a>
+            </li>
+            <li>
+                <a href="http://www.chinasafety.gov.cn/" target="_blank">
+                    <img src="//file.xueanquan.com/anjiaowang/Content/styles/images/Service/zhrmghgyjglb.jpg?r=20250114" width="100%" title="中华人民共和国应急管理部" />
+                </a>
+            </li>
+            <li>
+                <a href="http://www.cea.gov.cn/" target="_blank">
+                    <img src="//file.xueanquan.com/anjiaowang/Content/styles/images/Service/partner_zc03.jpg?r=20250114" title="中国地震局" width="100%" />
+                </a>
+            </li>
+            <li>
+                <a href="http://www.119.gov.cn/xiaofang/" target="_blank">
+                    <img src="//file.xueanquan.com/anjiaowang/Content/styles/images/Service/yjglxfjy.jpg?r=20250114" title="中华人民共和国公安部消防局" width="100%" />
+                </a>
+            </li>
+
+
+        </ul>
+    </div>
+    <div class="cont_right">
+        <div class="head_pic">
+    专题课<span>PROJECT</span> <a href="/Seminar/DetailList.aspx" class="f_right btn_more" target="_blank">
+        更多
+    </a>
+</div>
+<div class="project_list">
+        <input type="hidden" value="https://huodong.xueanquan.com/2026ztkkxaq/index.html" id="scount1" />
+        <div class="img-box">
+            <a onclick="JavaScript:SpecialCount(1,1279);" target="_blank">
+                <img src="https://file.xueanquan.com/NavIco/IssueCourses/202608251417034160.jpg" width="100%" />
+                <p class="single-line">
+                    第818期：快乐开学季，安全排第一
+                </p>
+            </a>
+        </div>
+        <input type="hidden" value="https://huodong.xueanquan.com/2026ztkcdwsj/index.html" id="scount2" />
+        <div class="img-box">
+            <a onclick="JavaScript:SpecialCount(2,1277);" target="_blank">
+                <img src="https://file.xueanquan.com/NavIco/IssueCourses/202608101616583745.jpg" width="100%" />
+                <p class="single-line">
+                    第817期：这样玩手机很危险
+                </p>
+            </a>
+        </div>
+</div>
+<div class="head_pic">
+    活动专区<span>ACTIVITIES AREA</span> <a href="/Activity/Index.aspx" class="f_right btn_more"
+                                        target="_blank">更多</a>
+</div>
+<div class="project_list">
+        <div class="img-box">
+            <a href="https://huodong.xueanquan.com/2026summer/index.html" target="_blank">
+                <img src="https://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2026/6/24/5098388469015915781.jpg" title="2026年中小学生（幼儿）平安暑假专项活动" width="100%" />
+                <p class="single-line">
+                    2026年中小学生（幼儿）平安暑假专项活动
+                </p>
+            </a>
+        </div>
+        <div class="img-box">
+            <a href="https://huodong.xueanquan.com/2026pahj/index.html" target="_blank">
+                <img src="https://file.xueanquan.com/fileupload/UploadFile/cdn/temp/paysystem/jpg/2026/1/23/4786558185101713306.jpg" title="2026年中小学生（幼儿）平安寒假专项活动" width="100%" />
+                <p class="single-line">
+                    2026年中小学生（幼儿）平安寒假专项活动
+                </p>
+            </a>
+        </div>
+</div>
+<!--活动专区 end-->
+<!--专题课 end-->
+<script>
+    function SpecialCount(ep, id) {
+        $.post(
+            '/Seminar/SpecialJoinCount.aspx',
+            {
+                ID: id
+            }
+        );
+        var epUrl = $("#scount" + ep).val();
+        window.open(epUrl);
+    }
+</script>
+
+
+        <div class="head_pic">
+            联系我们<span>CONTACT US</span> <a href="/ServiceCenter/ContactUs.aspx"
+                                           class="f_right btn_more" target="_blank">更多</a>
+        </div>
+        <div class="contact_us">
+            <p>
+                咨询电话：<br />400-605-6508（工作日9:00—17:00）
+            </p>
+            <p>
+                投诉电话：<br />010-61190105（工作日9:00—17:00）
+            </p>
+            <p>
+                邮箱：csesafe#cse.edu.cn（发邮件时请将#换为@）
+            </p>
+            <p>
+                地址：北京市海淀区学院路7号
+            </p>
+            <p>
+                邮编：100089
+            </p>
+            <p>
+                官方微信：学校安全教育服务平台
+            </p>
+        </div>
+        <!--联系我们 end-->
+        <!--意见反馈 end-->
+    </div>
+</div>
+ 
+<div class="clear">
+</div>
+<div id="footer">
+    <div class="container text-center">
+        <p>
+            <a href="#" class="foot_logo"></a>
+        </p>
+        <p>
+            <span>
+                <a target="_blank" href="/ServiceCenter/AboutUs.aspx">关于我们</a>
+                <a target="_blank" href="/ServiceCenter/ContactUs.aspx">联系我们</a>
+                <a target="_blank" href="/ServiceCenter/SupportUnits.aspx">支持单位</a>
+                <a target="_blank" href="/ServiceCenter/ExpertTeam_list.aspx">专家团队</a>
+                <a target="_blank" href="/Help/Index.aspx">用户帮助</a>
+            </span>
+        </p>
+        <p>
+            <span id="ICPBei">
+                备案编号：<a href="http://beian.miit.gov.cn" id="ICPBeiHref" target="_blank">京ICP备12041388号</a>
+            </span>            <span style="display:none">
+                <script type="text/javascript" src="https://s13.cnzz.com/z_stat.php?id=1265097118&web_id=1265097118"></script>
+            </span>
+            咨询电话：400-605-6508（工作日 9:00-17:00）邮箱：csesafe#cse.edu.cn（发邮件时请将#换为@）
+        </p>
+    </div>
+</div>
+<!--footer end-->
+<div style="width: auto; margin: 0 auto; padding: 20px 0; text-align: center;font-size:14px;">
+    <a id="JingBeiHref" target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=11010802021143"
+       style="display:inline-block;text-decoration:none;height:20px;line-height:20px;color:#333;">
+        <img src="//file.xueanquan.com/icp/beian.png" style="float: left; width: auto" />
+        <span id="JingBei">京公网安备 11010802021143号</span>
+    </a>
+    &emsp;&emsp;&emsp;&emsp;<a id="infoSysBack" style="display:inline-block;text-decoration:none;height:20px;line-height:20px;color:#333;" href="http://file.xueanquan.com/beian-old.html" target="_blank">信息系统安全备案11019343088_17002</a>
+</div>
+<script type="text/javascript">
+    function setTab(name, cursel, n) {
+        if (cursel == 1) {
+            $("#More").attr("href", "/News/List.aspx?sort=3&currentPage=1");
+        } else {
+            $("#More").attr("href", "/News/List.aspx?sort=1&currentPage=1");
+        }
+        for (var i = 1; i <= n; i++) {
+            var menu = document.getElementById(name + i);
+            var con = document.getElementById(name + "_" + i);
+            menu.className = i == cursel ? "current" : "";
+            con.style.display = i == cursel ? "block" : "none";
+        }
+    }
+    $(function () {
+        if (location.host.indexOf("xueanquan.com") > -1) {
+            document.getElementById("ICPBeiHref").innerText = "京ICP备17031836号-1";
+            document.getElementById("JingBei").innerText = "京公网安备 11010802024192号";
+            document.getElementById("JingBeiHref").href = "http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=11010802024192";
+            document.getElementById("infoSysBack").innerText = "信息系统安全备案11010819114-00001";
+            document.getElementById("infoSysBack").href = "http://file.xueanquan.com/beian.html";
+        }
+    });
+</script>
+
+<!--投诉建议入口 start-->
+<a href="/ServiceCenter/Suggestions.aspx" target="blank" style="display: block;position: fixed; z-index: 100; width: 30px; height: 98px; top: 396px; right: 50%; margin-right: -610px;"><img src="//file.xueanquan.com/anjiaowang/Content/Styles/images/Service/advice.png?r=20250114" /></a>
+<!--投诉建议入口 end-->
+<!-- 帮助中心入口 start -->
+<div style="display: block; position: fixed; z-index: 3; top: 240px; right: 50%; width: 93px; height: 129px; margin-right: -670px;">
+    <a href="/Help/Index.aspx" target="blank">
+        <img src="//file.xueanquan.com/anjiaowang/Content/Styles/images/Service/icon-help.gif?r=20250114">
+    </a>
+</div>
+<!-- 帮助中心入口 end -->
+<!--首页右下角链接-->
+<script type="text/javascript">
+    $(function () {
+        //        var IP = "";
+        //        $.getScript("//int.dpool.sina.com.cn/iplookup/iplookup.php?format=js&ip=" + IP, function () {
+        //            var cityname = remote_ip_info.city;
+        //            $("#wxbox-img1").attr("src", '//file.xueanquan.com/angel/push/PushWeiXin.html?location=100007&cityName=' + cityname + '&test=1&css=//css.xueanquan.com/wx/push.css');
+        //        });
+
+        window.onload = function () {
+            if ($("#rbbox").height() < 100 || $("body").width() < 640)
+                $("#rbbox").hide();
+            else
+                $("#rbbox").slideDown(1000);
+        };
+        $(".button_tc").click(function () {
+            $("#rbbox").slideUp(1000);
+        });
+        $(".pmbox").kxbdMarquee({ isEqual: false });
+    });
+</script>
+<script>
+
+
+    function setTab(name, cursel, n) {
+        for (i = 1; i <= n; i++) {
+            var menu = document.getElementById(name + i);
+            var con = document.getElementById(name + "_" + i);
+            var conmore = document.getElementById(name + "__" + i);
+            menu.className = i == cursel ? "current" : "";
+            con.style.display = i == cursel ? "block" : "none";
+            conmore.style.display = i == cursel ? "block" : "none";
+        }
+    }
+    $(document).ready(function () {
+        $(".message-ul").each(function () {
+            var _this = this;
+            var t2 = 0;
+            t2 = setInterval(function () {
+                var b1 = $(_this).find('li:first');
+                var b2 = $(_this).find('li:last');
+                $(b1).insertAfter($(b2));
+            }, 3000);
+        });
+    });
+
+</script>
+
+
+</body>
+<script type="text/javascript">
+    if (typeof (String.prototype.trim) == "undefined") {
+        String.prototype.trim = function () {
+            return this.replace(/(^\s*)|(\s*$)/g, "");
+        };
+        String.prototype.ltrim = function () {
+            return this.replace(/(^\s*)/g, "");
+        };
+        String.prototype.rtrim = function () {
+            return this.replace(/(\s*$)/g, "");
+        };
+    }
+    $(function () {
+
+        $("#WeChatbtn").click(function () {
+            $("#chatbox").toggle();
+        });
+
+        $("a:not(title)")
+            .not("[href^='#']")
+            .not(function () {
+                var $this = $(this);
+                return $this.parent().hasClass('page');
+            })
+            .each(function () {
+                var txt = $(this).text().trim();
+                if (txt != "") {
+                    $(this).attr("title", txt);
+                }
+            });
+
+
+
+        $('.header .downApp-btn').mouseover(function () {
+            $('.header .downApp-btn').addClass('on');
+        }).mouseout(function () {
+            $('.header .downApp-btn').removeClass('on');
+        });
+        $('.header .loginAfter p').click(function () {
+            $(this).next('ul').fadeToggle('slow');
+            $(this).toggleClass('on');
+        });
+        $('.header .loginAfter ul a').click(function () {
+            $(this).parents('ul').fadeOut('slow');
+            $(this).parents('.loginAfter').find('p').removeClass('on');
+        });
+
+        //加载头部用户信息
+        CSEE.loadUserInfo();
+
+        //设置内页导航定位
+        if ($("#navigator").length > 0) {
+            $("#navigator li").find($(".current")).attr("class", "");
+            $("#top_" + $("#li_value").val() + "").addClass("current");
+        }
+    });
+</script>
+</html>
