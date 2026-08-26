@@ -41,25 +41,26 @@ fun createImageGpsTools(): List<Tool> = listOf(
             if (!file.exists()) return@Tool listOf(UIMessagePart.Text(buildJsonObject {
                 put("error", "文件不存在"); put("path", path)
             }.toString()))
-            val exif = runCatching { ExifInterface(file) }.getOrNull()
+            val exif = runCatching { ExifInterface(file.absolutePath) }.getOrNull()
                 ?: return@Tool listOf(UIMessagePart.Text(buildJsonObject {
                     put("error", "无法解析 EXIF（可能不是支持格式）"); put("path", path)
                 }.toString()))
-            val latLng = exif.latLong
+            val latLng = DoubleArray(2)
+            val hasGps = exif.getLatLong(latLng)
+            val latValue = if (hasGps) latLng[0] else null
+            val lngValue = if (hasGps) latLng[1] else null
             val altitude = exif.getAttribute(ExifInterface.TAG_GPS_ALTITUDE)?.let { r ->
                 runCatching { r.toDouble() }.getOrNull()
             }
             val altitudeRef = exif.getAttribute(ExifInterface.TAG_GPS_ALTITUDE_REF)
             listOf(UIMessagePart.Text(buildJsonObject {
                 put("path", path)
-                put("has_gps", latLng != null)
-                if (latLng != null) {
-                    put("latitude", latLng[0])
-                    put("longitude", latLng[1])
-                }
+                put("has_gps", hasGps)
+                if (latValue != null) put("latitude", latValue)
+                if (lngValue != null) put("longitude", lngValue)
                 if (altitude != null) {
                     put("altitude", altitude)
-                    put("altitude_ref", altitudeRef)
+                    if (altitudeRef != null) put("altitude_ref", altitudeRef)
                 }
                 put("tip", if (latLng == null) "该图片未包含 GPS 位置信息，可用 image_gps_set 添加" else "可用 image_gps_set 修改，或 image_gps_clear 清除")
             }.toString()))
@@ -96,7 +97,7 @@ fun createImageGpsTools(): List<Tool> = listOf(
                 put("error", "文件不存在"); put("path", path)
             }.toString()))
             val ok = runCatching {
-                val exif = ExifInterface(file)
+                val exif = ExifInterface(file.absolutePath)
                 exif.setLatLong(lat, lng)
                 // 海拔
                 o["altitude"]?.jsonPrimitive?.contentOrNull?.toDoubleOrNull()?.let { alt ->
@@ -134,7 +135,7 @@ fun createImageGpsTools(): List<Tool> = listOf(
                 put("error", "文件不存在"); put("path", path)
             }.toString()))
             val ok = runCatching {
-                val exif = ExifInterface(file)
+                val exif = ExifInterface(file.absolutePath)
                 // 移除全部 GPS 相关标签
                 listOf(
                     ExifInterface.TAG_GPS_LATITUDE, ExifInterface.TAG_GPS_LATITUDE_REF,
