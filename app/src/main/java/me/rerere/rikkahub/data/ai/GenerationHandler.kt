@@ -313,6 +313,16 @@ class GenerationHandler(
                         }
                     }
 
+                    // 无工具调用。若最后一条 assistant 正文为空(模型只思考未输出)，自动续一轮强制给出完整回答
+                    val finalText = messages.lastOrNull()?.toText()?.trim()
+                    if (finalText.isNullOrBlank()) {
+                        Log.i(TAG, "streamText: assistant produced no visible text (thinking only) step #$stepIndex, forcing completion")
+                        messages = messages + UIMessage.system(
+                            "你刚才只进行了思考但还没有给出正式回答。请立即直接输出这个问题的完整答案，不要再次沉默或只思考。"
+                        )
+                        emit(GenerationChunk.Messages(messages))
+                        continue
+                    }
                     // 无工具调用，正常结束
                     break
                 }
