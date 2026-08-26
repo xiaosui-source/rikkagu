@@ -87,6 +87,57 @@ fun createAutoAnswerMcpTools(): List<Tool> {
                     put("hint", "请根据题目结合你的知识给出答案与解析；如需外部资料，用 search_exam_answer 搜索后再作答。")
                 }.toString().let { listOf(UIMessagePart.Text(it)) }
             }
+        ),
+        Tool(
+            name = "exam_fetch_questions",
+            description = "全自动拉取题目：AI 通过 HTTP 请求指定的题目来源 URL，解析并提取其中的题目列表。" +
+                "适用于从题库 API/网页自动获取题目，供随后逐题搜题作答。",
+            parameters = {
+                InputSchema.Obj(
+                    properties = buildJsonObject {
+                        put("url", buildJsonObject {
+                            put("type", "string")
+                            put("description", "题目来源 URL(返回 JSON/HTML/纯文本均可)")
+                        })
+                        put("question_selector", buildJsonObject {
+                            put("type", "string")
+                            put("description", "可选：JSON 解析路径或 HTML 选择器；留空则 AI 自动识别题目")
+                        })
+                    },
+                    required = listOf("url")
+                )
+            },
+            execute = { args ->
+                val url = args.jsonObject["url"]?.jsonPrimitive?.contentOrNull
+                    ?: return@Tool listOf(UIMessagePart.Text("""{"error":"url required"}"""))
+                val result = runCatching { fetchPage(url, client) }
+                    .getOrElse { e -> buildJsonObject { put("error", "请求失败: ${e.message}") }.toString() }
+                listOf(UIMessagePart.Text(result))
+            }
+        ),
+        Tool(
+            name = "auto_exam",
+            description = "全自动答题闭环：给 AI 一个题目来源(URL 或 JSON 题目数组 或直接贴题)。AI 自动" +
+                "执行：拉取题目 → 逐题搜索答案 → 汇总输出全部题目的答案与解析。全程自动，无需用户逐题发送。" +
+                "将题目来源放到 source 参数；如 source 是 URL，AI 会先请求拉题再逐题作答。",
+            parameters = {
+                InputSchema.Obj(
+                    properties = buildJsonObject {
+                        put("source", buildJsonObject {
+                            put("type", "string")
+                            put("description", "题目来源：可填 URL(自动请求拉题)，或直接粘贴题目/JSON 数组")
+                        })
+                    },
+                    required = listOf("source")
+                )
+            },
+            execute = { args ->
+                val source = args.jsonObject["source"]?.jsonPrimitive?.contentOrNull ?: ""
+                buildJsonObject {
+                    put("source", source)
+                    put("plan", "1. 若 source 是 URL，调用 exam_fetch_questions 拉取题目; 2. 对每道题调用 search_exam_answer 搜题; 3. 汇总所有题目答案与解析输出")
+                }.toString().let { listOf(UIMessagePart.Text(it)) }
+            }
         )
     )
 }
@@ -150,4 +201,30 @@ private fun htmlToPlainText(html: String): String {
         .replace("&quot;", "\"")
         .replace(Regex("\\s+"), " ")
         .trim()
+}
+
+/** 请求任意 URL，返回可读内容(JSON 原样 / HTML 转纯文本) */
+private fun fetchPage(url: String, client: OkHttpClient): String {
+    val req = Request.Builder()
+        .url(url)
+        .header("User-Agent", "Mozilla/5.0 (Linux; Android) AppleWebKit/537.36 Chrome/122 Mobile")
+        .header("Accept", "application/json,text/html,text/plain,*/*")
+        .header("Accept-Language", "zh-CN,zh;q=0.9")
+        .build()
+    val resp = client.newCall(req).execute()
+    resp.use {
+        val raw = it.body?.string().orEmpty()
+        val contentType = it.header("Content-Type").orEmpty().lowercase()
+        val text = if (contentType.contains("json") || raw.trimStart().startsWith("{") || raw.trimStart().startsWith("[")) {
+            raw.take(6000)  // JSON 原样返回，AI 自行解析
+        } else {
+            htmlToPlainText(raw).take(6000)
+        }
+        buildJsonObject {
+            put("url", url)
+            put("status", it.code)
+            put("content", text)
+            put("tip", "若为 HTML 已转为纯文本；若是 JSON 请按字段解析题目。")
+        }.toString()
+    }
 }
