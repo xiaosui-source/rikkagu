@@ -54,7 +54,7 @@ fun createLocalWorkspaceTools(context: Context): List<Tool> {
 
     fun needAuth(): UIMessagePart.Text = UIMessagePart.Text(buildJsonObject {
         put("error", "未授权本地文件夹工作区")
-        put("tip", "请先在 设置 → 系统工具 → 本地文件夹工作区 中选择要授权的文件夹")
+        put("tip", "本地文件夹工作区未授权。注意：若你已绑定 proot 工作区，普通文件操作应优先使用 workspace_read_file/workspace_write_file/workspace_shell 等 workspace_* 工具，无需此授权。仅在确实需要读写手机真实文件夹时，才到 设置 → 系统工具 → 本地文件夹工作区 授权")
     }.toString())
 
     return listOf(
@@ -68,14 +68,14 @@ fun createLocalWorkspaceTools(context: Context): List<Tool> {
                 listOf(UIMessagePart.Text(buildJsonObject {
                     put("authorized", uri != null)
                     put("uri", uri ?: "")
-                    put("tip", if (uri != null) "本地文件夹工作区已授权，可调用 local_ws_list/read/write 操作该文件夹" else "未授权，请先在设置中选择文件夹")
+                    put("tip", if (uri != null) "本地文件夹工作区已授权，可调用 local_ws_list/read/write 操作该文件夹" else "未授权。优先用已绑定的 proot 工作区(workspace_*工具)；仅在需要读写手机真实文件夹且已授权时才用 local_ws_*")
                 }.toString()))
             }
         ),
 
         Tool(
             name = "local_ws_list",
-            description = "列出本地文件夹工作区中的文件与目录（项目工作区）。Params: optional path(相对路径，空=根目录)",
+            description = "仅在需要读写手机真实文件夹时使用；若已绑定 proot 工作区，普通文件/代码操作请优先用 workspace_* 工具。功能：列出本地文件夹工作区中的文件与目录（项目工作区）。Params: optional path(相对路径，空=根目录)",
             needsApproval = false,
             parameters = {
                 InputSchema.Obj(properties = buildJsonObject {
@@ -117,7 +117,7 @@ fun createLocalWorkspaceTools(context: Context): List<Tool> {
 
         Tool(
             name = "local_ws_read",
-            description = "读取本地文件夹工作区中的文件内容（文本，最大 50KB）。Params: path(相对路径)",
+            description = "仅在需要读写手机真实文件夹时使用；若已绑定 proot 工作区，普通文件/代码操作请优先用 workspace_* 工具。功能：读取本地文件夹工作区中的文件内容（文本，最大 50KB）。Params: path(相对路径)",
             needsApproval = false,
             parameters = {
                 InputSchema.Obj(properties = buildJsonObject {
@@ -157,7 +157,7 @@ fun createLocalWorkspaceTools(context: Context): List<Tool> {
 
         Tool(
             name = "local_ws_write",
-            description = "写入/创建本地文件夹工作区中的文件（文本，自动创建父目录）。Params: path(相对路径), content(文件内容)",
+            description = "仅在需要读写手机真实文件夹时使用；若已绑定 proot 工作区，普通文件/代码操作请优先用 workspace_* 工具。功能：写入/创建本地文件夹工作区中的文件（文本，自动创建父目录）。Params: path(相对路径), content(文件内容)",
             needsApproval = false,
             parameters = {
                 InputSchema.Obj(properties = buildJsonObject {
@@ -204,7 +204,7 @@ fun createLocalWorkspaceTools(context: Context): List<Tool> {
 
         Tool(
             name = "local_ws_delete",
-            description = "删除本地文件夹工作区中的文件或空目录。Params: path(相对路径)",
+            description = "仅在需要读写手机真实文件夹时使用；若已绑定 proot 工作区，普通文件/代码操作请优先用 workspace_* 工具。功能：删除本地文件夹工作区中的文件或空目录。Params: path(相对路径)",
             needsApproval = true,
             parameters = {
                 InputSchema.Obj(properties = buildJsonObject {
