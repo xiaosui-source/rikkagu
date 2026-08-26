@@ -149,8 +149,57 @@ class LocalRuleProvider : Provider<ProviderSetting.LocalRule> {
         }
 
         // 兜底：复述 + 拓展
-        return "我明白你的意思。关于「$userText」——作为本地离线小助手，我可以陪你聊天，或帮你算数学、换算单位；如果你要查火车票/搜索等，直接说"搜索xxx"或"查一下xxx"就能调用工具帮你处理。想让我具体做什么？"
+        return "我明白你的意思。关于「$userText」——作为本地离线小助手，我可以陪你聊天，或帮你算数学、换算单位；如果你要查火车票/搜索等，可以直接说【搜索xxx】或【查一下xxx】来让我调用工具帮你处理。想让我具体做什么？"
     }
+
+
+    private fun buildChunk(text: String): MessageChunk {
+        return MessageChunk(
+            id = Uuid.random().toString(),
+            model = "local-rule",
+            choices = listOf(
+                UIMessageChoice(
+                    index = 0,
+                    delta = null,
+                    message = UIMessage(
+                        role = MessageRole.ASSISTANT,
+                        parts = listOf(UIMessagePart.Text(text))
+                    ),
+                    finishReason = "stop"
+                )
+            )
+        )
+    }
+
+    override suspend fun generateText(
+        providerSetting: ProviderSetting.LocalRule,
+        messages: List<UIMessage>,
+        params: TextGenerationParams,
+    ): MessageChunk = buildChunk(buildReply(messages))
+
+    override suspend fun streamText(
+        providerSetting: ProviderSetting.LocalRule,
+        messages: List<UIMessage>,
+        params: TextGenerationParams,
+    ): Flow<MessageChunk> = flow {
+        emit(buildChunk(buildReply(messages)))
+    }
+
+    override suspend fun generateEmbedding(
+        providerSetting: ProviderSetting.LocalRule,
+        params: EmbeddingGenerationParams,
+    ): EmbeddingGenerationResult = error("离线小助手不支持向量嵌入")
+
+    override suspend fun generateImage(
+        providerSetting: ProviderSetting,
+        params: ImageGenerationParams,
+    ): ImageGenerationResult = error("离线小助手不支持图像生成")
+
+    override suspend fun editImage(
+        providerSetting: ProviderSetting,
+        params: ImageEditParams,
+    ): ImageGenerationResult = error("离线小助手不支持图像编辑")
+
 
     /** 尝试把数字表达式计算出来 */
     private fun tryCalc(text: String): String? {
