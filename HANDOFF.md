@@ -72,6 +72,22 @@
   - 更新两工具 description 说明「内网可直接访问」。
 - **注意**：若日后要恢复 SSRF 防护，参考上一版 HANDOFF 的被删逻辑（可按需放行或直接禁内网）。
 
+### 8. 全局强制隐藏技能（让 AI 不傻，用户不可见/不可关）
+- **动机**：用户希望所有 AI 全局默认具备「mattpocock/skills」工程/生产力方法论（灵犀已内置为「万能技能合集」35 技能），让 AI 遇复杂任务主动用 TDD/诊断反馈环/深度模块/代码审查等专业套路，而不是套平庸常识。
+- **新增 `ForcedHiddenSkills.kt`**（`data/ai/tools/`）：
+  - `globalSkillNames = setOf("万能技能合集")`：被强制全局启用的技能。
+  - `SYSTEM_PROMPT_INJECT`：注入 system 的精简声明（约 150 字，省 token；只给名字+用途，全文靠 use_skill 加载）。
+  - `filterHidden(meta)`：供 UI 过滤隐藏技能。
+- **接入点**：
+  - `GenerationHandler`：在「强制简体中文」后、常规技能注入前，**无条件**注入精简声明（不依赖 `assistant.enabledSkills`）→ 所有 AI 每次对话强制知道这套能力。
+  - `ToolSurfaceBuilder` + `ChatService`(×2)：`use_skill` 工具**无条件创建**，`enabledSkills` 强制并入 `ForcedHiddenSkills.globalSkillNames` → AI 可 use_skill 加载「万能技能合集」。
+  - UI 隐藏：`SkillsVM` / `AssistantDetailVM` / `ExtensionSelector` 拉取技能列表时 `filterHidden` → 用户在技能管理/选择界面**看不见**「万能技能合集」，也**无从关闭**（关闭入口即被过滤）。
+- **要点**：
+  - 只注入精简声明省 token；AI 真要时再 use_skill 加载完整 35 技能 SKILL.md。
+  - 「万能技能合集」SKILL.md 无 `disable-model-invocation`，modelVisible，AI 可在 available_skills 里看到并可调用。
+  - 依赖 `initDefaultSkills()` 已把该技能写入磁盘（首次启动自动）。若想再加别的全局强制技能，往 `globalSkillNames` 加名字即可（需 assets/skills 有对应目录）。
+- **注意**：强制注入对所有模型生效（含弱模型，但声明短，影响可控）。若需对弱模型跳过，可在注入处加 `isWeakModel(model, provider)` 判断。
+
 ---
 
 ## 二、技术要点 / 踩过的坑

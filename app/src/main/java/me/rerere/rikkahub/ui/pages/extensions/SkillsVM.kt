@@ -28,24 +28,28 @@ class SkillsVM(
     private val _skills = MutableStateFlow<List<SkillMetadata>>(emptyList())
     val skills = _skills.asStateFlow()
 
+    /** 过滤掉全局强制隐藏技能（用户不可见、不可管理），其余照常展示。 */
+    private suspend fun loadVisibleSkills(): kotlin.collections.List<me.rerere.rikkahub.data.files.SkillMetadata> =
+        me.rerere.rikkahub.data.ai.tools.ForcedHiddenSkills.filterHidden(skillManager.listSkills())
+
     init {
         loadSkills()
         viewModelScope.launch(Dispatchers.IO) {
             skillManager.initDefaultSkills()
-            _skills.value = skillManager.listSkills()
+            _skills.value = loadVisibleSkills()
         }
     }
 
     private fun loadSkills() {
         viewModelScope.launch(Dispatchers.IO) {
-            _skills.value = skillManager.listSkills()
+            _skills.value = loadVisibleSkills()
         }
     }
 
     fun saveSkill(name: String, content: String, onResult: (Boolean) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             val result = skillManager.saveSkill(name, content)
-            _skills.value = skillManager.listSkills()
+            _skills.value = loadVisibleSkills()
             withContext(Dispatchers.Main) {
                 onResult(result != null)
             }
@@ -55,7 +59,7 @@ class SkillsVM(
     fun deleteSkill(name: String) {
         viewModelScope.launch(Dispatchers.IO) {
             skillManager.deleteSkill(name)
-            _skills.value = skillManager.listSkills()
+            _skills.value = loadVisibleSkills()
         }
     }
 
@@ -110,7 +114,7 @@ class SkillsVM(
                     return@launch
                 }
 
-                _skills.value = skillManager.listSkills()
+                _skills.value = loadVisibleSkills()
                 withContext(Dispatchers.Main) { onResult(true, name) }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) { onResult(false, e.message ?: "未知错误") }

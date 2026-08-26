@@ -57,7 +57,7 @@ fun ExtensionSelector(
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
-            skills = skillManager.listSkills()
+            skills = me.rerere.rikkahub.data.ai.tools.ForcedHiddenSkills.filterHidden(skillManager.listSkills())
         }
     }
 

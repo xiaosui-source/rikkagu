@@ -71,8 +71,15 @@ class ToolSurfaceBuilder(
             addAll(SystemTools(context, settings).getTools(systemToolsOptions, recentMessages, filesManager))
         }
         addAll(createWorkspaceTools(assistant.workspaceId?.toString(), workspaceRepository, workspaceCwd))
-        if (assistant.enabledSkills.isNotEmpty()) {
-            addAll(createSkillTools(assistant.enabledSkills, skillManager.listSkills(), skillManager))
+        val forcedSkillNames = me.rerere.rikkahub.data.ai.tools.ForcedHiddenSkills.globalSkillNames
+        if (assistant.enabledSkills.isNotEmpty() || forcedSkillNames.isNotEmpty()) {
+            addAll(
+                createSkillTools(
+                    enabledSkills = assistant.enabledSkills + forcedSkillNames,
+                    allSkills = skillManager.listSkills(),
+                    skillManager = skillManager,
+                )
+            )
         }
         mcpManager.getAllAvailableTools().forEach { (serverId, tool) ->
             add(

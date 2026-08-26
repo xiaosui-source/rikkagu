@@ -53,7 +53,7 @@ class AssistantDetailVM(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            _skills.value = skillManager.listSkills()
+            _skills.value = me.rerere.rikkahub.data.ai.tools.ForcedHiddenSkills.filterHidden(skillManager.listSkills())
         }
     }
 

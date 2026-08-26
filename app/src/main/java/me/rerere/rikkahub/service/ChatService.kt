@@ -839,10 +839,11 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
                         addAll(systemTools.getTools(systemToolsOptions, conversation.currentMessages, filesManager))
                     }
                     addAll(createWorkspaceToolsIfReady(assistant.workspaceId?.toString(), conversation.workspaceCwd))
-                    if (assistant.enabledSkills.isNotEmpty()) {
+                    val forcedSkills = me.rerere.rikkahub.data.ai.tools.ForcedHiddenSkills.globalSkillNames
+                    if (assistant.enabledSkills.isNotEmpty() || forcedSkills.isNotEmpty()) {
                         addAll(
                             createSkillTools(
-                                enabledSkills = assistant.enabledSkills,
+                                enabledSkills = assistant.enabledSkills + forcedSkills,
                                 allSkills = skillManager.listSkills(),
                                 skillManager = skillManager,
                             )
@@ -1206,10 +1207,11 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
                         callerConversationId = conversationId.toString(),
                     )))
                     addAll(createWorkspaceToolsIfReady(assistant.workspaceId?.toString(), conversation.workspaceCwd))
-                    if (assistant.enabledSkills.isNotEmpty()) {
+                    val forcedSkills = me.rerere.rikkahub.data.ai.tools.ForcedHiddenSkills.globalSkillNames
+                    if (assistant.enabledSkills.isNotEmpty() || forcedSkills.isNotEmpty()) {
                         addAll(
                             createSkillTools(
-                                enabledSkills = assistant.enabledSkills,
+                                enabledSkills = assistant.enabledSkills + forcedSkills,
                                 allSkills = skillManager.listSkills(),
                                 skillManager = skillManager,
                             )
