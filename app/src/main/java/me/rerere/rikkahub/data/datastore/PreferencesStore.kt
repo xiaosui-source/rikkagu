@@ -198,7 +198,6 @@ class SettingsStore(
 
         // 系统工具设置
         val SYSTEM_TOOLS_SETTING = stringPreferencesKey("system_tools_setting")
-        val LOCAL_WORKSPACE_URI = stringPreferencesKey("local_workspace_uri")
 
 
         // 保活服务设置
@@ -306,7 +305,6 @@ class SettingsStore(
                 backupReminderConfig = preferences[BACKUP_REMINDER_CONFIG].decodeOrNull(BackupReminderConfig()),
                 launchCount = preferences[LAUNCH_COUNT] ?: 0,
                 systemToolsSetting = preferences[SYSTEM_TOOLS_SETTING].decodeOrNull(SystemToolsSetting()),
-                localWorkspaceUri = preferences[LOCAL_WORKSPACE_URI],
                 todos = preferences[TODOS]?.let {
                     runCatching { JsonInstant.decodeFromString<List<me.rerere.rikkahub.data.ai.tools.TodoItem>>(it) }.getOrDefault(emptyList())
                 } ?: emptyList(),
@@ -492,11 +490,6 @@ class SettingsStore(
             preferences[BACKUP_REMINDER_CONFIG] = JsonInstant.encodeToString(settings.backupReminderConfig)
             preferences[LAUNCH_COUNT] = settings.launchCount
             preferences[SYSTEM_TOOLS_SETTING] = JsonInstant.encodeToString(settings.systemToolsSetting)
-            if (settings.localWorkspaceUri != null) {
-                preferences[LOCAL_WORKSPACE_URI] = settings.localWorkspaceUri
-            } else {
-                preferences.remove(LOCAL_WORKSPACE_URI)
-            }
             preferences[KNOWLEDGE_DOCS] = JsonInstant.encodeToString(settings.knowledgeDocs)
             preferences[TODOS] = JsonInstant.encodeToString(settings.todos)
             preferences[WECHAT_BOT_SETTINGS] = JsonInstant.encodeToString(settings.wechatBotSettings)
@@ -639,8 +632,6 @@ data class Settings(
     val backupReminderConfig: BackupReminderConfig = BackupReminderConfig(),
     val launchCount: Int = 0,
     val systemToolsSetting: SystemToolsSetting = SystemToolsSetting(),
-    // 本地文件夹工作区（SAF 授权 uri）：AI 可读写此文件夹作为项目工作区
-    val localWorkspaceUri: String? = null,
     val knowledgeDocs: List<KnowledgeDoc> = emptyList(),
     val todos: List<me.rerere.rikkahub.data.ai.tools.TodoItem> = emptyList(),
     val wechatBotSettings: List<WechatBotSetting> = emptyList(),

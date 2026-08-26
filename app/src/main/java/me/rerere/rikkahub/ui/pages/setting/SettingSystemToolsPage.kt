@@ -243,21 +243,8 @@ fun SettingSystemToolsPage(vm: SettingVM = koinViewModel()) {
 
 
 
-            // 本地文件夹工作区（SAF 授权：AI 读写本地项目文件夹）
+            // 本地文件夹工作区（所有文件访问：AI 读写手机全部文件夹）
             item {
-                val folderLauncher = rememberLauncherForActivityResult(
-                    ActivityResultContracts.OpenDocumentTree()
-                ) { uri ->
-                    if (uri != null) {
-                        runCatching {
-                            context.contentResolver.takePersistableUriPermission(
-                                uri,
-                                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                            )
-                        }
-                        vm.updateSettings(settings.copy(localWorkspaceUri = uri.toString()))
-                    }
-                }
                 CardGroup(
                     title = { Text("本地文件夹工作区") },
                     modifier = Modifier.padding(horizontal = 8.dp)
@@ -303,32 +290,6 @@ fun SettingSystemToolsPage(vm: SettingVM = koinViewModel()) {
                             }
                         }
                     )
-                    item(
-                        leadingContent = { Icon(imageVector = HugeIcons.Folder02, contentDescription = null) },
-                        headlineContent = { Text("选择本地项目文件夹（SAF 备选）") },
-                        supportingContent = {
-                            Text(
-                                if (settings.localWorkspaceUri.isNullOrBlank())
-                                    "未开启「所有文件访问」时可授权一个 SAF 文件夹作为备选（local_ws_* 工具）"
-                                else "已授权：${settings.localWorkspaceUri}"
-                            )
-                        },
-                        trailingContent = {
-                            TextButton(onClick = { folderLauncher.launch(null) }) {
-                                Text(if (settings.localWorkspaceUri.isNullOrBlank()) "选择" else "更换")
-                            }
-                        }
-                    )
-                    if (!settings.localWorkspaceUri.isNullOrBlank()) {
-                        item(
-                            headlineContent = { Text("取消 SAF 授权") },
-                            trailingContent = {
-                                TextButton(
-                                    onClick = { vm.updateSettings(settings.copy(localWorkspaceUri = null)) }
-                                ) { Text("移除", color = MaterialTheme.colorScheme.error) }
-                            }
-                        )
-                    }
                 }
             }
 
