@@ -138,6 +138,56 @@ fun createAutoAnswerMcpTools(): List<Tool> {
                     put("plan", "1. 若 source 是 URL，调用 exam_fetch_questions 拉取题目; 2. 对每道题调用 search_exam_answer 搜题; 3. 汇总所有题目答案与解析输出")
                 }.toString().let { listOf(UIMessagePart.Text(it)) }
             }
+        ),
+        Tool(
+            name = "exam_website",
+            description = "网站全自动答题 Agent：给 AI 一个答题网站 URL。AI 自主完成：①请求并分析网站(是否需登录/题目在哪) " +
+                "②若需要账号密码，AI 调用 exam_ask_login 向用户索取登录凭证 ③登录(HTTP 表单/接口) ④抓取全部题目 " +
+                "⑤逐题 search_exam_answer 搜题 ⑥生成全部答案。用户只需给网址。",
+            parameters = {
+                InputSchema.Obj(
+                    properties = buildJsonObject {
+                        put("url", buildJsonObject {
+                            put("type", "string")
+                            put("description", "答题网站 URL，AI 会自主完成剩余全部步骤")
+                        })
+                    },
+                    required = listOf("url")
+                )
+            },
+            execute = { args ->
+                val url = args.jsonObject["url"]?.jsonPrimitive?.contentOrNull
+                    ?: return@Tool listOf(UIMessagePart.Text("""{"error":"url required"}"""))
+                buildJsonObject {
+                    put("url", url)
+                    put("workflow", "1.请求网站exam_fetch_questions→2.分析是否需登录→需则exam_ask_login向用户索取→" +
+                        "3.http登录→4.抓题→5.逐题search_exam_answer→6.汇总全部答案")
+                }.toString().let { listOf(UIMessagePart.Text(it)) }
+            }
+        ),
+        Tool(
+            name = "exam_ask_login",
+            description = "登录凭证请求：当自动答题 Agent 访问网站发现需要账号密码登录时，用此工具向用户明确索取" +
+                "账号与密码；用户提供后再继续登录并答题。若网站无需登录则不要调用。",
+            parameters = {
+                InputSchema.Obj(
+                    properties = buildJsonObject {
+                        put("website", buildJsonObject {
+                            put("type", "string")
+                            put("description", "需要登录的网站名称或 URL")
+                        })
+                    },
+                    required = listOf("website")
+                )
+            },
+            execute = { args ->
+                val website = args.jsonObject["website"]?.jsonPrimitive?.contentOrNull ?: "该网站"
+                buildJsonObject {
+                    put("need_login", true)
+                    put("message", "「$website」需要账号密码登录才能答题，请提供账号和密码。")
+                    put("next", "收到账号密码后，我会继续登录并自动抓题作答。")
+                }.toString().let { listOf(UIMessagePart.Text(it)) }
+            }
         )
     )
 }
