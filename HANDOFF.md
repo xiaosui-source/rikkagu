@@ -63,6 +63,19 @@
   - `ToolRouter.route` 加"台风/台风路径/热带气旋"关键词兜底 → `typhoon_active`
 - **注意（未验证）**：默认数据源 `typhoon.nmc.cn/weatherservice/typhoon/jsons/list_current`、`typhoon.org.cn/outer/...` 的实际返回结构**未经线上实测**（沙箱无外网）。解析器已做多 schema 宽松适配 + 原文兜底，若源变更需在 `DEFAULT_LIST_SOURCES` 调整或用户传 `dataUrl`。
 
+### 7. 内网访问改「按需放行」（当前保留）
+- **背景**：`http_request`（HttpRequestTool）与 `web_browse`（WorkspaceTools）原本有 SSRF 防护，一律禁止访问内网/回环地址。用户要求放开为「合理即可连」→ 实现为**按需放行**。
+- **新增 `intranetAccessGate(url, allowIntranet, purpose): String?`**（HttpRequestTool.kt，`internal`）：
+  - 公网地址 → 直接放行（null）
+  - 内网/回环地址且未声明放行（`allow_intranet != true`）→ 拦截，提示需声明用途
+  - 已声明放行但无 `purpose` → 拦截，提示需说明用途
+  - 已放行且有用途，但**用途命中安全敏感特征词**（注入/sql/shell/反弹/爆破/提权/webshell/payload/password 等）→ 拦截
+  - 其余（内网 + 放行 + 合理用途）→ 放行
+- **接入**：`http_request` / `web_browse` 两个工具均新增可选参数 `allow_intranet`(bool) + `purpose`(string)，description 同步说明。
+  - 两工具同包同模块，`internal` 函数可直接调用，无需 import。
+- 原 `isPrivateNetworkUrl()` 保留作为门控内部子判断（未删）。
+- **注意**：安全敏感词表在 `intranetAccessGate` 的 `suspicious` 列表中，可按需增删。
+
 ---
 
 ## 二、技术要点 / 踩过的坑
