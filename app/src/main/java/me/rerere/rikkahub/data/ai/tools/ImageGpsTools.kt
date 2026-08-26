@@ -45,10 +45,10 @@ fun createImageGpsTools(): List<Tool> = listOf(
                 ?: return@Tool listOf(UIMessagePart.Text(buildJsonObject {
                     put("error", "无法解析 EXIF（可能不是支持格式）"); put("path", path)
                 }.toString()))
-            val latLng = DoubleArray(2)
+            val latLng = FloatArray(2)
             val hasGps = exif.getLatLong(latLng)
-            val latValue = if (hasGps) latLng[0] else null
-            val lngValue = if (hasGps) latLng[1] else null
+            val latValue = if (hasGps) latLng[0].toDouble() else null
+            val lngValue = if (hasGps) latLng[1].toDouble() else null
             val altitude = exif.getAttribute(ExifInterface.TAG_GPS_ALTITUDE)?.let { r ->
                 runCatching { r.toDouble() }.getOrNull()
             }
