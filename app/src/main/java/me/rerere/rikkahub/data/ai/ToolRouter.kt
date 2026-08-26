@@ -69,13 +69,6 @@ object ToolRouter {
             val to = (Regex("""(?:到|目的地)[:：\s]*([\u4e00-\u9fa5]{2,4})""").find(userMessage)?.groupValues?.get(1)) ?: ""
             return "ticket_search" to buildArgs("from" to from, "to" to to)
         }
-        // ===== HTTP 请求 =====
-        if (msg.contains("http_execute") || msg.contains("请求") && msg.contains("http") ||
-            msg.contains("访问") && msg.contains("http") || msg.contains("抓取") && msg.contains("http")
-        ) {
-            val url = (Regex("""https?://[^\s]+""").find(msg)?.value) ?: ""
-            return "http_execute" to buildArgs("url" to url)
-        }
         // ===== 记忆 =====
         if (msg.contains("记住") || msg.contains("记忆") || msg.contains("回忆") ||
             msg.contains("忘了") || msg.contains("记一下")

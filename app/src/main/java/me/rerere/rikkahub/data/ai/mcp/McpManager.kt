@@ -125,14 +125,11 @@ class McpManager(
      * 内置 MCP 服务器工具（本项目独有：无需配置外部服务器，开箱即用）
      */
     fun getBuiltinServerTools(assistant: Assistant? = null): List<me.rerere.ai.core.Tool> {
-        val enabled = assistant?.builtinMcpIds ?: setOf("files", "memory")
+        val enabled = assistant?.builtinMcpIds ?: setOf("filesystem", "memory")
         val list = mutableListOf<me.rerere.ai.core.Tool>()
 
         if ("memory" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.buildMemoryMcpTools()
-        }
-        if ("files" in enabled) {
-            list += me.rerere.rikkahub.data.ai.tools.buildFilesMcpTools()
         }
         if ("12306" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.buildTicket12306McpTools()
@@ -140,14 +137,8 @@ class McpManager(
         if ("apk" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.buildApkReverseMcpTools(context)
         }
-        if ("http" in enabled) {
-            list += me.rerere.rikkahub.data.ai.tools.buildHttpExecuteMcpTools()
-        }
         if ("context7" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.buildContext7McpTools()
-        }
-        if ("xingce" in enabled) {
-            list += me.rerere.rikkahub.data.ai.tools.buildXingceMcpTools(context)
         }
         if ("filesystem" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.buildFileSystemMcpTools(context)
@@ -171,40 +162,16 @@ class McpManager(
                 toolCount = 2,
             ) to 1,
             me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
-                id = "builtin-http",
-                name = "HTTP 请求 MCP 🌐",
-                description = "内置通用HTTP请求工具：支持GET/POST/PUT/DELETE/PATCH + 自定义Header/Body",
-                toolCount = 1,
-            ) to 1,
-            me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
                 id = "builtin-context7",
                 name = "Context7 文档 MCP 📚",
                 description = "内置最新库文档查询：解析库名/获取文档（React/Vue/Kotlin/Next.js等，数据来自Context7）",
                 toolCount = 2,
             ) to 1,
             me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
-                id = "builtin-xingce",
-                name = "花生十三行测 MCP 📝",
-                description = "内置442张行测方法卡片：搜索/分类/解题引导（资料分析/数量关系/判断推理/言语理解）",
-                toolCount = 5,
-            ) to 1,
-            me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
-                id = "builtin-fetch",
-                name = "Fetch MCP",
-                description = "内置 Fetch MCP：抓取网页 HTML/TXT/JSON/Markdown（移植自 Kelivo）",
-                toolCount = 0,
-            ) to 1,
-            me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
                 id = "builtin-filesystem",
                 name = "Filesystem MCP 📁",
                 description = "内置完整文件系统操作：读/写/复制/移动/删除/搜索/目录树/文件信息",
                 toolCount = 12,
-            ) to 1,
-            me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
-                id = "builtin-files",
-                name = "Files MCP",
-                description = "内置文件系统 MCP（读取/写入/目录操作，移植自 Kelivo）",
-                toolCount = 3,
             ) to 1,
             me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
                 id = "builtin-memory",

@@ -616,7 +616,7 @@ data class Settings(
     val suggestionPrompt: String = DEFAULT_SUGGESTION_PROMPT,
     val assistantId: Uuid = DEFAULT_ASSISTANT_ID,
     val providers: List<ProviderSetting> = DEFAULT_PROVIDERS,
-    val assistants: List<Assistant> = DEFAULT_ASSISTANTS.map { it.copy(enabledSkills = setOf("all-skills", "tarot-extreme-accuracy")) },
+    val assistants: List<Assistant> = DEFAULT_ASSISTANTS.map { it.copy(enabledSkills = setOf("all-skills", "tarot-extreme-accuracy", "xingce-methods")) },
     val assistantTags: List<Tag> = emptyList(),
     val searchServices: List<SearchServiceOptions> = SearchServiceOptions.allDefaults(),
     val searchCommonOptions: SearchCommonOptions = SearchCommonOptions(),

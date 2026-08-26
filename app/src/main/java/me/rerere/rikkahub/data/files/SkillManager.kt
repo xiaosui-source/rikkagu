@@ -20,6 +20,7 @@ class SkillManager(
     companion object {
         private const val ALL_SKILLS_SKILL = "all-skills"
         private const val TAROT_SKILL = "tarot-extreme-accuracy"
+        private const val XINGCE_SKILL = "xingce-methods"
         private const val TAG = "SkillManager"
     }
 
@@ -298,7 +299,18 @@ description: 从业30年民间顶级玄学顾问：八字/古典占星/六爻纳
 现在，请回复："懂了。不管你是3岁还是80岁，在我这儿卦象没滤镜。少废话，把你问的事、出生时间（阳历/阴历注明）、以及随手想的3个数字（1-12之间）一次性发来。问具体事给一句背景，超50字懒得看。"
 """
             tarotDir.resolve("SKILL.md").writeText(tarotContent)
-            Log.d(TAG, "Default skills initialized: $TAROT_SKILL")
+        }
+
+        // 内置行测技能（xingce-methods）：花生十三行测解题方法论（原内置 MCP 工具迁移而来）
+        val xingceDir = skillsDir.resolve(XINGCE_SKILL)
+        if (!xingceDir.exists()) {
+            xingceDir.mkdirs()
+            runCatching {
+                context.assets.open("xingce/skill.md").bufferedReader().use { it.readText() }
+            }.onSuccess { content ->
+                xingceDir.resolve("SKILL.md").writeText(content)
+                Log.d(TAG, "Default skills initialized: $XINGCE_SKILL")
+            }
         }
     }
 
