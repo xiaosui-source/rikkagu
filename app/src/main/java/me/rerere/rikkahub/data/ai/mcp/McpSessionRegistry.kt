@@ -441,12 +441,6 @@ internal class McpSessionRegistry(
             client = httpClient,
             requestBuilder = { appendResolvedHeaders(config) },
         )
-
-        is McpServerConfig.StdioServer -> StdioClientTransport(
-            commandLine = listOf(config.command) + config.args,
-            workingDir = config.workingDir.ifBlank { null },
-            env = config.env,
-        )
     }
 
     private fun HttpRequestBuilder.appendResolvedHeaders(config: McpServerConfig) {
@@ -480,7 +474,6 @@ internal fun McpServerConfig.connectionKey(): McpConnectionKey = McpConnectionKe
     transportType = when (this) {
         is McpServerConfig.SseTransportServer -> "sse"
         is McpServerConfig.StreamableHTTPServer -> "streamable_http"
-        is McpServerConfig.StdioServer -> "stdio"
     },
     serverUrl = serverUrl,
     clientName = commonOptions.name,
