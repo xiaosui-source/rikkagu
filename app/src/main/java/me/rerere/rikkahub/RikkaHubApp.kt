@@ -140,6 +140,19 @@ class LingxiApp : Application() {
                     }
                     val ws = existingWs ?: workspaceRepo.create("默认工作区")
 
+                    // 0. 立即关联默认助手（不等工具链装完）：默认助手第一时间就有自己的工作区
+                    prefs.update { s ->
+                        s.copy(
+                            assistants = s.assistants.map {
+                                if (it.id == me.rerere.rikkahub.data.datastore.DEFAULT_ASSISTANT_ID) {
+                                    it.copy(workspaceId = kotlin.uuid.Uuid.parse(ws.id))
+                                } else {
+                                    it
+                                }
+                            }
+                        )
+                    }
+
                     // 1. rootfs: 不是 READY 就下载安装 (失败抛异常)
                     if (ws.shellStatus != me.rerere.workspace.WorkspaceShellStatus.READY.name) {
                         Log.i(TAG, "auto-installing rootfs for workspace ${ws.id}, status=${ws.shellStatus}")
@@ -173,18 +186,6 @@ class LingxiApp : Application() {
                         timeoutMillis = 600_000,
                     )
 
-                    // 7. 关联默认助手
-                    prefs.update { s ->
-                        s.copy(
-                            assistants = s.assistants.map {
-                                if (it.id == me.rerere.rikkahub.data.datastore.DEFAULT_ASSISTANT_ID) {
-                                    it.copy(workspaceId = kotlin.uuid.Uuid.parse(ws.id))
-                                } else {
-                                    it
-                                }
-                            }
-                        )
-                    }
                     Log.i(TAG, "workspace fully installed: ${ws.id}")
                     true
                 }.getOrDefault(false)
