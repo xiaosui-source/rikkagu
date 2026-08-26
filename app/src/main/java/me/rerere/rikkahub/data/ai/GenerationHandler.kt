@@ -121,6 +121,9 @@ class GenerationHandler(
  
         var messages: List<UIMessage> = messages
 
+        // 静默催答提示（仅注入下一轮 system，用户不可见）：正文空白自动补全时设置
+        var forcePrompt: String? = null
+
         // 强制原生工具调用：不注入工具列表、不做规则调度，
         // 由模型原生 tools 参数驱动（支持原生的模型自动调用，不支持的不调）
 
@@ -216,7 +219,10 @@ class GenerationHandler(
                     processingStatus = processingStatus,
                     conversationSystemPrompt = conversationSystemPrompt,
                     workspaceCwd = workspaceCwd,
+                    internalForcePrompt = forcePrompt,
                 )
+                // 本轮已消费催答提示，重置（仅静默补全那一轮生效）
+                forcePrompt = null
                 messages = messages.visualTransforms(
                     transformers = outputTransformers,
                     context = context,
@@ -313,14 +319,12 @@ class GenerationHandler(
                         }
                     }
 
-                    // 无工具调用。若最后一条 assistant 正文为空(模型只思考未输出)，自动续一轮强制给出完整回答
+                    // 无工具调用。若最后一条 assistant 正文为空(模型只思考未输出)，静默自动续一轮强制给出完整回答
                     val finalText = messages.lastOrNull()?.toText()?.trim()
                     if (finalText.isNullOrBlank()) {
-                        Log.i(TAG, "streamText: assistant produced no visible text (thinking only) step #$stepIndex, forcing completion")
-                        messages = messages + UIMessage.system(
-                            "你刚才只进行了思考但还没有给出正式回答。请立即直接输出这个问题的完整答案，不要再次沉默或只思考。"
-                        )
-                        emit(GenerationChunk.Messages(messages))
+                        Log.i(TAG, "streamText: assistant produced no visible text (thinking only) step #$stepIndex, silently forcing completion")
+                        // 静默催答：下一轮 generateInternal 通过 internalForcePrompt 注入提示，用户无感知
+                        forcePrompt = "你刚才只进行了思考但还没有给出正式回答。请立即直接输出这个问题的完整答案，不要再次沉默或只思考。"
                         continue
                     }
                     // 无工具调用，正常结束
@@ -503,6 +507,8 @@ class GenerationHandler(
         processingStatus: MutableStateFlow<String?> = MutableStateFlow(null),
         conversationSystemPrompt: String? = null,
         workspaceCwd: String? = null,
+        /** 内部强制指令（仅进 system、不进 messages，源头不可见）——用于正文空白自动补全等静默催答 */
+        internalForcePrompt: String? = null,
     ) {
         val internalMessages = buildList {
             val system = buildString {
@@ -519,6 +525,12 @@ class GenerationHandler(
                 // 全局强制简体中文：所有模型一律用简体中文回答，且思考链也使用简体中文
                 appendLine()
                 append("重要指令：请始终使用简体中文回答。你的所有输出（包括思考过程、推理、思考链、代码注释）都必须使用简体中文，除非用户明确要求输出其他语言。")
+
+                // 内部强制催答（静默，用户不可见）：上一轮只思考没正文时，强制本轮直接输出完整答案
+                if (!internalForcePrompt.isNullOrBlank()) {
+                    appendLine()
+                    append(internalForcePrompt)
+                }
 
                 // 记忆
                 if (assistant.enableMemory) {
