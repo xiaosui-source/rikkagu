@@ -258,6 +258,46 @@ sealed class ProviderSetting {
                 OpenAI::class,
                 Google::class,
                 Claude::class,
+                LocalRule::class,
+            )
+        }
+    }
+
+    @Serializable
+    @SerialName("local_rule")
+    data class LocalRule(
+        override var id: Uuid = Uuid.random(),
+        override var enabled: Boolean = true,
+        override var name: String = "离线小助手",
+        override var models: List<Model> = emptyList(),
+        override val balanceOption: BalanceOption = BalanceOption(),
+        @Transient override val builtIn: Boolean = true,
+        @Transient override val description: @Composable (() -> Unit) = {},
+        @Transient override val shortDescription: @Composable (() -> Unit) = {}
+    ) : ProviderSetting() {
+        override fun addModel(model: Model): ProviderSetting = this
+        override fun editModel(model: Model): ProviderSetting = this
+        override fun delModel(model: Model): ProviderSetting = this
+        override fun moveMove(from: Int, to: Int): ProviderSetting = this
+        override fun copyProvider(
+            id: Uuid,
+            enabled: Boolean,
+            name: String,
+            models: List<Model>,
+            balanceOption: BalanceOption,
+            builtIn: Boolean,
+            description: @Composable (() -> Unit),
+            shortDescription: @Composable (() -> Unit),
+        ): ProviderSetting {
+            return this.copy(
+                id = id,
+                enabled = enabled,
+                name = name,
+                models = models,
+                builtIn = builtIn,
+                description = description,
+                shortDescription = shortDescription,
+                balanceOption = balanceOption,
             )
         }
     }
