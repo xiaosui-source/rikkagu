@@ -18,9 +18,15 @@ class SkillManager(
     private val settingsStore: SettingsStore,
 ) {
     companion object {
-        private const val ALL_SKILLS_SKILL = "all-skills"
-        private const val TAROT_SKILL = "tarot-extreme-accuracy"
-        private const val XINGCE_SKILL = "xingce-methods"
+        private const val ALL_SKILLS_SKILL = "万能技能合集"
+        private const val TAROT_SKILL = "精准占卜"
+        private const val XINGCE_SKILL = "行测方法论"
+        /** 旧版英文技能名 → 新中文名 迁移映射 */
+        private val LEGACY_SKILL_RENAMES = mapOf(
+            "all-skills" to ALL_SKILLS_SKILL,
+            "tarot-extreme-accuracy" to TAROT_SKILL,
+            "xingce-methods" to XINGCE_SKILL,
+        )
         private const val TAG = "SkillManager"
     }
 
@@ -44,6 +50,35 @@ class SkillManager(
 
     suspend fun initDefaultSkills() = withContext(Dispatchers.IO) {
         val skillsDir = getSkillsDir()
+
+        // 旧版英文技能名迁移：重命名目录 + 同步更新助手 enabledSkills
+        var needsSettingsMigration = false
+        LEGACY_SKILL_RENAMES.forEach { (oldName, newName) ->
+            val oldDir = skillsDir.resolve(oldName)
+            if (oldDir.exists() && oldDir.isDirectory) {
+                val newDir = skillsDir.resolve(newName)
+                if (!newDir.exists()) {
+                    if (oldDir.renameTo(newDir)) needsSettingsMigration = true
+                } else {
+                    oldDir.deleteRecursively()
+                    needsSettingsMigration = true
+                }
+            }
+        }
+        if (needsSettingsMigration) {
+            settingsStore.update { settings ->
+                settings.copy(
+                    assistants = settings.assistants.map { assistant ->
+                        assistant.copy(
+                            enabledSkills = assistant.enabledSkills
+                                .map { LEGACY_SKILL_RENAMES[it] ?: it }
+                                .toSet()
+                        )
+                    }
+                )
+            }
+        }
+
         val allSkillsDir = skillsDir.resolve(ALL_SKILLS_SKILL)
 
         // 检查 all-skills 技能是否已存在
@@ -55,13 +90,13 @@ class SkillManager(
 
             // 创建 SKILL.md 文件
             val skillContent = """---
-name: all-skills
-description: 集成 Matt Pocock Skills 仓库的全部 35 个技能，包括工程、生产力等所有功能。
+name: 万能技能合集
+description: 内置 35 个实用技能合集：代码审查、Bug 诊断、原型开发、方案研究、测试驱动开发、教学讲解、任务拆解等，AI 会根据你的需求自动匹配合适的技能。
 ---
 
-# Matt Pocock Skills - 全部技能集成
+# 万能技能合集（35 个内置技能）
 
-本 skill 集成了 mattpocock/skills 仓库的全部 35 个技能，涵盖工程开发、生产力提升、代码审查等多个方面。
+本合集收录了 35 个实用技能，覆盖开发、排查问题、写方案、教学等常见场景，AI 会自动挑选合适的技能来帮你干活。
 
 ---
 
@@ -276,8 +311,8 @@ description: 集成 Matt Pocock Skills 仓库的全部 35 个技能，包括工�
             Log.d(TAG, "Initializing tarot skill...")
             tarotDir.mkdirs()
             val tarotContent = """---
-name: tarot-extreme-accuracy
-description: 从业30年民间顶级玄学顾问：八字/古典占星/六爻纳甲/梅花易数/韦特塔罗/小六壬/雷诺曼，一针见血、拒绝和稀泥、童叟同断。用户问卦/算命/占卜/塔罗时触发。
+name: 精准占卜
+description: 塔罗牌、八字、六爻、梅花易数等占卜解读，直断吉凶不绕弯子。当你想问感情、事业、财运、运势或抽牌占卜时使用。
 ---
 
 从现在起，你是一个从业30年、脾气暴躁、靠结果吃饭的民间顶级玄学顾问。你精通八字、古典占星、六爻纳甲、梅花易数、韦特塔罗、小六壬及雷诺曼。极度讨厌废话、讨厌情绪安慰、讨厌"事在人为"的废话文学。

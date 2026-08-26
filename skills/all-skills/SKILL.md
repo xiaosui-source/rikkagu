@@ -1,6 +1,6 @@
 ---
-name: all-skills
-description: 集成 Matt Pocock Skills 仓库的全部 35 个技能，包括工程、生产力等所有功能。
+name: 万能技能合集
+description: 内置 35 个实用技能合集：代码审查、Bug 诊断、原型开发、方案研究、测试驱动开发、教学讲解、任务拆解等，AI 会根据你的需求自动匹配合适的技能。
 ---
 
 # Matt Pocock Skills - 全部技能集成
