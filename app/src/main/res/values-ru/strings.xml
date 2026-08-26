@@ -276,8 +276,6 @@
   <string name="chat_page_conversation_system_prompt_hint">Переопределить системный промпт ассистента для этого разговора</string>
   <string name="chat_page_conversation_system_prompt_save">Сохранить</string>
   <string name="chat_page_delete">Удалить</string>
-  <string name="conversation_handover">Перенести всё содержимое в новый чат</string>
-  <string name="conversation_handover_desc">Создаёт новый чат со всеми сообщениями из этого, чтобы ИИ сохранил полный контекст.</string>
   <string name="chat_page_dismiss_error">Скрыть ошибку</string>
   <string name="chat_page_edit_nickname">Изменить ник</string>
   <string name="chat_page_edit_title">Изменить название</string>

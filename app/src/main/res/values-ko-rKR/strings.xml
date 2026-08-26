@@ -276,8 +276,6 @@
   <string name="chat_page_conversation_system_prompt_hint">이 대화에서 어시스턴트의 시스템 프롬프트를 재정의합니다</string>
   <string name="chat_page_conversation_system_prompt_save">저장</string>
   <string name="chat_page_delete">삭제</string>
-  <string name="conversation_handover">모든 내용을 새 대화로 이어받기</string>
-  <string name="conversation_handover_desc">이 대화의 모든 메시지를 포함한 새 대화를 만들어 AI가 전체 컨텍스트를 유지하며 계속할 수 있습니다.</string>
   <string name="chat_page_dismiss_error">오류 닫기</string>
   <string name="chat_page_edit_nickname">이름 편집</string>
   <string name="chat_page_edit_title">제목 편집</string>

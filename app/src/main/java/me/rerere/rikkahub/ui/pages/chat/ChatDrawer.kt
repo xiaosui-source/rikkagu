@@ -316,9 +316,6 @@ fun ChatDrawerContent(
                     conversationToMoveFolder = it
                     showMoveToFolderSheet = true
                 },
-                onHandover = {
-                    handoverConversationContent(it, navController, repo, scope)
-                }
             )
 
             // 助手选择器
@@ -731,39 +728,6 @@ fun ChatDrawerContent(
     }
 }
 
-// 交接全部内容到新对话（复制源对话所有消息节点，保留助手/提示词/工作区等设置）
-private fun handoverConversationContent(
-    src: Conversation,
-    navigator: Navigator,
-    repo: ConversationRepository,
-    scope: CoroutineScope,
-) {
-    scope.launch {
-        runCatching {
-            val full = repo.getConversationById(src.id) ?: src
-            val newConv = Conversation(
-                id = Uuid.random(),
-                assistantId = src.assistantId,
-                title = (src.title.ifBlank { "新对话" }) + "（续）",
-                messageNodes = full.messageNodes.map { node ->
-                    node.copy(
-                        id = Uuid.random(),
-                        messages = node.messages.map { it.copy(id = Uuid.random()) }
-                    )
-                },
-                chatSuggestions = src.chatSuggestions,
-                customSystemPrompt = src.customSystemPrompt,
-                workspaceCwd = src.workspaceCwd,
-                folderId = src.folderId,
-                assistantIds = src.assistantIds,
-            )
-            repo.insertConversation(newConv)
-            navigateToChatPage(navigator, newConv.id)
-        }.onFailure { e ->
-            android.util.Log.e("ChatDrawer", "handover conversation failed", e)
-        }
-    }
-}
 
 @Composable
 private fun DrawerActions(

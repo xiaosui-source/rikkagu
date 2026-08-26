@@ -173,7 +173,6 @@ fun ColumnScope.ConversationList(
                         onPin = onPin,
                         onMoveToAssistant = onMoveToAssistant,
                         onMoveToFolder = onMoveToFolder,
-                        onHandover = onHandover,
                         drawerItemAlpha = drawerItemAlpha,
                         modifier = Modifier.animateItem()
                     )
@@ -249,7 +248,6 @@ private fun ConversationItem(
     onPin: (Conversation) -> Unit = {},
     onMoveToAssistant: (Conversation) -> Unit = {},
     onMoveToFolder: (Conversation) -> Unit = {},
-    onHandover: (Conversation) -> Unit = {},
     onClick: (Conversation) -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -368,18 +366,6 @@ private fun ConversationItem(
                     }
                 )
 
-                DropdownMenuItem(
-                    text = {
-                        Text(stringResource(R.string.conversation_handover))
-                    },
-                    onClick = {
-                        onHandover(conversation)
-                        showDropdownMenu = false
-                    },
-                    leadingIcon = {
-                        Icon(HugeIcons.Copy01, null)
-                    }
-                )
 
                 DropdownMenuItem(
                     text = {
