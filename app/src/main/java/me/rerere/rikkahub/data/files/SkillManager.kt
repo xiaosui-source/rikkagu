@@ -103,7 +103,6 @@ class SkillManager(
             }
         }
     }
-"""
 
     fun readSkillBody(skillName: String): String? {
         val skillFile = resolveSkillDir(skillName)?.resolve("SKILL.md") ?: return null
