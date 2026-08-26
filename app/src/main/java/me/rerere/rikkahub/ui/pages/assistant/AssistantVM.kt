@@ -1,4 +1,4 @@
-﻿/*
+/*
  * 灵犀 Lingxi
  * 衍生自 Lingxi (https://github.com/xiaosui-source/rikkagu)，原作者 xiaosui-source
  * 本项目基于 GNU AGPL v3 开源，详见根目录 LICENSE 文件
@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import me.rerere.rikkahub.data.datastore.Settings
@@ -20,12 +21,14 @@ import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.Avatar
 import me.rerere.rikkahub.data.repository.ConversationRepository
 import me.rerere.rikkahub.data.repository.MemoryRepository
+import me.rerere.rikkahub.data.repository.WorkspaceRepository
 
 class AssistantVM(
     private val settingsStore: SettingsStore,
     private val memoryRepository: MemoryRepository,
     private val conversationRepo: ConversationRepository,
     private val filesManager: FilesManager,
+    private val workspaceRepository: WorkspaceRepository,
 ) : ViewModel() {
     val settings: StateFlow<Settings> = settingsStore.settingsFlow
         .stateIn(viewModelScope, SharingStarted.Eagerly, Settings.dummy())
@@ -39,9 +42,17 @@ class AssistantVM(
     fun addAssistant(assistant: Assistant) {
         viewModelScope.launch {
             val settings = settings.value
+            var toAdd = assistant
+            // 新助手默认自动绑定第一个可用工作区，保证开箱即有工作区
+            if (toAdd.workspaceId == null) {
+                val firstWs = workspaceRepository.listFlow().first().firstOrNull()
+                if (firstWs != null) {
+                    toAdd = toAdd.copy(workspaceId = firstWs.id)
+                }
+            }
             settingsStore.update(
                 settings.copy(
-                    assistants = settings.assistants.plus(assistant)
+                    assistants = settings.assistants.plus(toAdd)
                 )
             )
         }
