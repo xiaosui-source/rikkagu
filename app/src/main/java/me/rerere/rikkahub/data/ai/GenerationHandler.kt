@@ -526,6 +526,29 @@ class GenerationHandler(
                 appendLine()
                 append("重要指令：请始终使用简体中文回答。你的所有输出（包括思考过程、推理、思考链、代码注释）都必须使用简体中文，除非用户明确要求输出其他语言。")
 
+                // 技能主动引导（常驻系统提示）：让模型知道有哪些可用技能并主动调用
+                if (assistant.enabledSkills.isNotEmpty()) {
+                    runCatching {
+                        val skillManager: me.rerere.rikkahub.data.files.SkillManager = org.koin.java.KoinJavaComponent.getKoin().get()
+                        val allSkills = skillManager.listSkillsSync()
+                        val visible = allSkills.filter { it.name in assistant.enabledSkills && !it.disableModelInvocation }
+                        if (visible.isNotEmpty()) {
+                            appendLine()
+                            appendLine("## 可用技能（主动使用）")
+                            appendLine("你拥有以下专用技能。当用户的请求匹配某技能的能力时，你必须通过 `use_skill` 工具加载并遵循其指令，而不要只用你的通用常识应付。判断标准：请求主题与技能描述场景重合即应使用。")
+                            appendLine("<available_skills>")
+                            visible.forEach { skill ->
+                                appendLine("  <skill>")
+                                appendLine("    <name>${skill.name}</name>")
+                                appendLine("    <description>${skill.description}</description>")
+                                appendLine("  </skill>")
+                            }
+                            appendLine("</available_skills>")
+                            appendLine("命中技能时调用 use_skill(name=...) 加载指令并按其方法论作答；若确实无技能匹配则正常回答，不要强行套用。")
+                        }
+                    }
+                }
+
                 // 内部强制催答（静默，用户不可见）：上一轮只思考没正文时，强制本轮直接输出完整答案
                 if (!internalForcePrompt.isNullOrBlank()) {
                     appendLine()

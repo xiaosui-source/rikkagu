@@ -38,8 +38,13 @@ class SkillManager(
     }
 
     suspend fun listSkills(): List<SkillMetadata> = withContext(Dispatchers.IO) {
+        listSkillsSync()
+    }
+
+    /** 同步读取技能列表（非 suspend），用于系统提示注入等不能 suspend 的场景 */
+    fun listSkillsSync(): List<SkillMetadata> {
         val skillsDir = getSkillsDir()
-        skillsDir.listFiles()
+        return skillsDir.listFiles()
             ?.filter { it.isDirectory }
             ?.mapNotNull { dir ->
                 val skillFile = dir.resolve("SKILL.md")
