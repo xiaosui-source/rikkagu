@@ -32,7 +32,7 @@ import java.util.Locale
 
 private const val SCREENSHOT_CACHE_DIR = "screenshots"
 private const val PICTURES_SUBDIR = "Lingxi/Screenshots"
-private const val PRUNE_OLDER_THAN_MS = 60L * 60L * 1000L  // 1 hour — cache only
+private const val PRUNE_OLDER_THAN_MS = 0L  // 0 — delete all previous screenshots on each capture: the LLM has already consumed them; nothing should linger
 
 private fun pruneOldCacheScreenshots(dir: File) {
     val cutoff = System.currentTimeMillis() - PRUNE_OLDER_THAN_MS
@@ -43,7 +43,7 @@ private fun pruneOldCacheScreenshots(dir: File) {
 
 fun takeScreenshotTool(context: Context): Tool = Tool(
     name = "take_screenshot",
-    description = "Capture the current display via AccessibilityService and return it as a vision attachment. PNG also saved to Pictures/Lingxi/Screenshots/ — gallery_path in the result is the on-device absolute path. Secure surfaces (banking, DRM, password fields) error gracefully. OS-rate-limited to ~1/sec.",
+    description = "Capture the current display via AccessibilityService and return it as a vision attachment. By default nothing is saved to the user's gallery — pass save_to_gallery=true only when the user explicitly asks to keep the screenshot. A temporary cache copy (auto-cleaned) is used for vision and is enough for all automation/analysis loops. Secure surfaces (banking, DRM, password fields) error gracefully. OS-rate-limited to ~1/sec.",
     needsApproval = true,
     parameters = {
         InputSchema.Obj(
@@ -52,11 +52,16 @@ fun takeScreenshotTool(context: Context): Tool = Tool(
                     put("type", "integer")
                     put("description", "Display id to capture (default 0)")
                 })
+                put("save_to_gallery", buildJsonObject {
+                    put("type", "boolean")
+                    put("description", "Save a copy to the user's gallery (Pictures/Lingxi/Screenshots). Default false — nothing lands in the gallery. Set true ONLY if the user explicitly wants to keep this screenshot.")
+                })
             }
         )
     },
     execute = { input ->
         val displayId = input.jsonObject["display_id"]?.jsonPrimitive?.intOrNull ?: 0
+        val saveToGallery = input.jsonObject["save_to_gallery"]?.jsonPrimitive?.booleanOrNull ?: false
 
         val outcome = AccessibilityServiceHandle.withService { svc ->
             val cacheDir = File(context.cacheDir, SCREENSHOT_CACHE_DIR).apply { mkdirs() }
@@ -99,9 +104,12 @@ fun takeScreenshotTool(context: Context): Tool = Tool(
                         }
                     }
 
-                    // 2) Save a user-visible copy to Pictures/Lingxi/Screenshots — visible in
-                    //    Gallery, the Files app, and the list_files / find_files tools.
-                    val galleryPath: String? = saveToGallery(context, res.bitmap, displayName)
+                    // 2) Gallery copy is OPT-IN: only when save_to_gallery=true (user explicitly
+                    //    wants to keep it). Automation loops (chess etc.) pass nothing/false →
+                    //    nothing lands in the gallery.
+                    val galleryPath: String? = if (saveToGallery) {
+                        saveToGallery(context, res.bitmap, displayName)
+                    } else null
                     res.bitmap.recycle()
 
                     svc.appendLog(
@@ -117,8 +125,12 @@ fun takeScreenshotTool(context: Context): Tool = Tool(
                     buildJsonObject {
                         put("success", true)
                         put("file_path", cacheFile.absolutePath)
-                        put("gallery_path", galleryPath ?: "(gallery_save_failed)")
-                        put("saved_to", "Pictures/$PICTURES_SUBDIR")
+                        if (galleryPath != null) {
+                            put("gallery_path", galleryPath)
+                        } else {
+                            put("gallery_saved", false)
+                            put("note", "not saved to gallery; temp cache file auto-deleted after send")
+                        }
                     }
                 }
             }
