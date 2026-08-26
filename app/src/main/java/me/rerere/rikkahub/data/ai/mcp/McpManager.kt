@@ -146,6 +146,9 @@ class McpManager(
         if ("imagegps" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.createImageGpsTools()
         }
+        if ("taifeng" in enabled) {
+            list += me.rerere.rikkahub.data.ai.tools.buildTyphoonMcpTools()
+        }
         return list
     }
 
@@ -186,6 +189,12 @@ class McpManager(
                 id = "builtin-imagegps",
                 name = "图片 GPS 位置修改器 📍",
                 description = "内置图片 GPS 位置修改：读取/写入/清除图片 EXIF 拍摄地经纬度信息",
+                toolCount = 3,
+            ) to 1,
+            me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
+                id = "builtin-taifeng",
+                name = "台风路径 🌪",
+                description = "内置实时台风路径：查询当前活跃台风/简称路径/预测/搜索（公开免key数据源）",
                 toolCount = 3,
             ) to 1,
         )

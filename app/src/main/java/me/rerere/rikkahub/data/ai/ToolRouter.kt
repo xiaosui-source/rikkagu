@@ -79,6 +79,12 @@ object ToolRouter {
         if (msg.contains("apk") || msg.contains("逆向") || msg.contains("反编译") || msg.contains("apk工具")) {
             return "apk_decode" to buildArgs()
         }
+        // ===== 台风路径 =====
+        // 弱模型无原生 tool_call 时兜底：提到"台风"即查询当前活跃台风列表
+        // （具体查询交给 AI 模型基于工具描述再调用 typhoon_detail / typhoon_search）
+        if (msg.contains("台风") || msg.contains("台风路径") || msg.contains("热带气旋")) {
+            return "typhoon_active" to buildArgs()
+        }
         return null
     }
 

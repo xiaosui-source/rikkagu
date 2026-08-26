@@ -52,6 +52,17 @@
   - `ProviderConfigure.kt` 删空分支
 - 全局无 `LocalRule`/`local-rule`/`离线小助手` 残留。
 
+### 6. 新增内置「台风路径」MCP（当前保留）
+- `TyphoonMcpTools.kt`：`typhoon_active` / `typhoon_detail` / `typhoon_search`。
+  - 用 OkHttp 拉取公开免 key 台风 JSON 源（多源容错），宽松解析（名称/编号/位置/风速/气压/移速/预测路径）。
+  - `dataUrl` 参数可自定义数据源；解析受阻时返回原始 JSON 供 AI 自行理解，工具不硬失败。
+- 接入：
+  - `McpManager.getBuiltinServerTools` 加 `taifeng` 分支 → `buildTyphoonMcpTools()`
+  - `getBuiltinServerInfos` 加 `builtin-taifeng` 卡片（3 工具）
+  - `Assistant.builtinMcpIds` 默认加 `taifeng`
+  - `ToolRouter.route` 加"台风/台风路径/热带气旋"关键词兜底 → `typhoon_active`
+- **注意（未验证）**：默认数据源 `typhoon.nmc.cn/weatherservice/typhoon/jsons/list_current`、`typhoon.org.cn/outer/...` 的实际返回结构**未经线上实测**（沙箱无外网）。解析器已做多 schema 宽松适配 + 原文兜底，若源变更需在 `DEFAULT_LIST_SOURCES` 调整或用户传 `dataUrl`。
+
 ---
 
 ## 二、技术要点 / 踩过的坑
