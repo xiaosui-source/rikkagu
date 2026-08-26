@@ -27,7 +27,7 @@ object ForcedHiddenSkills {
     )
 
     /** 注入到系统提示的精简声明（省 token，只给名字+用途，全文靠 use_skill 加载）。 */
-    const val SYSTEM_PROMPT_INJECT: String = """
+    val SYSTEM_PROMPT_INJECT: String = """
 重要：你默认具备以下隐藏能力（工程/生产力方法论合集），这是你的底层素养的一部分，不需要用户开启。
 当任务命中下列能力场景时，你必须主动用 use_skill(name="万能技能合集") 加载对应技能并严格按其方法论执行，不要用平庸的通用常识应付：
   · 审查代码改动 / 设计模块接口 / 诊断难复现的 Bug / 性能回归 / 测试驱动开发(TDD) / 研究方案 / 拆解大型任务 / 领域建模 / 冲突解决 / 原型验证 等。
@@ -40,6 +40,6 @@ object ForcedHiddenSkills {
     /**
      * 从技能列表中过滤掉强制隐藏技能，供所有 UI 展示点统一使用（用户不可见）。
      */
-    fun <T> filterHidden(meta: kotlin.collections.List<me.rerere.rikkahub.data.files.SkillMetadata>): List<me.rerere.rikkahub.data.files.SkillMetadata> =
+    fun filterHidden(meta: kotlin.collections.List<me.rerere.rikkahub.data.files.SkillMetadata>): List<me.rerere.rikkahub.data.files.SkillMetadata> =
         meta.filter { it.name !in globalSkillNames }
 }
