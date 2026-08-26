@@ -143,6 +143,9 @@ class McpManager(
         if ("filesystem" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.buildFileSystemMcpTools(context)
         }
+        if ("imagegps" in enabled) {
+            list += me.rerere.rikkahub.data.ai.tools.createImageGpsTools()
+        }
         return list
     }
 
@@ -178,6 +181,12 @@ class McpManager(
                 name = "Memory MCP",
                 description = "内置内存键值存储 MCP（会话内临时数据，移植自 Kelivo）",
                 toolCount = 4,
+            ) to 1,
+            me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
+                id = "builtin-imagegps",
+                name = "图片 GPS 位置修改器 📍",
+                description = "内置图片 GPS 位置修改：读取/写入/清除图片 EXIF 拍摄地经纬度信息",
+                toolCount = 3,
             ) to 1,
         )
 

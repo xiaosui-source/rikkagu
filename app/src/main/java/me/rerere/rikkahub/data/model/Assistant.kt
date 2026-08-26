@@ -48,7 +48,7 @@ data class Assistant(
     val mcpServers: Set<Uuid> = emptySet(),
     // 启用的内置 MCP 工具组 id（全部默认启用，剩余 MCP 全开）
     val builtinMcpIds: Set<String> = setOf(
-        "memory", "12306", "apk", "context7", "filesystem",
+        "memory", "12306", "apk", "context7", "filesystem", "imagegps",
     ),
     val localTools: List<LocalToolOption> = listOf(LocalToolOption.TimeInfo),
     val workspaceId: Uuid? = null,
