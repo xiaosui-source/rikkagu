@@ -97,6 +97,25 @@ sealed class McpServerConfig {
             return copy(id = id, commonOptions = commonOptions)
         }
     }
+
+    @Serializable
+    @SerialName("stdio")
+    data class StdioServer(
+        override val id: Uuid = Uuid.random(),
+        override val commonOptions: McpCommonOptions = McpCommonOptions(),
+        /** 可执行命令（如 node），可含路径 */
+        val command: String = "",
+        /** 命令参数（如入口脚本路径） */
+        val args: List<String> = emptyList(),
+        /** 工作目录（用于相对路径的入口脚本） */
+        val workingDir: String = "",
+        /** 额外环境变量 */
+        val env: Map<String, String> = emptyMap(),
+    ) : McpServerConfig() {
+        override fun clone(id: Uuid, commonOptions: McpCommonOptions): McpServerConfig {
+            return copy(id = id, commonOptions = commonOptions)
+        }
+    }
 }
 
 /** MCP Server 的连接地址（作为 OAuth 的 canonical resource 标识）。 */
@@ -104,4 +123,5 @@ val McpServerConfig.serverUrl: String
     get() = when (this) {
         is McpServerConfig.SseTransportServer -> url
         is McpServerConfig.StreamableHTTPServer -> url
+        is McpServerConfig.StdioServer -> "stdio://${commonOptions.name}"
     }
