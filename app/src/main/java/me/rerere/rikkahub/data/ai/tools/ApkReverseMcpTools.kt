@@ -30,20 +30,20 @@ fun buildApkReverseMcpTools(context: Context): List<Tool> = listOf(
     // ===== APK 基本信息 =====
     Tool(
         name = "apk_info",
-        description = "解析 APK 基本信息：包名/版本/应用名/最小SDK/大小（用 Android 系统解析，无需工作区）。Params: apk_path(APK文件绝对路径)",
+        description = "解析 APK 基本信息：包名/版本/应用名/最小SDK/大小（用 Android 系统解析，无需工作区）。Params: apk_path(APK文件绝对路径，支持 /workspace/ 下路径)",
         needsApproval = false,
         parameters = {
             InputSchema.Obj(properties = buildJsonObject {
-                put("apk_path", buildJsonObject { put("type", "string"); put("description", "APK 文件绝对路径") })
+                put("apk_path", buildJsonObject { put("type", "string"); put("description", "APK 文件绝对路径（可在 workspace 内，如 /workspace/foo.apk）") })
             }, required = listOf("apk_path"))
         },
         execute = { args ->
             val o = args.jsonObject
-            val path = o["apk_path"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"apk_path required"}"""))
+            val path = resolveApkHostPath(context, o["apk_path"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"apk_path required"}""")))
             val file = File(path)
             if (!file.exists()) {
                 return@Tool listOf(UIMessagePart.Text(buildJsonObject {
-                    put("error", "APK 文件不存在: $path")
+                    put("error", "APK 文件不存在: $path (原始参数: ${o["apk_path"]?.jsonPrimitive?.contentOrNull})")
                 }.toString()))
             }
             val pm = context.packageManager
@@ -70,16 +70,22 @@ fun buildApkReverseMcpTools(context: Context): List<Tool> = listOf(
     // ===== APK 组件解析 =====
     Tool(
         name = "apk_manifest",
-        description = "解析 APK 的四大组件（Activity/Service/Receiver/Provider）+ 权限列表（Android 系统解析，无需工作区）。Params: apk_path(APK文件绝对路径)",
+        description = "解析 APK 的四大组件（Activity/Service/Receiver/Provider）+ 权限列表（Android 系统解析，无需工作区）。Params: apk_path(APK文件绝对路径，支持 /workspace/ 下路径)",
         needsApproval = false,
         parameters = {
             InputSchema.Obj(properties = buildJsonObject {
-                put("apk_path", buildJsonObject { put("type", "string"); put("description", "APK 文件绝对路径") })
+                put("apk_path", buildJsonObject { put("type", "string"); put("description", "APK 文件绝对路径（可在 workspace 内，如 /workspace/foo.apk）") })
             }, required = listOf("apk_path"))
         },
         execute = { args ->
             val o = args.jsonObject
-            val path = o["apk_path"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"apk_path required"}"""))
+            val path = resolveApkHostPath(context, o["apk_path"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"apk_path required"}""")))
+            val file = File(path)
+            if (!file.exists()) {
+                return@Tool listOf(UIMessagePart.Text(buildJsonObject {
+                    put("error", "APK 文件不存在: $path")
+                }.toString()))
+            }
             val pm = context.packageManager
             val flags = PackageManager.GET_ACTIVITIES or PackageManager.GET_SERVICES or
                 PackageManager.GET_RECEIVERS or PackageManager.GET_PROVIDERS or PackageManager.GET_PERMISSIONS
@@ -100,3 +106,18 @@ fun buildApkReverseMcpTools(context: Context): List<Tool> = listOf(
         },
     ),
 )
+
+/**
+ * 把工具收到的 APK 路径解析为 app 实际可访问的宿主路径。
+ *
+ * 工作区的 proot rootfs 内，`/workspace` 被绑定映射到 `context.filesDir`（见
+ * ProotShellRunner 的 `-b <filesDir>:/workspace`）。因此 AI 传入的 `/workspace/foo.apk`
+ * 在 app 进程里真实路径是 `<filesDir>/foo.apk`。直接 `File("/workspace/...")` 会找不到，
+ * 这里做映射转换；非 `/workspace` 前缀的路径（如 content:// 或已映射好的绝对路径）原样返回。
+ */
+private fun resolveApkHostPath(context: Context, path: String): String {
+    if (path.startsWith("/workspace/")) {
+        return File(context.filesDir, path.removePrefix("/workspace/")).absolutePath
+    }
+    return path
+}
