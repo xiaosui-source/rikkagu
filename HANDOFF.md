@@ -124,11 +124,23 @@
    - 现实：safetensors / transformers 格式、MoE 大模型（几 GB），**Android 端不可直接运行**；与"不要模型文件"诉求矛盾。
    - 现状：离线模型已删，此需求搁置。若用户仍执着，需明确：换GGUF小模型用 llama.cpp，或接受联网 API。
 2. 反代（DeepSeek 反代）需求用户提及但未落地（未加代码），用户说"直接在软件里加反代"后转去处理其他，未交付。**潜在待办**：是否内置一个 DeepSeek/OpenAI 兼容"一键反代"提供商预设。
+3. **上游 `rikkahub/rikkahub` 合并 —— 两条代码线架构不兼容，无法自动合并（2026-08-27 实测结论）**：
+   - `rikkahub/rikkahub`（官方，最新 2.4.13/`170a612e`）与本 fork（我们，2.4.12/`7bbb2f63`）是**从很早期分叉后各自独立重构的姊妹项目**，git 历史无共同祖先（`merge-base` 为空）。
+   - 差异规模：本 fork 有 **738 个文件** upstream 没有（含 material3 vendored 385 + app/src 定制 230）；upstream 有 **60+ 个文件**本 fork 没有（web server/Sponsor/UpdateChecker/新 local tools）。
+   - 已实测**两种强制合并均编译失败**：
+     - `git merge upstream/master --allow-unrelated-histories -X ours`（同名保我们的）→ CI 报错在 highlight/common/speech 等模块大量 `Redeclaration`/`Unresolved reference`（两套模块文件叠加成重复类）。
+     - 「以上游为基座 + 覆盖我们独有定制」→ 我们的定制依赖我们旧核心层，同样崩。
+   - **结论**：整树自动合并**不可能**产出可编译项目。`-X ours` 混树、换基座覆盖均失败。
+   - 已回滚到安全状态：master（`7bbb2f63`）未污染，坏分支已删；`upstream-2.4.13` 留存为官方参考基线。
 
 ---
 
 ## 四、下一步计划（如需继续）
 
+### ✅ 采纳的最安全方案（当前状态）
+> **master 保持可编译的完整定制版（`7bbb2f63`，CI #202 success），upstream-2.4.13 作为官方 2.4.13 参考基线库留存，不对两条不兼容代码线做盲目整树合并。**
+
+- [ ] **若未来要"拥有 upstream 2.4.13 的能力"**：以本 fork master 为基座，**逐个挑选移植** upstream 里用户真正需要的自包含新功能（候选：自动重试 / 前台服务保活 / hy5+glm-5.3 等新模型注册 / qwen-audio tts）。每移植一个 → CI 验证 → 能编译才保留，绝不整树硬拼。
 - [ ] 确认是否补做「DS 反代」内置提供商（需用户提供 baseUrl 或决定用系统自带 OpenAI 兼容自定义能力）。
 - [ ] GLM 本地模型需求：与用户对齐「手机可跑的小 GGUF 模型」或接受联网，再决定是否加 llama.cpp/onnx 推理。
 - [ ] 持续跟进 CI：各提交后 `assembleUniversalGmsRelease` 均 success；如有新失败再修。
@@ -141,4 +153,11 @@
 - `004458d4`→`a69748f7` Stdio MCP（加后 revert）
 - `0faafd6b` feat 图片 GPS
 - `d317bd07`/`61bff2e2` fix 图片 GPS 编译
+- `478e2ffd` feat 新增内置台风路径 MCP
+- `08fd56a7` feat 内网访问改按需放行
+- `69aed0a1` feat 内网访问完全放开
+- `bfadfd04` feat 全局强制隐藏技能
+- `2966246b` fix 修复 ForcedHiddenSkills 编译错误（CI #200 success）
+- `b619303d` fix 台风 MCP 数据源 404（仅用实测 200 的 NMC 接口；CI #201 failure）
+- `7bbb2f63` fix 台风 MCP 编译错误（补 jsonObject import / 修 seqMap 顺序 / ifBlank→takeIf；CI #202 **success**）← 当前 master HEAD，可编译可用
 - `433911bb` remove 离线小助手 LocalRule
