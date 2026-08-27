@@ -9,6 +9,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import me.rerere.ai.core.InputSchema
@@ -108,9 +109,10 @@ private fun parseNmcList(raw: String): String? {
         val id = arrStr(a, 0)
         val en = arrStrOrNull(a, 1)
         val cn = arrStrOrNull(a, 2)
-        val code = arrStr(a, 3).ifBlank { null } ?: arrStrOrNull(a, 5)
+        val code3 = arrStr(a, 3)
+        val code = if (code3.isNotBlank()) code3 else arrStrOrNull(a, 5)
         val status = arrStr(a, 7)
-        val name = cn?.ifBlank { null } ?: en ?: "未知"
+        val name = cn?.takeIf { it.isNotBlank() } ?: en ?: "未知"
         val active = (status == "start")
         val sb = StringBuilder(name.take(20))
         if (en != null && en.isNotBlank() && cn?.isNotBlank() == true) sb.append("(").append(en.take(20)).append(")")
@@ -148,7 +150,7 @@ private fun parseNmcTrack(raw: String): String? {
     val cn = arrStrOrNull(tArr, 2)
     val code = arrStrOrNull(tArr, 3) ?: arrStrOrNull(tArr, 4)
     val status = arrStr(tArr, 7)
-    val name = cn?.ifBlank { null } ?: en ?: "台风"
+    val name = cn?.takeIf { it.isNotBlank() } ?: en ?: "台风"
 
     val sb = StringBuilder()
     sb.append("台风「").append(name.take(20)).append("」")
@@ -198,9 +200,9 @@ private fun findTyphoonId(raw: String?): Map<String, String> {
         val en = arrStrOrNull(a, 1)
         val cn = arrStrOrNull(a, 2)
         val code = arrStrOrNull(a, 3) ?: arrStrOrNull(a, 5)
-        seqMap(map, id, en)
-        seqMap(map, id, cn)
-        seqMap(map, id, code)
+        seqMap(map, en, id)
+        seqMap(map, cn, id)
+        seqMap(map, code, id)
     }
     return map
 }
