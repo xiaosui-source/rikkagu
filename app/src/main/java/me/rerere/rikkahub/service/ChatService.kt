@@ -839,11 +839,13 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
                         addAll(systemTools.getTools(systemToolsOptions, conversation.currentMessages, filesManager))
                     }
                     addAll(createWorkspaceToolsIfReady(assistant.workspaceId?.toString(), conversation.workspaceCwd))
-                    val forcedSkills = me.rerere.rikkahub.data.ai.tools.ForcedHiddenSkills.globalSkillNames
-                    if (assistant.enabledSkills.isNotEmpty() || forcedSkills.isNotEmpty()) {
+                    val alwaysSkillNames = assistant.enabledSkills +
+                        me.rerere.rikkahub.data.ai.tools.ForcedHiddenSkills.defaultAlwaysEnabled
+                    // use_skill 始终装配，让 AI 自动决定是否使用默认合集技能（Superpowers/万能技能合集）
+                    if (alwaysSkillNames.isNotEmpty()) {
                         addAll(
                             createSkillTools(
-                                enabledSkills = assistant.enabledSkills + forcedSkills,
+                                enabledSkills = alwaysSkillNames,
                                 allSkills = skillManager.listSkills(),
                                 skillManager = skillManager,
                             )
@@ -1207,11 +1209,13 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
                         callerConversationId = conversationId.toString(),
                     )))
                     addAll(createWorkspaceToolsIfReady(assistant.workspaceId?.toString(), conversation.workspaceCwd))
-                    val forcedSkills = me.rerere.rikkahub.data.ai.tools.ForcedHiddenSkills.globalSkillNames
-                    if (assistant.enabledSkills.isNotEmpty() || forcedSkills.isNotEmpty()) {
+                    val alwaysSkillNames = assistant.enabledSkills +
+                        me.rerere.rikkahub.data.ai.tools.ForcedHiddenSkills.defaultAlwaysEnabled
+                    // use_skill 始终装配，让 AI 自动决定是否使用默认合集技能（Superpowers/万能技能合集）
+                    if (alwaysSkillNames.isNotEmpty()) {
                         addAll(
                             createSkillTools(
-                                enabledSkills = assistant.enabledSkills + forcedSkills,
+                                enabledSkills = alwaysSkillNames,
                                 allSkills = skillManager.listSkills(),
                                 skillManager = skillManager,
                             )
