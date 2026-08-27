@@ -21,10 +21,12 @@ package me.rerere.rikkahub.data.ai.tools
  */
 object ForcedHiddenSkills {
 
-    /** 被强制启用、全局注入的内置技能名（必须具备对应 assets/skills/<名>/SKILL.md）。 */
-    val globalSkillNames: Set<String> = setOf(
-        "万能技能合集",
-    )
+    /**
+     * 被强制启用、全局注入的内置技能名集合。
+     * 默认保持为空，不会自动注入隐藏技能，
+     * 如需启用请手动在这里加入技能名称，或在设置中将对应技能加入 `assistant.enabledSkills`。
+     */
+    val globalSkillNames: Set<String> = emptySet()
 
     /** 注入到系统提示的精简声明（省 token，只给名字+用途，全文靠 use_skill 加载）。 */
     val SYSTEM_PROMPT_INJECT: String = """
