@@ -727,13 +727,13 @@ class WorkspaceRepository(
             appendLine("    signals.append('Unity 引擎')")
             appendLine("# --- Native ---")
             appendLine("if not signals:")
-            appendLine("    hasDex = len(find(r'\.dex$')) > 0 or os.path.isdir(root)")
+            appendLine("    hasDex = len(find(r'\\.dex$')) > 0 or os.path.isdir(root)")
             appendLine("    kotlin = os.path.isdir(os.path.join(root,'kotlin')) or any('kotlin' in f for dp,dn,fn in os.walk(root) for f in fn[:200] if f.endswith('.kotlin_metadata'))")
             appendLine("    signals.append('纯原生 Android' + (' (Kotlin)' if kotlin else ' (Java/其它)'))")
             appendLine("# --- 构建工具/IDE 痕迹 ---")
             appendLine("build = []")
             appendLine("if os.path.join(root,'META-INF').startswith(root) and os.path.isdir(os.path.join(root,'META-INF/com/android/build/gradle')): build.append('Gradle 构建')")
-            # 构建/IDE 痕迹：apktool.yml 存在说明可被二改；Gradle 构建痕迹在 META-INF/com/android/build/gradle
+            // 构建/IDE 痕迹：apktool.yml 存在说明可被二改；Gradle 构建痕迹在 META-INF/com/android/build/gradle
             appendLine("if exists('apktool.yml'): build.append('(可重打包/二改)')")
             appendLine("res['development_framework'] = signals if signals else ['未知/壳加固(需脱壳后进一步分析)']")
             appendLine("res['suggested'] = '若需反编译源码/二改，用 workspace_apk_rework (decode)；若需脱壳分析用 workspace_apk_unpack'")
