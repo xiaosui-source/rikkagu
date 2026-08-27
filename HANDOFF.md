@@ -53,15 +53,22 @@
 - 全局无 `LocalRule`/`local-rule`/`离线小助手` 残留。
 
 ### 6. 新增内置「台风路径」MCP（当前保留）
-- `TyphoonMcpTools.kt`：`typhoon_active` / `typhoon_detail` / `typhoon_search`。
-  - 用 OkHttp 拉取公开免 key 台风 JSON 源（多源容错），宽松解析（名称/编号/位置/风速/气压/移速/预测路径）。
-  - `dataUrl` 参数可自定义数据源；解析受阻时返回原始 JSON 供 AI 自行理解，工具不硬失败。
+- `TyphoonMcpTools.kt`：`typhoon_active` / `typhoon_detail`。
+  - 用 OkHttp 拉取【中央气象台 NMC 台风网】公开源。
+  - 精确适配 nmc 的「数组」结构：台风对象 `[id,enname,namecn,编号,编号,台风编号,含义,status]`（status="start"=活跃）；路径点 `[id,时间,epoch,级别,经度,纬度,气压,风速,移向,移速,...]`。
+  - `typhoon_active` 拉 `list_default`；`typhoon_detail` 先在列表按名称/编号查 id，再拉 `view_{id}`。
+- **数据源 2026-08-27 修复（重要）**：原默认源大部分 **404**（`list_current`/`list_6h`/`zj.slt.gateway` 均已失效），且原 `tfGet` 未校验 HTTP 状态码会把 404 页面误当数据返回。
+  - 现已**实测**并只保留返回 **200** 的源：
+    - `https://typhoon.nmc.cn/weatherservice/typhoon/jsons/list_default`（200）
+    - `https://typhoon.nmc.cn/weatherservice/typhoon/jsons/view_{id}`（200）
+  - `tfGet` 加状态码检查：非 2xx 直接判失败返回 null，404 不再误当数据。
+  - **移除 `typhoon_search` 工具**（基于原文线条搜索意义不大），工具由 3 个减为 2 个；`McpManager` 卡片 `toolCount=3→2`、描述同步更新。
 - 接入：
   - `McpManager.getBuiltinServerTools` 加 `taifeng` 分支 → `buildTyphoonMcpTools()`
-  - `getBuiltinServerInfos` 加 `builtin-taifeng` 卡片（3 工具）
+  - `getBuiltinServerInfos` 加 `builtin-taifeng` 卡片（2 工具）
   - `Assistant.builtinMcpIds` 默认加 `taifeng`
   - `ToolRouter.route` 加"台风/台风路径/热带气旋"关键词兜底 → `typhoon_active`
-- **注意（未验证）**：默认数据源 `typhoon.nmc.cn/weatherservice/typhoon/jsons/list_current`、`typhoon.org.cn/outer/...` 的实际返回结构**未经线上实测**（沙箱无外网）。解析器已做多 schema 宽松适配 + 原文兜底，若源变更需在 `DEFAULT_LIST_SOURCES` 调整或用户传 `dataUrl`。
+- **注意**：NMC 接口为 JSONP（`func((...))`），解析器已剥离；若某接口再失效，`tfGet` 会因非 2xx 判失败并返回明确错误，不会静默成功。
 
 ### 7. 内网访问改「完全放开」（当前保留）
 - **背景**：`http_request`（HttpRequestTool）与 `web_browse`（WorkspaceTools）原本有 SSRF 防护，禁止访问内网/回环地址。曾先实现「按需放行」（`intranetAccessGate`），后按用户要求改为**完全放开**。

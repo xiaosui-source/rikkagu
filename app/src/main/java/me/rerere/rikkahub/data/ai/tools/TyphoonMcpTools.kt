@@ -5,10 +5,10 @@
  */
 package me.rerere.rikkahub.data.ai.tools
 
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import me.rerere.ai.core.InputSchema
@@ -21,25 +21,23 @@ import java.util.concurrent.TimeUnit
 /**
  * 台风路径查询工具（内置 MCP）。
  *
- * 对接公开实时台风数据源，提供：
- *  - typhoon_active  当前活跃台风列表（名称/编号/级别/风速/气压/位置经纬度）
- *  - typhoon_detail  指定台风详细路径（历史轨迹 + 未来预测）
- *  - typhoon_search  按关键词搜索台风信息
+ * 数据源：中央气象台台风网（NMC）——仅保留【实测返回 200】的接口，404 的源一律不用。
+ *  - 列表：`https://typhoon.nmc.cn/weatherservice/typhoon/jsons/list_default`（200）
+ *  - 详情：`https://typhoon.nmc.cn/weatherservice/typhoon/jsons/view_{id}`（200）
  *
- * 数据源采用「多候选公开免 key 源 + 防御式解析」。任何源不可达或格式变化时，
- * 会把原始数据摘录交还 AI 参考，工具绝不硬失败。所有工具均支持 dataUrl 参数
- * 自定义数据源（便于用户在源变更时手动指定）。
+ * 返回 JSONP（`typhoon_xxx((...))`），解析器精确适配 nmc 的「数组」结构：
+ *  - 台风对象 = `[id, enname, namecn, code1, code2, typhoonCode, meaning, status]`
+ *    status: "start"=活跃 / "stop"=已停止
+ *  - 路径点 = `[id, "YYMMDDHHMM", epochMillis, 级别, 经度, 纬度, 中心气压, 风速, 移向, 移速, ...]`
+ *    级别: TD=热带低压, TS=热带风暴, STS=强热带风暴, TY=台风, STY=强台风, SuperTY=超强台风
+ *
+ * 若网络不可达/接口异常，会返回明确错误信息，绝不静默失败。
  */
 private const val TF_UA = "Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36"
 
-// 候选台风数据源（按稳定性与免费性排序，均无需 API key）
+// 仅实测 200 的源。列表接口（detail 通过 view_{id} 动态拼接）。
 private val DEFAULT_LIST_SOURCES = listOf(
-    // 中央气象台台风网（NMC）—— 台风实时列表
-    "https://typhoon.nmc.cn/weatherservice/typhoon/jsons/list_current",
     "https://typhoon.nmc.cn/weatherservice/typhoon/jsons/list_default",
-    "https://typhoon.nmc.cn/weatherservice/typhoon/jsons/list_6h",
-    // 台风路径（zj 水利台风网）
-    "https://typhoon.slt.zj.gov.cn/TyphoonService/gateway/typhoonList",
 )
 
 private val tfHttp: OkHttpClient = OkHttpClient.Builder()
@@ -48,8 +46,8 @@ private val tfHttp: OkHttpClient = OkHttpClient.Builder()
     .followRedirects(true)
     .build()
 
-/** 发起 GET 返回响应原文；失败返回 null */
-private fun tfGet(url: String, timeoutMs: Long = 9000): String? = try {
+/** 发起 GET；仅接受 2xx 响应（404 等直接判失败，不误当数据），返回剥离 JSONP 后的 JSON 原文。 */
+private fun tfGet(url: String): String? = try {
     tfHttp.newCall(
         Request.Builder().url(url)
             .header("User-Agent", TF_UA)
@@ -57,176 +55,179 @@ private fun tfGet(url: String, timeoutMs: Long = 9000): String? = try {
             .header("Accept-Language", "zh-CN,zh;q=0.9")
             .get().build()
     ).execute().use { resp ->
+        if (!resp.isSuccessful) return null // 非 2xx（404/5xx）一律返回 null，交由调用方报错
         val body = resp.body?.string() ?: return null
-        // 剥离 JSONP 包裹（如 callback(...) / xxx(...)）还原纯 JSON
-        var raw = body.trim()
-        if (raw.startsWith("{")) raw = raw
-        else if ((raw.startsWith("var ") || raw.startsWith("window.") || isJsonp(raw))) {
-            val start = raw.indexOf('(')
-            if (start >= 0) {
-                val end = raw.lastIndexOf(')')
-                if (end > start) raw = raw.substring(start + 1, end)
-            }
-        }
-        raw.take(300000)
+        jsonpStrip(body).take(600000)
     }
 } catch (e: Exception) {
     android.util.Log.w("TyphoonMcp", "GET fail ${url}: ${e.message}")
     null
 }
 
-private fun isJsonp(raw: String): Boolean {
-    val t = raw.trim()
-    val hasParen = t.contains('(') && t.endsWith(")") || t.endsWith(");")
-    // 以字母/下划线开头说明是函数名包裹
-    return hasParen && (t.first().isLetter() || t.first() == '_')
+/** 剥离 JSONP 包裹还原纯 JSON。直接用大括号定位（兼容 `func(({...}))` 双括号形式）。 */
+private fun jsonpStrip(body: String): String {
+    val raw = body.trim()
+    val start = raw.indexOf('{')
+    val end = raw.lastIndexOf('}')
+    return if (start >= 0 && end > start) raw.substring(start, end + 1) else raw.removeSuffix(";").trimEnd()
 }
 
-/** 依次尝试候选源（优先 dataUrl），返回第一个成功的响应原文 */
-private fun fetchAnySource(dataUrl: String?): String? {
-    val candidates = buildList {
-        if (!dataUrl.isNullOrBlank()) add(dataUrl)
-        addAll(DEFAULT_LIST_SOURCES)
-    }
-    for (src in candidates) {
-        val raw = tfGet(src) ?: continue
-        if (raw.isNotBlank()) return raw
-    }
-    return null
+/** 解析 JSON 字符串为 JsonElement；失败返回 null。 */
+private fun parseJson(text: String): JsonElement? = try {
+    kotlinx.serialization.json.Json.parseToJsonElement(text)
+} catch (e: Exception) {
+    android.util.Log.w("TyphoonMcp", "JSON parse fail: ${e.message}")
+    null
 }
 
-/** 读取 jsonObject 字段字符串值（容错：字段可能是字串/数/对象） */
-private fun field(o: kotlinx.serialization.json.JsonObject, vararg keys: String): String? {
-    for (k in keys) {
-        val v = o[k] ?: continue
-        if (v is JsonPrimitive) v.contentOrNull?.takeIf { it.isNotBlank() }?.let { return it }
+private fun elStr(e: JsonElement?): String = (e as? JsonPrimitive)?.contentOrNull ?: ""
+
+private fun elStrOrNull(e: JsonElement?): String? = (e as? JsonPrimitive)?.contentOrNull
+
+/** 取数组的第 idx 个元素（越界返回 null）。 */
+private fun arrIdx(arr: kotlinx.serialization.json.JsonArray, idx: Int): JsonElement? =
+    arr.getOrNull(idx)
+
+private fun arrStr(arr: kotlinx.serialization.json.JsonArray, idx: Int): String = elStr(arrIdx(arr, idx))
+
+private fun arrStrOrNull(arr: kotlinx.serialization.json.JsonArray, idx: Int): String? = elStrOrNull(arrIdx(arr, idx))
+
+/**
+ * 解析 list_default 返回的台风列表。
+ * 返回列表行文本；解析失败返回 null。
+ */
+private fun parseNmcList(raw: String): String? {
+    val root = parseJson(jsonpStrip(raw)) ?: return null
+    val rootObj = root as? kotlinx.serialization.json.JsonObject ?: return null
+    val list = rootObj["typhoonList"] as? kotlinx.serialization.json.JsonArray ?: return null
+    if (list.isEmpty()) return "当前无台风（台风网暂无活跃记录）"
+    val lines = mutableListOf<String>()
+    for (item in list) {
+        val a = item as? kotlinx.serialization.json.JsonArray ?: continue
+        // [id, enname, namecn, code1, code2, typhoonCode, meaning, status]
+        val id = arrStr(a, 0)
+        val en = arrStrOrNull(a, 1)
+        val cn = arrStrOrNull(a, 2)
+        val code = arrStr(a, 3).ifBlank { null } ?: arrStrOrNull(a, 5)
+        val status = arrStr(a, 7)
+        val name = cn?.ifBlank { null } ?: en ?: "未知"
+        val active = (status == "start")
+        val sb = StringBuilder(name.take(20))
+        if (en != null && en.isNotBlank() && cn?.isNotBlank() == true) sb.append("(").append(en.take(20)).append(")")
+        if (code != null && code.isNotBlank()) sb.append(" #").append(code)
+        sb.append(if (active) " 🌪活跃" else " ℹ️已停止")
+        lines += sb.toString()
     }
-    return null
+    if (lines.isEmpty()) return null
+    return "台风列表（NMC）：\n" + lines.joinToString("\n")
 }
 
-/** 尝试把任意 JsonElement 当作 JsonObject */
-private fun asObj(e: kotlinx.serialization.json.JsonElement): kotlinx.serialization.json.JsonObject? =
-    e as? kotlinx.serialization.json.JsonObject
-
-/** 深度搜集 JSON 中所有非空数组 */
-private fun deepCollectArrays(
-    e: kotlinx.serialization.json.JsonElement,
-    depth: Int = 0,
-    acc: MutableList<kotlinx.serialization.json.JsonArray> = mutableListOf()
-): List<kotlinx.serialization.json.JsonArray> {
-    if (depth > 8) return acc
-    when (e) {
-        is kotlinx.serialization.json.JsonArray -> { if (e.isNotEmpty()) acc.add(e); e.forEach { deepCollectArrays(it, depth + 1, acc) } }
-        is kotlinx.serialization.json.JsonObject -> e.forEach { (_, v) -> deepCollectArrays(v, depth + 1, acc) }
-        else -> {}
-    }
-    return acc
-}
-
-private val TF_KEY_HINTS = listOf("typhoon", "namecn", "enname", "grade", "speed", "pressure", "lat", "lng", "lon", "track", "path", "forecast")
-
-/** 打分：数组元素字段与台风典型字段名越匹配越可能是台风列表 */
-private fun scoreArray(arr: kotlinx.serialization.json.JsonArray): Int {
-    val first = arr.firstOrNull()?.let { asObj(it) } ?: return 0
-    val keys = first.keys
-    return TF_KEY_HINTS.count { hint -> keys.any { it.contains(hint, ignoreCase = true) } }
+/** 台风级别代号 → 中文说明 */
+private fun gradeName(code: String): String = when (code.uppercase()) {
+    "TD" -> "热带低压"
+    "TS" -> "热带风暴"
+    "STS" -> "强热带风暴"
+    "TY" -> "台风"
+    "STY" -> "强台风"
+    "SUPERTY" -> "超强台风"
+    else -> code
 }
 
 /**
- * 把台风对象格式化为一行可读文本。宽松适配多种字段命名。
+ * 解析 view_{id} 返回的台风详细路径。
+ * typhoon[0:8] = 元信息，typhoon[8] = 路径点数组。
  */
-private fun formatTyphoonRow(o: kotlinx.serialization.json.JsonObject): String? {
-    val name = field(o, "namecn", "name", "tname", "cname") ?: return null
-    val sb = StringBuilder(name.trim().take(20))
-    field(o, "enname", "en_name", "english")?.let { sb.append("($it)".take(30)) }
-    field(o, "typhoonid", "id", "code", "number", "num")?.let { if (it.length <= 8) sb.append(" #").append(it) }
-    field(o, "grade", "level", "type", "class")?.let { sb.append(" ").append(it.take(20)) }
-    field(o, "speed", "windspeed", "wind", "ws")?.let { sb.append(" 风速").append(it).append("m/s") }
-    field(o, "pressure", "press", "pressure_hpa")?.let { sb.append(" 气压").append(it).append("hPa") }
-    field(o, "latitude", "lat", "y", "la")?.let { sb.append(" 纬度").append(it) }
-    field(o, "longitude", "lng", "x", "lo", "lon")?.let { sb.append(" 经度").append(it) }
-    field(o, "move", "moveDir", "movement", "dir")?.let { sb.append(" 移向").append(it.take(10)) }
-    field(o, "speed_mv", "movespeed", "ms")?.let { sb.append(" 移速").append(it).append("km/h") }
-    field(o, "radius7", "r7", "radius")?.let { sb.append(" 7级风圈").append(it) }
-    field(o, "radius10", "r10")?.let { sb.append(" 10级风圈").append(it) }
-    field(o, "time", "datetime", "recordtime", "updatetime", "forecasttime")?.let { sb.append(" 时间:").append(it.take(20)) }
-    field(o, "text", "desc", "status", "note")?.let { t -> if (t.contains("减弱") || t.contains("加强") || t.contains("登陆") || t.contains("热带低压") || t.contains("强") || t.contains("增强")) sb.append(" 【").append(t.take(30)).append("】") }
-    return sb.toString()
-}
+private fun parseNmcTrack(raw: String): String? {
+    val root = parseJson(jsonpStrip(raw)) ?: return null
+    val rootObj = root as? kotlinx.serialization.json.JsonObject ?: return null
+    val tArr = rootObj["typhoon"] as? kotlinx.serialization.json.JsonArray ?: return null
+    if (tArr.isEmpty()) return null
 
-/** 从 JSON 文本提取台风列表摘要 */
-private fun listFromJson(raw: String, limit: Int = 40): String? {
-    return try {
-        val clean = raw.trim().removePrefix("callback(").trim().removeSuffix(");").removeSuffix(")").trim()
-        val root = kotlinx.serialization.json.Json.parseToJsonElement(clean)
-        val arrays = deepCollectArrays(root)
-        val best = arrays.maxByOrNull { scoreArray(it) } ?: arrays.firstOrNull() ?: return null
-        val rows = best.mapNotNull { asObj(it)?.let(::formatTyphoonRow) }.filter { it.isNotBlank() }
-        if (rows.isEmpty()) return null
-        "当前活跃台风（${rows.size} 个）：\n" + rows.take(limit).joinToString("\n")
-    } catch (e: Exception) {
-        android.util.Log.w("TyphoonMcp", "list parse fail: ${e.message}")
-        null
-    }
-}
+    // 元信息
+    val en = arrStrOrNull(tArr, 1)
+    val cn = arrStrOrNull(tArr, 2)
+    val code = arrStrOrNull(tArr, 3) ?: arrStrOrNull(tArr, 4)
+    val status = arrStr(tArr, 7)
+    val name = cn?.ifBlank { null } ?: en ?: "台风"
 
-/** 从 JSON 文本提取某个台风的详细路径摘要 */
-private fun detailFromJson(raw: String, keyword: String, limit: Int = 60): String? {
-    return try {
-        val clean = raw.trim().removePrefix("callback(").trim().removeSuffix(");").removeSuffix(")").trim()
-        val root = kotlinx.serialization.json.Json.parseToJsonElement(clean)
-        val arrays = deepCollectArrays(root)
-        val sb = StringBuilder()
-        var matched = 0
-        for (arr in arrays) {
-            val header = arr.firstOrNull()?.let { asObj(it)?.let(::formatTyphoonRow) }
-            for (item in arr) {
-                val o = asObj(item) ?: continue
-                val name = field(o, "namecn", "name", "tname", "cname") ?: continue
-                if (!name.contains(keyword, ignoreCase = true) && !(field(o, "typhoonid", "id", "code") ?: "").contains(keyword, ignoreCase = true)) continue
-                val row = formatTyphoonRow(o) ?: continue
-                sb.append(row).append("\n")
-                matched++
-                if (matched >= limit) break
-            }
-            if (sb.isNotEmpty() && header != null) sb.insert(0, "「$keyword」台风路径（来源路径数据节选）：\n")
-            if (matched >= limit) break
+    val sb = StringBuilder()
+    sb.append("台风「").append(name.take(20)).append("」")
+    if (en != null && en.isNotBlank()) sb.append(" (英文:").append(en.take(20)).append(")")
+    if (code != null && code.isNotBlank()) sb.append(" 编号:").append(code)
+    sb.append(if (status == "start") " 🌪活跃" else " ℹ️已停止").append("\n")
+
+    // 路径点 [id, "YYMMDDHHMM", epoch, 级别, 经度, 纬度, 气压, 风速, 移向, 移速, ...]
+    val track = tArr.getOrNull(8) as? kotlinx.serialization.json.JsonArray
+    if (track != null && track.isNotEmpty()) {
+        sb.append("历史轨迹/预测（按时间）：\n")
+        track.forEachIndexed { i, pt ->
+            val a = pt as? kotlinx.serialization.json.JsonArray ?: return@forEachIndexed
+            val timeStr = arrStr(a, 1)
+            val grade = gradeName(arrStr(a, 3))
+            val lon = arrStr(a, 4)
+            val lat = arrStr(a, 5)
+            val pressure = arrStr(a, 6)
+            val wind = arrStr(a, 7)
+            val moveDir = arrStrOrNull(a, 8)
+            val moveSpd = arrStr(a, 9)
+            val seg = StringBuilder()
+            if (timeStr.isNotBlank()) seg.append(timeStr.take(12))
+            if (grade.isNotBlank()) seg.append(" ").append(grade)
+            if (lon.isNotBlank() && lat.isNotBlank()) seg.append(" ").append(lon).append("°E,").append(lat).append("°N")
+            if (pressure.isNotBlank()) seg.append(" 气压").append(pressure).append("hPa")
+            if (wind.isNotBlank()) seg.append(" 风速").append(wind).append("m/s")
+            if (!moveDir.isNullOrBlank()) seg.append(" 移向").append(moveDir)
+            if (moveSpd.isNotBlank()) seg.append(" 移速").append(moveSpd).append("km/h")
+            sb.append("· ").append(seg.toString().trim()).append("\n")
+            if (i >= 40) { sb.append("…（更多）\n"); return@forEachIndexed }
         }
-        if (sb.isNotBlank()) sb.toString().take(8000) else null
-    } catch (e: Exception) {
-        android.util.Log.w("TyphoonMcp", "detail parse fail: ${e.message}")
-        null
+    } else {
+        sb.append("（暂无路径数据）")
     }
+    return sb.toString().trimEnd()
 }
 
-/** 从 JSON 文本全文搜索含关键词的记录 */
-private fun searchFromRaw(raw: String, keyword: String, limit: Int = 30): String {
-    val lines = raw.lineSequence().filter { it.contains(keyword, ignoreCase = true) }
-        .take(limit).joinToString("\n")
-    return if (lines.isNotBlank()) "匹配「$keyword」的记录：\n$lines" else "未在数据中找到「$keyword」的直接文本记录。"
+/** 从 list_default 里按名称/编号查找台风 id。 */
+private fun findTyphoonId(raw: String?): Map<String, String> {
+    val map = mutableMapOf<String, String>()
+    val root = raw?.let { parseJson(jsonpStrip(it)) } as? kotlinx.serialization.json.JsonObject ?: return map
+    val list = root["typhoonList"] as? kotlinx.serialization.json.JsonArray ?: return map
+    for (item in list) {
+        val a = item as? kotlinx.serialization.json.JsonArray ?: continue
+        val id = arrStr(a, 0)
+        val en = arrStrOrNull(a, 1)
+        val cn = arrStrOrNull(a, 2)
+        val code = arrStrOrNull(a, 3) ?: arrStrOrNull(a, 5)
+        seqMap(map, id, en)
+        seqMap(map, id, cn)
+        seqMap(map, id, code)
+    }
+    return map
+}
+
+private fun seqMap(map: MutableMap<String, String>, key: String?, id: String) {
+    if (!key.isNullOrBlank()) map[key.lowercase()] = id
 }
 
 fun buildTyphoonMcpTools(): List<Tool> = listOf(
     Tool(
         name = "typhoon_active",
-        description = "查询当前活跃台风列表。含中文名/编号/级别/中心风速/气压/位置经纬度/移向移速。Params: dataUrl(可选，自定义台风数据源URL，默认内置公开源)",
+        description = "查询当前台风列表（中央气象台 NMC）。含中文/英文名、编号、活跃状态。Params: dataUrl(可选，自定义数据源URL，默认内置NMC公开源)",
         needsApproval = false,
         parameters = {
             InputSchema.Obj(properties = buildJsonObject {
-                put("dataUrl", buildJsonObject { put("type", "string"); put("description", "可选：自定义台风数据源URL，跳过内置源直接抓取") })
+                put("dataUrl", buildJsonObject { put("type", "string"); put("description", "可选：自定义台风数据源URL") })
             })
         },
         execute = { args ->
             val dataUrl = args.jsonObject["dataUrl"]?.jsonPrimitive?.contentOrNull
-            val raw = fetchAnySource(dataUrl)
-                ?: return@Tool listOf(UIMessagePart.Text(buildJsonObject {
-                    put("error", "所有台风数据源均不可达")
-                    put("tip", "请检查网络；或在参数 dataUrl 直接传入可用数据源")
-                }.toString()))
-            val summary = listFromJson(raw)
-                ?: "已取得台风数据（未识别出台风条目结构，原始数据摘录）：\n" + raw.take(1500)
+            val url = if (!dataUrl.isNullOrBlank()) dataUrl else DEFAULT_LIST_SOURCES.first()
+            val raw = tfGet(url)
+                ?: return@Tool listOf(UIMessagePart.Text("台风数据获取失败：接口不可达或非2xx响应。请稍后重试，或传 dataUrl 指定可用源。"))
+            val summary = parseNmcList(raw)
+                ?: "已取得台风数据但解析失败（接口格式可能有变，原始摘录）：\n" + raw.take(1500)
             listOf(UIMessagePart.Text(buildJsonObject {
-                put("source", if (dataUrl != null) dataUrl else "内置公开源")
+                put("source", url)
                 put("data", summary.take(8000))
             }.toString()))
         },
@@ -234,49 +235,38 @@ fun buildTyphoonMcpTools(): List<Tool> = listOf(
 
     Tool(
         name = "typhoon_detail",
-        description = "查询指定台风详细路径（历史轨迹+未来预测）。Params: name(台风名称或编号，如 格美 / 2403 / 玛莉亚), dataUrl(可选自定义数据源URL)",
+        description = "查询指定台风详细路径（历史轨迹+预测）。Params: name(台风中文名/英文名/编号，如 艾莎尼 / ATSANI / 2621)",
         needsApproval = false,
         parameters = {
             InputSchema.Obj(properties = buildJsonObject {
-                put("name", buildJsonObject { put("type", "string"); put("description", "台风名称或编号，如 格美 / 2403）"); })
-                put("dataUrl", buildJsonObject { put("type", "string"); put("description", "可选：自定义台风数据源URL") })
+                put("name", buildJsonObject { put("type", "string"); put("description", "台风中文名/英文名/编号，如 艾莎尼 / ATSANI / 2621") })
             }, required = listOf("name"))
         },
         execute = { args ->
             val o = args.jsonObject
             val name = o["name"]?.jsonPrimitive?.contentOrNull?.trim().orEmpty()
             if (name.isBlank()) return@Tool listOf(UIMessagePart.Text("""{"error":"name required"}"""))
-            val raw = fetchAnySource(o["dataUrl"]?.jsonPrimitive?.contentOrNull)
-                ?: return@Tool listOf(UIMessagePart.Text(buildJsonObject {
-                    put("error", "台风数据源不可达"); put("tip", "可传 dataUrl 指定可用数据源")
-                }.toString()))
-            val detail = detailFromJson(raw, name)
-                ?: listFromJson(raw)?.let { "未匹配到「$name」的路径记录。当前台风列表：\n$it" }
-                ?: "未匹配到「$name」的路径记录。原始数据摘录：\n" + raw.take(1200)
-            listOf(UIMessagePart.Text(detail.take(8000)))
-        },
-    ),
 
-    Tool(
-        name = "typhoon_search",
-        description = "按关键词搜索台风相关信息（如某台风最新动态/预警等）。Params: keyword(搜索关键词), dataUrl(可选自定义数据源URL)",
-        needsApproval = false,
-        parameters = {
-            InputSchema.Obj(properties = buildJsonObject {
-                put("keyword", buildJsonObject { put("type", "string"); put("description", "搜索关键词，如台风名/编号/预警") })
-                put("dataUrl", buildJsonObject { put("type", "string"); put("description", "可选：自定义台风数据源URL") })
-            }, required = listOf("keyword"))
-        },
-        execute = { args ->
-            val o = args.jsonObject
-            val kw = o["keyword"]?.jsonPrimitive?.contentOrNull?.trim().orEmpty()
-            if (kw.isBlank()) return@Tool listOf(UIMessagePart.Text("""{"error":"keyword required"}"""))
-            val raw = fetchAnySource(o["dataUrl"]?.jsonPrimitive?.contentOrNull)
-                ?: return@Tool listOf(UIMessagePart.Text(buildJsonObject {
-                    put("error", "台风数据源不可达"); put("tip", "可传 dataUrl 指定可用数据源")
-                }.toString()))
-            val result = searchFromRaw(raw, kw)
-            listOf(UIMessagePart.Text(result.take(6000)))
+            // 1) 先拉列表建 name→id 映射
+            val listRaw = tfGet(DEFAULT_LIST_SOURCES.first())
+            val idMap = findTyphoonId(listRaw)
+            val id = idMap[name.lowercase()]
+
+            // 2) 用 id 拉详情
+            val trackRaw = if (id != null) {
+                tfGet("https://typhoon.nmc.cn/weatherservice/typhoon/jsons/view_$id")
+            } else null
+            if (trackRaw == null) {
+                // 列表里没找到或详情接口异常
+                val fallback = listRaw?.let { parseNmcList(it) }
+                return@Tool listOf(UIMessagePart.Text(
+                    (fallback?.let { "未找到台风「$name」，当前台风列表：\n$it" }
+                        ?: "未找到台风「$name」，且列表接口不可达。请核对名称后重试。").take(6000)
+                ))
+            }
+            val detail = parseNmcTrack(trackRaw)
+                ?: "已取得「$name」数据但解析失败（原始摘录）：\n" + trackRaw.take(1500)
+            listOf(UIMessagePart.Text(detail.take(10000)))
         },
     ),
 )

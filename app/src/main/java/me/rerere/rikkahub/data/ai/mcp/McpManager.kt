@@ -194,8 +194,8 @@ class McpManager(
             me.rerere.rikkahub.data.ai.tools.BuiltinMcpServerInfo(
                 id = "builtin-taifeng",
                 name = "台风路径 🌪",
-                description = "内置实时台风路径：查询当前活跃台风/简称路径/预测/搜索（公开免key数据源）",
-                toolCount = 3,
+                description = "内置实时台风：查询当前台风列表/指定台风详细路径（中央气象台NMC公开源，实测200）",
+                toolCount = 2,
             ) to 1,
         )
 
