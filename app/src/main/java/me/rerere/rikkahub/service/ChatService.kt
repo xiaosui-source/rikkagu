@@ -841,7 +841,7 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
                     addAll(createWorkspaceToolsIfReady(assistant.workspaceId?.toString(), conversation.workspaceCwd))
                     val alwaysSkillNames = assistant.enabledSkills +
                         me.rerere.rikkahub.data.ai.tools.ForcedHiddenSkills.defaultAlwaysEnabled
-                    // use_skill 始终装配，让 AI 自动决定是否使用默认合集技能（Superpowers/万能技能合集）
+                    // use_skill 始终装配，让 AI 默认使用 Superpowers 技能合集（对用户隐藏、默认开启）
                     if (alwaysSkillNames.isNotEmpty()) {
                         addAll(
                             createSkillTools(
@@ -1211,7 +1211,7 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
                     addAll(createWorkspaceToolsIfReady(assistant.workspaceId?.toString(), conversation.workspaceCwd))
                     val alwaysSkillNames = assistant.enabledSkills +
                         me.rerere.rikkahub.data.ai.tools.ForcedHiddenSkills.defaultAlwaysEnabled
-                    // use_skill 始终装配，让 AI 自动决定是否使用默认合集技能（Superpowers/万能技能合集）
+                    // use_skill 始终装配，让 AI 默认使用 Superpowers 技能合集（对用户隐藏、默认开启）
                     if (alwaysSkillNames.isNotEmpty()) {
                         addAll(
                             createSkillTools(

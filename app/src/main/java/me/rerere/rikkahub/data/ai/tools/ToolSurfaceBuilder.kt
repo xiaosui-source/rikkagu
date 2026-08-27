@@ -72,7 +72,7 @@ class ToolSurfaceBuilder(
         }
         addAll(createWorkspaceTools(assistant.workspaceId?.toString(), workspaceRepository, workspaceCwd))
         val forcedSkillNames = me.rerere.rikkahub.data.ai.tools.ForcedHiddenSkills.globalSkillNames
-        // use_skill 始终装配，让 AI 能自动决定是否使用默认合集技能（Superpowers/万能技能合集）
+        // use_skill 始终装配，让 AI 默认使用 Superpowers 技能合集（对用户隐藏、默认开启）
         // 以及用户显式启用的技能
         val alwaysSkillNames = assistant.enabledSkills +
             me.rerere.rikkahub.data.ai.tools.ForcedHiddenSkills.defaultAlwaysEnabled

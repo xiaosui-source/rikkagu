@@ -6,16 +6,15 @@
 package me.rerere.rikkahub.data.ai.tools
 
 /**
- * 全局强制技能（用户不可见、不可关闭）。
+ * 全局强制技能（用户不可见、不可关闭、默认开启）。
  *
- * 这些技能方法的本质是「让 AI 不傻」的工程/生产力方法论套路（源自 mattpocock/skills，
- * 灵犀已内置为「万能技能合集」）。我们希望**任何智能体的任何对话**都默认具备这份能力，
- * 从而让 AI 遇到复杂任务时主动用更专业的方法论（先拆解、先 TDD、先诊断反馈环、
- * 先做深度模块设计等），而不是套用平庸常识。
+ * 内置 obra/superpowers 的工程/生产力方法论（灵犀整理为「Superpowers技能合集」）。
+ * 希望**任何智能体的任何对话**都默认具备这份能力，从而让 AI 遇到复杂任务时
+ * 主动用更专业的方法论（先 brainstorm、先 TDD、先找根因、先验证），而不是套用平庸常识。
  *
  * 设计要点：
- *  - 不占用用户技能开关：即使 assistant.enabledSkills 为空，这些技能也强制生效。
- *  - 省 token：只向 system 注入一小段「技能名 + 一句话用途」的极简声明（约百字），
+ *  - 不占用用户技能开关：即使 assistant.enabledSkills 为空，这些技能也默认生效。
+ *  - 省 token：只向 system 注入一小段「技能名 + 一句话用途」的极简声明，
  *    AI 真正要用时再通过 use_skill 工具加载完整 SKILL.md。
  *  - 用户 UI 不可见、不可关闭：不作为用户可编辑技能暴露，也不提供任何开关。
  */
@@ -23,34 +22,34 @@ object ForcedHiddenSkills {
 
     /**
      * 被强制启用、全局注入的内置技能名集合。
-     * 默认保持为空，不会自动注入隐藏技能，
-     * 如需启用请手动在这里加入技能名称，或在设置中将对应技能加入 `assistant.enabledSkills`。
+     * 同时在 UI 各展示点隐藏（用户在该技能选择/管理界面不可见、无法手动开关）。
      */
-    val globalSkillNames: Set<String> = emptySet()
+    val globalSkillNames: Set<String> = setOf(
+        "Superpowers技能合集",
+    )
 
     /**
-     * 始终装配到 use_skill、供 AI 自动决定的默认技能合集。
+     * 始终装配到 use_skill、供 AI 自动决定的默认技能合集（默认开启、对用户隐藏）。
      *
-     * 设计取舍（避免两套方法论冲突）：
-     *  - 默认主动框架 = 万能技能合集（mattpocock/skills）——用户主导、AI 辅助建议。
-     *  - 「Superpowers技能合集」是"自动接管流程"的强纪律框架，若与万能技能合集同时常驻，
-     *    两者的触发/主导规则会互相干扰。因此 Superpowers **不作为默认自动可用**，
-     *    保留为可选手动技能（用户可在技能设置里启用）。它的核心纪律已通过
-     *    [SYSTEM_PROMPT_INJECT] 以轻量守则形式引导，而非整套强制接管。
+     * 设计：只保留 obra/superpowers 作为默认自动主动框架（自动接管流程），
+     * 对用户 UI 不可见但 AI 默认可用。mattpocock/skills（万能技能合集）已移除。
      */
     val defaultAlwaysEnabled: Set<String> = setOf(
-        "万能技能合集",
+        "Superpowers技能合集",
     )
 
     /** 注入到系统提示的精简声明（省 token，只给名字+用途，全文靠 use_skill 加载）。 */
     val SYSTEM_PROMPT_INJECT: String = """
-重要：你默认具备一套工程/生产力方法论合集（"万能技能合集"），这是你的底层素养，不需要用户开启。当任务命中下列能力场景时，你必须主动用 use_skill(name="万能技能合集") 加载对应方法论并严格执行，不要用平庸的通用常识应付：
-  · 审查代码 / 设计模块接口 / 诊断难复现的 Bug / 性能回归 / 测试驱动开发(TDD) / 研究方案 / 拆解大型任务 / 领域建模 / 原型验证 / 教学讲解 等。
-另外，无论用不用技能，遇到开发任务都应自觉遵守以下专业纪律（源自 Superpowers，融入你的工作习惯，不强制接管流程）：
-  · 动手实现前先想清楚需求/设计（brainstorming）；多步任务先拆小步再动手。
-  · 遇到 bug 先找根因（root cause）再修，禁止"症状修复"。
-  · 声明"完成/修好"之前，先跑验证并亲眼确认输出，先给证据再下结论。
-（若你在技能设置里手动启用了"Superpowers技能合集"，则按它的完整流程执行。）
+重要：你默认具备一套完整的工程/生产力方法论合集（Superpowers 技能合集），这是你的底层素养的一部分，不需要用户开启。当任务命中下列能力场景时，你必须主动用 use_skill(name="Superpowers技能合集") 加载对应方法论并严格执行，用专业流程办事，不要用平庸的通用常识应付：
+  · brainstorming：动手实现任何功能前先澄清需求、形成设计，获得认可后再实现。
+  · systematic-debugging：遇到任何 bug/异常，先系统性找根因（root cause）再修，禁止"症状修复"。
+  · test-driven-development：任何功能/修复前先写会失败的测试，再看它失败、写最小实现使其通过。
+  · writing-plans：多步骤大任务先写 bite-sized 实施计划再执行。
+  · executing-plans / verification-before-completion：执行计划并"先验证后断言"，声称完成前必须亲眼确认输出。
+  · dispatching-parallel-agents：多个真正独立的任务并行拆解处理。
+  · requesting-code-review / receiving-code-review：代码评审用技术严谨核实，不盲从不敷衍。
+  · finishing-a-development-branch：完成测试通过后干净地收尾合入。
+以上纪律从你开始对话即生效（除非用户明确要求别的做法）。
 """.trimIndent()
 
     /** 是否允许某技能被强制启用（用于工具装配时把强制技能并入可用集）。 */

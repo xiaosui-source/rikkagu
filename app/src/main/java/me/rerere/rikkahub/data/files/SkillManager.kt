@@ -10,6 +10,7 @@ import android.content.Context
 import android.util.Log
 import java.io.File
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import me.rerere.rikkahub.data.datastore.SettingsStore
 
@@ -18,16 +19,18 @@ class SkillManager(
     private val settingsStore: SettingsStore,
 ) {
     companion object {
-        private const val ALL_SKILLS_SKILL = "万能技能合集"
         private const val TAROT_SKILL = "精准占卜"
         private const val XINGCE_SKILL = "行测方法论"
         private const val CHESS_SKILL = "棋类全能王"
         private const val SUPERPOWERS_SKILL = "Superpowers技能合集"
         /** 旧版英文技能名 → 新中文名 迁移映射 */
         private val LEGACY_SKILL_RENAMES = mapOf(
-            "all-skills" to ALL_SKILLS_SKILL,
             "tarot-extreme-accuracy" to TAROT_SKILL,
             "xingce-methods" to XINGCE_SKILL,
+        )
+        /** 已移除的废弃技能目录（首启清理，避免残留显示） */
+        private val REMOVED_SKILL_DIRS = listOf(
+            "万能技能合集",
         )
         private const val TAG = "SkillManager"
     }
@@ -86,10 +89,27 @@ class SkillManager(
             }
         }
 
+        // 清理已移除的废弃技能：删除残留目录 + 从所有助手 enabledSkills 中剔除
+        REMOVED_SKILL_DIRS.forEach { removedName ->
+            val dir = skillsDir.resolve(removedName)
+            if (dir.exists()) dir.deleteRecursively()
+        }
+        val hasRemovedInSettings = settingsStore.settingsFlow.first().let { s ->
+            s.assistants.any { it.enabledSkills.any { n -> n in REMOVED_SKILL_DIRS } }
+        }
+        if (hasRemovedInSettings) {
+            settingsStore.update { settings ->
+                settings.copy(
+                    assistants = settings.assistants.map { assistant ->
+                        assistant.copy(enabledSkills = assistant.enabledSkills - REMOVED_SKILL_DIRS.toSet())
+                    }
+                )
+            }
+        }
+
         // ===== 统一从 assets/skills/ 初始化全部内置技能 =====
         // 技能内容固定存放在 assets/skills/<技能名>/SKILL.md，首启复制到 files/skills/ 供读取
         val builtinSkills = listOf(
-            ALL_SKILLS_SKILL to "万能技能合集",
             TAROT_SKILL to "精准占卜",
             XINGCE_SKILL to "行测方法论",
             CHESS_SKILL to "棋类全能王",
