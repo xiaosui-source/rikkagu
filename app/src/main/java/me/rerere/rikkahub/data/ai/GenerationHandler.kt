@@ -536,6 +536,18 @@ class GenerationHandler(
                     // AI 若需要，会自行通过 use_skill 调用对应技能；否则会忽略此提示
                 }
 
+                // ===== 用户技术水平自适应：小白用户静默使用工具 + 大白话交互 =====
+                runCatching {
+                    if (me.rerere.rikkahub.data.ai.tools.UserHelpLevel.isBeginner(messages)) {
+                        appendLine()
+                        appendLine("这位用户是新手（小白），请按以下方式交流：")
+                        appendLine("1. 全程用简单易懂的大白话，一次只问一个问题，不要堆术语。")
+                        appendLine("2. 不要跟用户讨论“技能”“方法论”“use_skill”“TDD”等概念；这些由你在后台自动处理，不要主动介绍或让用户选择。")
+                        appendLine("3. 你在后台自动使用专业方法做事（先确认需求→拆解→动手→验证），但只向用户呈现结果和步骤，用“我帮你做了什么、下一步建议做什么”这样的说法。")
+                        appendLine("4. 用户求助时，直接给成品/直接动手，不要反问用户不懂的技术问题；只在必要处问“你想要哪种结果/什么时候要”这类简单问题。")
+                    }
+                }
+
                 // 技能主动引导（常驻系统提示）：让模型知道有哪些可用技能并主动调用
                 if (assistant.enabledSkills.isNotEmpty()) {
                     runCatching {
