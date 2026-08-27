@@ -667,6 +667,85 @@ class WorkspaceRepository(
     }
 
     /**
+     * APK 技术栈/开发框架识别：解包 APK 后按特征判断其是哪种框架/技术栈开发（原生 / uni-app(DCloud) / Flutter / React Native / Cordova / Capacitor / Cocos / Unity 等），
+     * 并识别构建痕迹（Gradle/AAPT 版本、IDE 等）。
+     *
+     * proot 内解包 APK（unzip），扫描 assets / lib(so) / dex / META-INF 等特征文件后给出判定。
+     */
+    suspend fun identifyApk(
+        id: String,
+        apkPath: String,
+        onProgress: (String) -> Unit = {},
+    ): WorkspaceCommandResult {
+        val workspace = dao.getById(id) ?: error("Workspace not found: $id")
+        onProgress("识别 APK 技术栈：$apkPath ...")
+        val base = apkPath.substringAfterLast('/').substringBeforeLast('.').ifBlank { "app" }
+        val workDir = "/workspace/apk_identify/$base"
+        val cmd = buildString {
+            appendLine("export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64")
+            appendLine("export PATH=\${'$'}JAVA_HOME/bin:/opt/android-sdk/platform-tools:\${'$'}PATH")
+            appendLine("mkdir -p $workDir/extracted")
+            appendLine("cd $workDir")
+            appendLine("cp '$apkPath' input.apk 2>/dev/null || { echo 'APK 不存在: $apkPath'; exit 1; }")
+            appendLine("cd extracted && unzip -qo ../input.apk 2>/dev/null; cd ..")
+            appendLine("python3 - <<'PYEOF'")
+            appendLine("import os, re, json, zipfile")
+            appendLine("root = 'extracted'")
+            appendLine("def exists(rel): return os.path.exists(os.path.join(root, rel))")
+            appendLine("def find(pattern):")
+            appendLine("    out = []")
+            appendLine("    for dp, dn, fn in os.walk(root):")
+            appendLine("        for f in fn:")
+            appendLine("            if re.search(pattern, f, re.I): out.append(os.path.join(dp, f))")
+            appendLine("    return out[:8]")
+            appendLine("assets = os.listdir(os.path.join(root,'assets')) if os.path.isdir(os.path.join(root,'assets')) else []")
+            appendLine("sos = set(f for dp,dn,fn in os.walk(root) for f in fn if f.endswith('.so'))")
+            appendLine("res = {}")
+            appendLine("signals = []")
+            appendLine("# --- uni-app / DCloud ---")
+            appendLine("if any(a.startswith('__UNI__') or a in ('uni-app','uni_modules','__uniapp') for a in assets) or exists('assets/uni-app') or os.path.isdir(os.path.join(root,'assets/www')) and any(a.startswith('uni-app') for a in assets) or ('lib.5plus' in ' '.join(sos) or 'dcloud' in ' '.join(sos).lower()):")
+            appendLine("    signals.append('uni-app (DCloud) 混合开发应用')")
+            appendLine("if exists('assets/dcloud_uniplugins.json') or exists('assets/app-config-service.js') or any('5plus' in s.lower() for s in sos):")
+            appendLine("    signals.append('uni-app/HTML5+ (DCloud 5+ runtime)')")
+            appendLine("# --- Flutter ---")
+            appendLine("if 'libflutter.so' in sos or os.path.isdir(os.path.join(root,'assets/flutter_assets')) or 'libapp.so' in sos:")
+            appendLine("    signals.append('Flutter')")
+            appendLine("# --- React Native ---")
+            appendLine("if exists('assets/index.android.bundle') or 'libreactnative.so' in sos or exists('assets/index.bundle') or ('libhermes.so' in sos):")
+            appendLine("    signals.append('React Native' + ('' if 'libhermes.so' not in sos else ' (Hermes)'))")
+            appendLine("# --- Cordova ---")
+            appendLine("if os.path.isdir(os.path.join(root,'assets/www')) and (exists('assets/www/cordova.js') or os.path.isdir(os.path.join(root,'assets/www/js')) or any(a.startswith('cordova') for a in assets)):")
+            appendLine("    signals.append('Cordova (WebView 混合)')")
+            appendLine("# --- Capacitor ---")
+            appendLine("if os.path.isdir(os.path.join(root,'public')) and (exists('public/index.html') or exists('capacitor.config.json')) or 'libcapacitor' in ' '.join(sos):")
+            appendLine("    signals.append('Capacitor (Ionic)')")
+            appendLine("# --- Cocos2d/Cocos Creator ---")
+            appendLine("if 'libcocos' in ' '.join(sos) or os.path.isdir(os.path.join(root,'assets/') ) and any(a.startswith('res/raw') for a in assets):")
+            appendLine("    signals.append('Cocos2d-x / Cocos Creator')")
+            appendLine("# --- Unity ---")
+            appendLine("if 'libil2cpp.so' in sos or 'libunity.so' in sos or os.path.isdir(os.path.join(root,'assets/bin/Data')) or os.path.isdir(os.path.join(root,'assets/bin')) :")
+            appendLine("    signals.append('Unity 引擎')")
+            appendLine("# --- Native ---")
+            appendLine("if not signals:")
+            appendLine("    hasDex = len(find(r'\.dex$')) > 0 or os.path.isdir(root)")
+            appendLine("    kotlin = os.path.isdir(os.path.join(root,'kotlin')) or any('kotlin' in f for dp,dn,fn in os.walk(root) for f in fn[:200] if f.endswith('.kotlin_metadata'))")
+            appendLine("    signals.append('纯原生 Android' + (' (Kotlin)' if kotlin else ' (Java/其它)'))")
+            appendLine("# --- 构建工具/IDE 痕迹 ---")
+            appendLine("build = []")
+            appendLine("if os.path.join(root,'META-INF').startswith(root) and os.path.isdir(os.path.join(root,'META-INF/com/android/build/gradle')): build.append('Gradle 构建')")
+            # 构建/IDE 痕迹：apktool.yml 存在说明可被二改；Gradle 构建痕迹在 META-INF/com/android/build/gradle
+            appendLine("if exists('apktool.yml'): build.append('(可重打包/二改)')")
+            appendLine("res['development_framework'] = signals if signals else ['未知/壳加固(需脱壳后进一步分析)']")
+            appendLine("res['suggested'] = '若需反编译源码/二改，用 workspace_apk_rework (decode)；若需脱壳分析用 workspace_apk_unpack'")
+            appendLine("print(json.dumps(res, ensure_ascii=False))")
+            appendLine("print('--- assets(前30) ---'); print('\n'.join(assets[:30]) if assets else '(空)')")
+            appendLine("print('--- 原生库(so) ---'); print(', '.join(sorted(sos)) if sos else '(无)')")
+            appendLine("PYEOF")
+        }
+        return executeCommand(id, cmd, timeoutMillis = 600_000)
+    }
+
+    /**
      * APK 脱壳：壳检测 + 明文 dex 提取 + 生成 Frida 脱壳脚本。
      *
      * proot 内能做的：识别加固厂商、提取未加密的 dex/assets、生成 Frida dump 脚本供真机(root)使用；

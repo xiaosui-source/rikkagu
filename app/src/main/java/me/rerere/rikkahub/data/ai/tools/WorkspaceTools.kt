@@ -58,6 +58,7 @@ suspend fun createWorkspaceTools(
         createBuildApkTool(workspaceId, needsApproval("workspace_build_apk"), workspaceRepository),
         createApkReworkTool(workspaceId, needsApproval("workspace_apk_rework"), workspaceRepository),
         createApkUnpackTool(workspaceId, needsApproval("workspace_apk_unpack"), workspaceRepository),
+        createApkIdentifyTool(workspaceId, needsApproval("workspace_apk_identify"), workspaceRepository),
     )
 }
  
@@ -652,3 +653,41 @@ private fun createApkUnpackTool(
     },
 )
 
+
+private fun createApkIdentifyTool(
+    workspaceId: String,
+    needsApproval: Boolean,
+    workspaceRepository: WorkspaceRepository,
+) = Tool(
+    name = "workspace_apk_identify",
+    description = "识别 APK 是由哪个开发框架/技术栈/IDE 做的：uni-app(DCloud)/Flutter/React Native/Cordova/Capacitor/Cocos/Unity/纯原生Android(Kotlin/Java)，附带构建工具痕迹与加固情况。适用于任何 APK。Params: apk_path(工作区内APK路径，如 /workspace/app.apk)",
+    needsApproval = needsApproval,
+    parameters = {
+        InputSchema.Obj(
+            properties = buildJsonObject {
+                put("apk_path", buildJsonObject {
+                    put("type", "string")
+                    put("description", "APK 路径（工作区内，如 /workspace/app.apk）")
+                })
+            },
+            required = listOf("apk_path")
+        )
+    },
+    execute = { args ->
+        val obj = args.jsonObject
+        val apkPath = obj["apk_path"]?.jsonPrimitive?.contentOrNull
+            ?: return@Tool listOf(UIMessagePart.Text("""{"error":"apk_path required"}"""))
+        val result = workspaceRepository.identifyApk(workspaceId, apkPath)
+        val log = (result.stdout + "\n" + result.stderr).trim()
+        listOf(UIMessagePart.Text(buildJsonObject {
+            put("exit_code", result.exitCode)
+            put("timed_out", result.timedOut)
+            put("log", log.take(30000))
+            put(
+                "tip",
+                if (result.exitCode == 0) "识别完成。看 log 中的 development_framework / signals 判断开发框架（如 uni-app(DCloud)/Flutter/RN/Unity/原生等）与构建工具"
+                else "识别失败，查看 log"
+            )
+        }.toString()))
+    },
+)
