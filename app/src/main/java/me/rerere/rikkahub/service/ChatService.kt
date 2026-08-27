@@ -839,13 +839,11 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
                         addAll(systemTools.getTools(systemToolsOptions, conversation.currentMessages, filesManager))
                     }
                     addAll(createWorkspaceToolsIfReady(assistant.workspaceId?.toString(), conversation.workspaceCwd))
-                    val alwaysSkillNames = assistant.enabledSkills +
-                        me.rerere.rikkahub.data.ai.tools.ForcedHiddenSkills.defaultAlwaysEnabled
-                    // use_skill 始终装配，让 AI 默认使用 Superpowers 技能合集（对用户隐藏、默认开启）
-                    if (alwaysSkillNames.isNotEmpty()) {
+                    // use_skill 仅在用户启用了技能时装配（不做全局强制装配）
+                    if (assistant.enabledSkills.isNotEmpty()) {
                         addAll(
                             createSkillTools(
-                                enabledSkills = alwaysSkillNames,
+                                enabledSkills = assistant.enabledSkills,
                                 allSkills = skillManager.listSkills(),
                                 skillManager = skillManager,
                             )
@@ -1209,13 +1207,11 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
                         callerConversationId = conversationId.toString(),
                     )))
                     addAll(createWorkspaceToolsIfReady(assistant.workspaceId?.toString(), conversation.workspaceCwd))
-                    val alwaysSkillNames = assistant.enabledSkills +
-                        me.rerere.rikkahub.data.ai.tools.ForcedHiddenSkills.defaultAlwaysEnabled
-                    // use_skill 始终装配，让 AI 默认使用 Superpowers 技能合集（对用户隐藏、默认开启）
-                    if (alwaysSkillNames.isNotEmpty()) {
+                    // use_skill 仅在用户启用了技能时装配（不做全局强制装配）
+                    if (assistant.enabledSkills.isNotEmpty()) {
                         addAll(
                             createSkillTools(
-                                enabledSkills = alwaysSkillNames,
+                                enabledSkills = assistant.enabledSkills,
                                 allSkills = skillManager.listSkills(),
                                 skillManager = skillManager,
                             )

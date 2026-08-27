@@ -71,15 +71,11 @@ class ToolSurfaceBuilder(
             addAll(SystemTools(context, settings).getTools(systemToolsOptions, recentMessages, filesManager))
         }
         addAll(createWorkspaceTools(assistant.workspaceId?.toString(), workspaceRepository, workspaceCwd))
-        val forcedSkillNames = me.rerere.rikkahub.data.ai.tools.ForcedHiddenSkills.globalSkillNames
-        // use_skill 始终装配，让 AI 默认使用 Superpowers 技能合集（对用户隐藏、默认开启）
-        // 以及用户显式启用的技能
-        val alwaysSkillNames = assistant.enabledSkills +
-            me.rerere.rikkahub.data.ai.tools.ForcedHiddenSkills.defaultAlwaysEnabled
-        if (assistant.enabledSkills.isNotEmpty() || forcedSkillNames.isNotEmpty() || alwaysSkillNames.isNotEmpty()) {
+        // use_skill 仅在用户启用了技能时装配（不做全局强制装配）
+        if (assistant.enabledSkills.isNotEmpty()) {
             addAll(
                 createSkillTools(
-                    enabledSkills = alwaysSkillNames,
+                    enabledSkills = assistant.enabledSkills,
                     allSkills = skillManager.listSkills(),
                     skillManager = skillManager,
                 )

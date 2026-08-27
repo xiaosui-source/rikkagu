@@ -526,16 +526,6 @@ class GenerationHandler(
                 appendLine()
                 append("重要指令：请始终使用简体中文回答。你的所有输出（包括思考过程、推理、思考链、代码注释）都必须使用简体中文，除非用户明确要求输出其他语言。")
 
-                // ===== 全局强制隐藏能力（用户不可见/不可关闭，让 AI 自动决定是否使用）=====
-                // 始终在 system 中注入隐藏技能的精简声明，让模型自行决定是否使用（通过 use_skill）
-                runCatching {
-                    val hrk = me.rerere.rikkahub.data.ai.tools.ForcedHiddenSkills
-                    // 只要系统中有此技能（globalSkillNames 为空也不会影响），我们直接注入声明
-                    appendLine()
-                    append(hrk.SYSTEM_PROMPT_INJECT)
-                    // AI 若需要，会自行通过 use_skill 调用对应技能；否则会忽略此提示
-                }
-
                 // ===== 用户技术水平自适应：小白用户静默使用工具 + 大白话交互 =====
                 runCatching {
                     if (me.rerere.rikkahub.data.ai.tools.UserHelpLevel.isBeginner(messages)) {
