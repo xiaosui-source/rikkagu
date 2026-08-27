@@ -609,7 +609,7 @@ data class Settings(
     val suggestionPrompt: String = DEFAULT_SUGGESTION_PROMPT,
     val assistantId: Uuid = DEFAULT_ASSISTANT_ID,
     val providers: List<ProviderSetting> = DEFAULT_PROVIDERS,
-    val assistants: List<Assistant> = DEFAULT_ASSISTANTS.map { it.copy(enabledSkills = setOf("Superpowers技能合集", "精准占卜", "行测方法论", "棋类全能王")) },
+    val assistants: List<Assistant> = DEFAULT_ASSISTANTS.map { it.copy(enabledSkills = setOf("精准占卜", "行测方法论", "棋类全能王")) },
     val assistantTags: List<Tag> = emptyList(),
     val searchServices: List<SearchServiceOptions> = SearchServiceOptions.allDefaults(),
     val searchCommonOptions: SearchCommonOptions = SearchCommonOptions(),

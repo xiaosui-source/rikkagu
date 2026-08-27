@@ -22,15 +22,33 @@ class SkillManager(
         private const val TAROT_SKILL = "精准占卜"
         private const val XINGCE_SKILL = "行测方法论"
         private const val CHESS_SKILL = "棋类全能王"
-        private const val SUPERPOWERS_SKILL = "Superpowers技能合集"
+        /** obra/superpowers 官方 14 个子技能目录名（与 assets/skills/<名> 一一对应） */
+        private val SUPERPOWERS_SKILLS = listOf(
+            "brainstorming",
+            "dispatching-parallel-agents",
+            "executing-plans",
+            "finishing-a-development-branch",
+            "receiving-code-review",
+            "requesting-code-review",
+            "subagent-driven-development",
+            "systematic-debugging",
+            "test-driven-development",
+            "using-git-worktrees",
+            "using-superpowers",
+            "verification-before-completion",
+            "writing-plans",
+            "writing-skills",
+        )
         /** 旧版英文技能名 → 新中文名 迁移映射 */
         private val LEGACY_SKILL_RENAMES = mapOf(
             "tarot-extreme-accuracy" to TAROT_SKILL,
             "xingce-methods" to XINGCE_SKILL,
+            "all-skills" to "brainstorming", // 旧万能技能合集迁移到 superpowers 入口技能（保守处理）
         )
         /** 已移除的废弃技能目录（首启清理，避免残留显示） */
         private val REMOVED_SKILL_DIRS = listOf(
             "万能技能合集",
+            "Superpowers技能合集",
         )
         private const val TAG = "SkillManager"
     }
@@ -113,8 +131,7 @@ class SkillManager(
             TAROT_SKILL to "精准占卜",
             XINGCE_SKILL to "行测方法论",
             CHESS_SKILL to "棋类全能王",
-            SUPERPOWERS_SKILL to "Superpowers技能合集",
-        )
+        ) + SUPERPOWERS_SKILLS.map { it to it }
         builtinSkills.forEach { (skillKey, assetDir) ->
             val dir = skillsDir.resolve(skillKey)
             if (!dir.exists()) {
