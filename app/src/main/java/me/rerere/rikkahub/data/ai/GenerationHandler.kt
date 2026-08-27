@@ -526,22 +526,14 @@ class GenerationHandler(
                 appendLine()
                 append("重要指令：请始终使用简体中文回答。你的所有输出（包括思考过程、推理、思考链、代码注释）都必须使用简体中文，除非用户明确要求输出其他语言。")
 
-                // ===== 全局强制隐藏能力（用户不可见/不可关闭，让 AI 不傻）=====
-                // 自动检测是否需要注入隐藏技能（基于最近用户消息关键词），
-                // 如检测到可能需要工程/生产力方法论则注入精简声明。
+                // ===== 全局强制隐藏能力（用户不可见/不可关闭，让 AI 自动决定是否使用）=====
+                // 始终在 system 中注入隐藏技能的精简声明，让模型自行决定是否使用（通过 use_skill）
                 runCatching {
                     val hrk = me.rerere.rikkahub.data.ai.tools.ForcedHiddenSkills
-                    // 判断最近用户消息是否包含关键词，提示可能需要隐藏技能
-                    val needHidden = messages.lastOrNull { it.role == "user" }?.content?.let { msg ->
-                        listOf("代码", "debug", "调试", "优化", "refactor", "write", "generate", "编程", "实现").any { kw ->
-                            msg.contains(kw, ignoreCase = true)
-                        }
-                    } ?: false
-                    if (hrk.globalSkillNames.isNotEmpty() || needHidden) {
-                        appendLine()
-                        append(hrk.SYSTEM_PROMPT_INJECT)
-                        // 若该技能已激活，由下方常规技能注入负责展示完整可用清单
-                    }
+                    // 只要系统中有此技能（globalSkillNames 为空也不会影响），我们直接注入声明
+                    appendLine()
+                    append(hrk.SYSTEM_PROMPT_INJECT)
+                    // AI 若需要，会自行通过 use_skill 调用对应技能；否则会忽略此提示
                 }
 
                 // 技能主动引导（常驻系统提示）：让模型知道有哪些可用技能并主动调用
