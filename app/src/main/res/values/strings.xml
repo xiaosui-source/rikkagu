@@ -1183,4 +1183,5 @@
   <string name="setting_tts_page_temperature">温度</string>
   <string name="setting_tts_page_temperature_description">TTS 生成的温度</string>
   <string name="setting_tts_page_fish_audio_speed_description">Fish Audio TTS 的语速调节</string>
+  <string name="title_activity_safe_mode">安全模式</string>
 </resources>

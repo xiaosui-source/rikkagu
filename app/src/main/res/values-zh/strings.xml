@@ -1184,4 +1184,5 @@
   <string name="workspace_terminal_no_tabs">暂无终端会话</string>
   <string name="workspace_terminal_tab">标签页 %1$d</string>
   <string name="workspace_terminal_title_with_name">终端 - %1$s</string>
+  <string name="title_activity_safe_mode">安全模式</string>
 </resources>
