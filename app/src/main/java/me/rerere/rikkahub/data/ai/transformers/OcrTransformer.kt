@@ -60,7 +60,12 @@ object OcrTransformer : InputMessageTransformer, KoinComponent {
         ctx: TransformerContext,
         messages: List<UIMessage>,
     ): List<UIMessage> {
-        if (ctx.model.inputModalities.contains(Modality.IMAGE)) {
+        // 只有当"未配置独立图片识别模型"且主模型自带视觉能力时，才直接交给主模型看图。
+        // 若用户配置了图片识别模型（ocrModelId），即使主模型也能看图，也应优先走识别逻辑。
+        val userConfiguredOcr = runCatching {
+            get<SettingsStore>().settingsFlow.value.ocrModelId != null
+        }.getOrDefault(false)
+        if (!userConfiguredOcr && ctx.model.inputModalities.contains(Modality.IMAGE)) {
             return messages
         }
 
@@ -215,12 +220,21 @@ object OcrTransformer : InputMessageTransformer, KoinComponent {
                 org.koin.java.KoinJavaComponent.getKoin().get()
             val providerImpl = providerManager.getProviderByType(provider)
 
-            val prompt = ocrPrompt.replace("{images}", part.url)
-                .ifBlank { "请仔细观察这张图片，告诉我图片里是什么、有什么内容：${part.url}" }
+            val prompt = ocrPrompt
+                .replace("{images}", "[见下方图片]")
+                .ifBlank { "请仔细观察这张图片，告诉我图片里是什么、有什么内容。" }
 
+            // 关键：图片必须以 UIMessagePart.Image 形式发送给视觉模型（provider 会转成 image_url）。
+            // 绝不能只把图片 URL 塞进纯文本 prompt —— 那样视觉模型收不到真实图片，永远识别为空。
             val messages = listOf(
                 UIMessage.system("你是图片理解助手。请仔细观察图片，识别图片里的物体、场景、人物与文字内容，用简体中文回答。"),
-                UIMessage.user(prompt),
+                UIMessage(
+                    role = MessageRole.USER,
+                    parts = listOf(
+                        UIMessagePart.Text(prompt),
+                        UIMessagePart.Image(url = part.url),
+                    ),
+                ),
             )
 
             val chunk = providerImpl.generateText(
