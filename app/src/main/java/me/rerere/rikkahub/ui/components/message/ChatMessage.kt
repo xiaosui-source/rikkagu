@@ -164,6 +164,7 @@ fun ChatMessage(
     )
     var showActionsSheet by remember { mutableStateOf(false) }
     var showSelectCopySheet by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = if (message.role == MessageRole.USER) Alignment.End else Alignment.Start,
@@ -248,7 +249,10 @@ fun ChatMessage(
         ChatMessageActionsSheet(
             message = message,
             onEdit = onEdit,
-            onDelete = onDelete,
+            onDelete = {
+                showActionsSheet = false
+                showDeleteConfirm = true
+            },
             onShare = onShare,
             onFork = onFork,
             model = model,
@@ -268,6 +272,26 @@ fun ChatMessage(
             message = message,
             onDismissRequest = {
                 showSelectCopySheet = false
+            }
+        )
+    }
+
+    // 删除消息二次确认（防误删）
+    if (showDeleteConfirm) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text(stringResource(R.string.chat_page_delete)) },
+            text = { Text("确定要删除这条消息吗？此操作无法撤销。") },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = {
+                    showDeleteConfirm = false
+                    onDelete()
+                }) { Text(stringResource(R.string.delete)) }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text(stringResource(R.string.chat_page_cancel))
+                }
             }
         )
     }

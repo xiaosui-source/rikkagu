@@ -97,6 +97,7 @@ fun ColumnScope.ConversationList(
     onHandover: (Conversation) -> Unit = {}
 ) {
     var hasScrolledToCurrent by remember(current.id) { mutableStateOf(false) }
+    var conversationToDelete by remember { mutableStateOf<Conversation?>(null) }
 
     LaunchedEffect(current.id, conversations.itemCount, hasScrolledToCurrent) {
         if (hasScrolledToCurrent) return@LaunchedEffect
@@ -168,7 +169,7 @@ fun ColumnScope.ConversationList(
                         selected = item.conversation.id == current.id,
                         loading = item.conversation.id in conversationJobs,
                         onClick = onClick,
-                        onDelete = onDelete,
+                        onDelete = { conversationToDelete = it },
                         onRegenerateTitle = onRegenerateTitle,
                         onPin = onPin,
                         onMoveToAssistant = onMoveToAssistant,
@@ -183,6 +184,27 @@ fun ColumnScope.ConversationList(
                 }
             }
         }
+    }
+
+    // 删除对话二次确认（防误删）
+    conversationToDelete?.let { conv ->
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { conversationToDelete = null },
+            title = { Text(stringResource(R.string.chat_page_delete)) },
+            text = { Text("确定要删除对话「${conv.title.ifBlank { stringResource(R.string.chat_page_new_chat) }}」吗？此操作会永久删除该对话及其中全部消息，无法恢复。") },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = {
+                    val c = conversationToDelete
+                    conversationToDelete = null
+                    if (c != null) onDelete(c)
+                }) { Text(stringResource(R.string.delete)) }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { conversationToDelete = null }) {
+                    Text(stringResource(R.string.chat_page_cancel))
+                }
+            }
+        )
     }
 }
 
