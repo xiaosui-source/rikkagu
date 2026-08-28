@@ -124,11 +124,48 @@ class GenerationHandler(
         // 静默催答提示（仅注入下一轮 system，用户不可见）：正文空白自动补全时设置
         var forcePrompt: String? = null
 
+        // ===== Agent 编排状态（#2 规划 + #5 反思）=====
+        // 标记本线程是否已注入过规划/反思提示，避免每步都重复注入
+        var agentPlannerInjected = false
+        var agentReflectionInjected = false
+        // 记录最近用户输入（用于判断是否复杂任务）
+        val lastUserText = messages.lastOrNull { it.role == MessageRole.USER }?.toText() ?: ""
+
         // 强制原生工具调用：不注入工具列表、不做规则调度，
         // 由模型原生 tools 参数驱动（支持原生的模型自动调用，不支持的不调）
 
         for (stepIndex in 0 until maxSteps) {
             Log.i(TAG, "streamText: start step #$stepIndex (${model.id})")
+ 
+            // ---------- Agent 编排注入（仅当 pendingTools 为空、要发起新一轮生成时）----------
+            val hasAnyToolResults = messages.any { m ->
+                m.parts.any { it is UIMessagePart.Tool }
+            }
+            // 复杂任务前缀规划（一次性注入，给模型一份行动计划）
+            if (!agentPlannerInjected &&
+                me.rerere.rikkahub.data.ai.agent.AgentOrchestrator.needsPlanning(
+                    userText = lastUserText,
+                    hasToolActivity = hasAnyToolResults,
+                    enablePlanning = assistant?.enableAgentPlanning ?: true,
+                )
+            ) {
+                agentPlannerInjected = true
+                forcePrompt = me.rerere.rikkahub.data.ai.agent.AgentOrchestrator.buildPlannerPrompt()
+                Log.i(TAG, "AgentOrchestrator: 注入规划提示")
+            }
+            // 工具执行后反思自评（一次性注入，让模型对上一步结果做修正决策）
+            if (!agentReflectionInjected &&
+                me.rerere.rikkahub.data.ai.agent.AgentOrchestrator.needsReflection(
+                    enableReflection = assistant?.enableAgentReflection ?: true,
+                    hasToolResults = hasAnyToolResults,
+                    alreadyReflected = agentReflectionInjected,
+                )
+            ) {
+                agentReflectionInjected = true
+                val reflection = me.rerere.rikkahub.data.ai.agent.AgentOrchestrator.buildReflectionPrompt()
+                forcePrompt = forcePrompt?.let { "$it\n\n$reflection" } ?: reflection
+                Log.i(TAG, "AgentOrchestrator: 注入反思提示")
+            }
  
             val toolsInternal = buildList {
                 Log.i(TAG, "generateInternal: build tools($assistant)")

@@ -295,6 +295,39 @@ private fun AssistantMemoryContent(
                     }
                 }
             )
+            // ===== Agent 编排（#2 规划 + #5 反思）=====
+            item(
+                headlineContent = { Text("Agent 规划") },
+                supportingContent = { Text("复杂任务（多步/项目/自动化等）前先输出子任务行动计划，避免模型走一步看一步、中途跑偏") },
+                trailingContent = {
+                    Switch(
+                        checked = assistant.enableAgentPlanning,
+                        onCheckedChange = {
+                            onUpdateAssistant(
+                                assistant.copy(
+                                    enableAgentPlanning = it
+                                )
+                            )
+                        }
+                    )
+                }
+            )
+            item(
+                headlineContent = { Text("Agent 反思") },
+                supportingContent = { Text("每次执行工具后做一次自评：失败即重试/调整/换方法，不带着错误结果硬做") },
+                trailingContent = {
+                    Switch(
+                        checked = assistant.enableAgentReflection,
+                        onCheckedChange = {
+                            onUpdateAssistant(
+                                assistant.copy(
+                                    enableAgentReflection = it
+                                )
+                            )
+                        }
+                    )
+                }
+            )
         }
 
         Box(

@@ -63,6 +63,10 @@ data class Assistant(
     val externalMemoryIds: Set<Uuid> = emptySet(),      // 关联的外置记忆库 ID
     val splitBubbleByLine: Boolean = false,             // 按模型自己写的换行拆分成多个独立气泡
     val splitUserBubbleByLine: Boolean = false,         // 用户消息按换行拆分成多个独立气泡
+    // ===== Agent 编排（#2 规划 + #5 反思）=====
+    // 长程自主 Agent：复杂任务先规划子任务清单再逐个执行；每次工具执行后反思自评、修正路线。
+    val enableAgentPlanning: Boolean = true,            // 复杂任务前先输出行动计划（Planner）
+    val enableAgentReflection: Boolean = true,          // 工具执行后反思自评，失败则修正/重试
 )
  
 @Serializable
