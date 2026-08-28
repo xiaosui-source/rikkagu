@@ -994,4 +994,7 @@
   <string name="chat_page_delete_folder_confirm">フォルダ "%1$s" を削除しますか？内部の会話は削除されず、フォルダから取り除かれるだけです。</string>
   <string name="chat_page_delete_folder_generating">フォルダ内の一部の会話がまだ生成中です。削除する前にそれらを停止してください。</string>
   <string name="title_activity_safe_mode">セーフモード</string>
+  <string name="setting_model_page_ocr_model">OCRモデル</string>
+  <string name="setting_model_page_ocr_model_desc">画像の光学文字認識に使用されるモデル</string>
+  <string name="setting_model_page_ocr_prompt_vars">変数: 画像データ: {images}</string>
 </resources>

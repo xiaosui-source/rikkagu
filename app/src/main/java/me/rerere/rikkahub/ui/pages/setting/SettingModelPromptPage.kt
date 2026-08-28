@@ -30,6 +30,7 @@ import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.ai.prompts.DEFAULT_SUGGESTION_PROMPT
 import me.rerere.rikkahub.data.ai.prompts.DEFAULT_TITLE_PROMPT
 import me.rerere.rikkahub.data.ai.prompts.DEFAULT_TRANSLATION_PROMPT
+import me.rerere.rikkahub.data.ai.prompts.DEFAULT_OCR_PROMPT
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.ui.components.ai.ReasoningButton
 import me.rerere.rikkahub.ui.components.ui.CardGroup
@@ -69,6 +70,15 @@ internal fun PromptSettingsPage(settings: Settings, vm: SettingVM, contentPaddin
                 promptValue = settings.suggestionPrompt,
                 onPromptChange = { vm.updateSettings(settings.copy(suggestionPrompt = it)) },
                 onResetPrompt = { vm.updateSettings(settings.copy(suggestionPrompt = DEFAULT_SUGGESTION_PROMPT)) },
+            )
+        }
+        item {
+            PromptSettingItem(
+                title = stringResource(R.string.setting_model_page_ocr_model),
+                promptDescription = stringResource(R.string.setting_model_page_ocr_prompt_vars),
+                promptValue = settings.ocrPrompt,
+                onPromptChange = { vm.updateSettings(settings.copy(ocrPrompt = it)) },
+                onResetPrompt = { vm.updateSettings(settings.copy(ocrPrompt = DEFAULT_OCR_PROMPT)) },
             )
         }
     }

@@ -1184,4 +1184,7 @@
   <string name="setting_tts_page_temperature_description">TTS 生成的温度</string>
   <string name="setting_tts_page_fish_audio_speed_description">Fish Audio TTS 的语速调节</string>
   <string name="title_activity_safe_mode">安全模式</string>
+  <string name="setting_model_page_ocr_model">OCR 模型</string>
+  <string name="setting_model_page_ocr_model_desc">用于图像光学字符识别的模型</string>
+  <string name="setting_model_page_ocr_prompt_vars">变量：图像数据：{images}</string>
 </resources>

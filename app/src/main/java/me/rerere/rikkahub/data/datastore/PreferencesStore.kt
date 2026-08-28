@@ -46,6 +46,7 @@ import me.rerere.rikkahub.data.ai.mcp.McpServerConfig
 import me.rerere.rikkahub.data.ai.prompts.DEFAULT_SUGGESTION_PROMPT
 import me.rerere.rikkahub.data.ai.prompts.DEFAULT_TITLE_PROMPT
 import me.rerere.rikkahub.data.ai.prompts.DEFAULT_TRANSLATION_PROMPT
+import me.rerere.rikkahub.data.ai.prompts.DEFAULT_OCR_PROMPT
 import me.rerere.rikkahub.data.ai.prompts.LEARNING_MODE_PROMPT
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.Avatar
@@ -139,6 +140,8 @@ class SettingsStore(
         val TRANSLATION_PROMPT = stringPreferencesKey("translation_prompt")
         val TRANSLATE_THINKING_BUDGET = intPreferencesKey("translate_thinking_budget")
         val SUGGESTION_PROMPT = stringPreferencesKey("suggestion_prompt")
+        val OCR_MODEL = stringPreferencesKey("ocr_model")
+        val OCR_PROMPT = stringPreferencesKey("ocr_prompt")
 
         // 提供商
         val PROVIDERS = stringPreferencesKey("providers")
@@ -260,6 +263,8 @@ class SettingsStore(
                 translatePrompt = preferences[TRANSLATION_PROMPT] ?: DEFAULT_TRANSLATION_PROMPT,
                 translateThinkingBudget = preferences[TRANSLATE_THINKING_BUDGET] ?: 0,
                 suggestionPrompt = preferences[SUGGESTION_PROMPT] ?: DEFAULT_SUGGESTION_PROMPT,
+                ocrModelId = preferences[OCR_MODEL]?.let { Uuid.parse(it) },
+                ocrPrompt = preferences[OCR_PROMPT] ?: DEFAULT_OCR_PROMPT,
                 assistantId = preferences[SELECT_ASSISTANT]?.let { Uuid.parse(it) }
                     ?: DEFAULT_ASSISTANT_ID,
                 assistantTags = preferences[ASSISTANT_TAGS].decodeOrNull(emptyList()),
@@ -461,6 +466,8 @@ class SettingsStore(
             preferences[TRANSLATION_PROMPT] = settings.translatePrompt
             preferences[TRANSLATE_THINKING_BUDGET] = settings.translateThinkingBudget
             preferences[SUGGESTION_PROMPT] = settings.suggestionPrompt
+            preferences[OCR_MODEL] = settings.ocrModelId?.toString() ?: ""
+            preferences[OCR_PROMPT] = settings.ocrPrompt
 
             preferences[PROVIDERS] = SecureStorage.encrypt(JsonInstant.encodeToString(settings.providers))
 
@@ -607,6 +614,9 @@ data class Settings(
     val translateThinkingBudget: Int = 0,
     val suggestionModelId: Uuid? = null,
     val suggestionPrompt: String = DEFAULT_SUGGESTION_PROMPT,
+    // 图片识别（AI 视觉模型）：本地 OCR 失败或配置后，用该模型识别图片
+    val ocrModelId: Uuid? = null,
+    val ocrPrompt: String = DEFAULT_OCR_PROMPT,
     val assistantId: Uuid = DEFAULT_ASSISTANT_ID,
     val providers: List<ProviderSetting> = DEFAULT_PROVIDERS,
     val assistants: List<Assistant> = DEFAULT_ASSISTANTS.map { it.copy(enabledSkills = setOf("精准占卜", "Karpathy方法论", "棋类全能王")) },

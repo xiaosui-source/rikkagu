@@ -24,6 +24,7 @@ import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
+import me.rerere.ai.ui.handleMessageChunk
 import me.rerere.common.cache.LruCache
 import me.rerere.common.cache.SingleFileCacheStore
 import me.rerere.rikkahub.data.datastore.SettingsStore
@@ -150,6 +151,17 @@ object OcrTransformer : InputMessageTransformer, KoinComponent {
 
         val settings = get<SettingsStore>().settingsFlow.value
 
+        // 若配置了 AI 视觉识别模型（ocrModelId），优先用模型识别图片
+        if (settings.ocrModelId != null) {
+            val visionText = recognizeWithVisionModel(part, settings.ocrPrompt)
+            if (visionText.isNotBlank()) {
+                val wrapped = wrapOcrText(visionText)
+                cache.put(part.url, wrapped)
+                return wrapped
+            }
+            Log.w(TAG, "performOcr: AI 视觉模型未返回结果, 回退本地")
+        }
+
         // 纯本地：同时识别「图片样子」（物体/场景标签）和「图片文字」（OCR），
         // 弱模型也能完整理解图片内容，不依赖外部 API
         if (settings.offlineOcrEnabled) {
@@ -187,6 +199,41 @@ object OcrTransformer : InputMessageTransformer, KoinComponent {
         return "[Image]"
         }.getOrElse {
         "[ERROR, OCR failed: $it]"
+    }
+
+    /**
+     * 用配置的 AI 视觉模型识别图片（ocrModelId）。
+     * 使用 settings.ocrPrompt，其中 {images} 替换为图片 URL。
+     */
+    private suspend fun recognizeWithVisionModel(part: UIMessagePart.Image, ocrPrompt: String): String {
+        return runCatching {
+            val settings = get<SettingsStore>().settingsFlow.value
+            val model = settings.findModelById(settings.ocrModelId ?: return@runCatching "")
+                ?: return@runCatching ""
+            val provider = model.findProvider(settings.providers) ?: return@runCatching ""
+            val providerManager: me.rerere.ai.provider.ProviderManager =
+                org.koin.java.KoinJavaComponent.getKoin().get()
+            val providerImpl = providerManager.getProviderByType(provider)
+
+            val prompt = ocrPrompt.replace("{images}", part.url)
+                .ifBlank { "请识别这张图片里的文字和内容：${part.url}" }
+
+            val messages = listOf(
+                UIMessage.system("你是图像识别助手。请识别图片中的文字与内容并返回结果，用简体中文。"),
+                UIMessage.user(prompt),
+            )
+
+            val chunk = providerImpl.generateText(
+                providerSetting = provider,
+                messages = messages,
+                params = TextGenerationParams(model = model, reasoningLevel = me.rerere.ai.core.ReasoningLevel.AUTO),
+            )
+            val result = messages.handleMessageChunk(chunk = chunk, model = model)
+            result.lastOrNull()?.toText()?.trim().orEmpty()
+        }.getOrElse { e ->
+            Log.w(TAG, "recognizeWithVisionModel 失败: ${e.message}", e)
+            ""
+        }
     }
 
     /** 免费离线 OCR: Google ML Kit 中文文字识别 (本地运行, 免费, 无需联网/API Key). */
