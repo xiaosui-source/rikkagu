@@ -52,20 +52,15 @@ object AgentTurnTracker {
 
         val allowed = recentAutomationTimestamps.size < MAX_AUTOMATION_WINDOW_COUNT
         if (!allowed) {
-            logEvent(
-                action = action,
-                detail = "自动化动作已达安全限流阈值($MAX_AUTOMATION_WINDOW_COUNT/$WINDOW_MS ms)${
-                    if (detail.isNotBlank()) " · $detail" else ""
-                }",
-                status = "blocked",
-            )
+            // 审计日志走独立协程，避免阻塞自动化主流程
+            logEventAsync(action = action, detail = detail, status = "blocked")
             Log.w(TAG, "Automation rate-limited: $action (reached $MAX_AUTOMATION_WINDOW_COUNT/$WINDOW_MS ms)")
             return false
         }
 
         // 记录本次动作时间戳 + 写审计日志
         recentAutomationTimestamps.addLast(now)
-        logEvent(action = action, detail = detail, status = "success")
+        logEventAsync(action = action, detail = detail, status = "success")
         Log.d(TAG, "automation action: $action (count=${recentAutomationTimestamps.size}/$MAX_AUTOMATION_WINDOW_COUNT in window)")
         return true
     }
@@ -95,20 +90,27 @@ object AgentTurnTracker {
         }
     }
 
-    /** 写入安全审计日志（自动处理 DI 解析失败，保证不影响主流程）。 */
-    private fun logEvent(action: String, detail: String, status: String) {
-        runCatching {
-            val repo: me.rerere.rikkahub.data.security.SecurityAuditRepository =
-                org.koin.java.KoinJavaComponent.getKoin().get()
-            repo.log(
-                category = "automation",
-                action = action,
-                target = "screen_automation",
-                detail = detail,
-                status = status,
-            )
-        }.onFailure { e ->
-            Log.w(TAG, "Failed to log automation audit: ${e.message}")
+    /** 写入安全审计日志（自动处理 DI 解析失败，保证不影响主流程；异步不阻塞）。 */
+    private fun logEventAsync(action: String, detail: String, status: String) {
+        try {
+            val scope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO + kotlinx.coroutines.SupervisorJob())
+            scope.launch {
+                runCatching {
+                    val repo: me.rerere.rikkahub.data.security.SecurityAuditRepository =
+                        org.koin.java.KoinJavaComponent.getKoin().get()
+                    repo.log(
+                        category = "automation",
+                        action = action,
+                        target = "screen_automation",
+                        detail = detail,
+                        status = status,
+                    )
+                }.onFailure { e ->
+                    Log.w(TAG, "Failed to log automation audit: ${e.message}")
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to schedule audit log: ${e.message}")
         }
     }
 }
