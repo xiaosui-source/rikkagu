@@ -663,6 +663,10 @@ entry<Screen.Extensions> {
                                 SkillsPage()
                             }
 
+                            entry<Screen.StickerSettings> {
+                                me.rerere.rikkahub.ui.pages.extensions.StickerManagerPage()
+                            }
+
                             entry<Screen.SkillDetail> { key ->
                                 SkillDetailPage(skillName = key.skillName)
                             }
@@ -1059,6 +1063,7 @@ sealed interface Screen : NavKey {
 
     @Serializable
     data object Skills : Screen
+    data object StickerSettings : Screen
 
     @Serializable
     data class SkillDetail(val skillName: String) : Screen

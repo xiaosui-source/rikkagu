@@ -224,6 +224,7 @@ class SettingsStore(
 
         // 自动批准所有工具调用（懒人模式）
         val AUTO_APPROVE_ALL_TOOLS = booleanPreferencesKey("auto_approve_all_tools")
+        val STICKER_SETTINGS = stringPreferencesKey("sticker_settings")
     }
 
     internal val dataStore = context.settingsStore
@@ -322,6 +323,8 @@ class SettingsStore(
                 forceConfirmToolCalls = preferences[FORCE_CONFIRM_TOOL_CALLS] != false,
                 workflowHeadlessBlockSensitive = preferences[WORKFLOW_HEADLESS_BLOCK_SENSITIVE] != false,
                 autoApproveAllTools = preferences[AUTO_APPROVE_ALL_TOOLS] == true,
+                stickerSettings = preferences[STICKER_SETTINGS]
+                    .decodeOrNull(me.rerere.rikkahub.data.model.StickerSettings()),
             )
             }.getOrElse { Settings(providers = DEFAULT_PROVIDERS.map { it.copyProvider(models = it.models) }) }
         }
@@ -502,6 +505,7 @@ class SettingsStore(
             preferences[FORCE_CONFIRM_TOOL_CALLS] = settings.forceConfirmToolCalls
             preferences[WORKFLOW_HEADLESS_BLOCK_SENSITIVE] = settings.workflowHeadlessBlockSensitive
             preferences[AUTO_APPROVE_ALL_TOOLS] = settings.autoApproveAllTools
+            preferences[STICKER_SETTINGS] = JsonInstant.encodeToString(settings.stickerSettings)
         }
     }
 
@@ -644,6 +648,7 @@ data class Settings(
     val forceConfirmToolCalls: Boolean = true,
     val workflowHeadlessBlockSensitive: Boolean = true,
     val autoApproveAllTools: Boolean = false,
+    val stickerSettings: me.rerere.rikkahub.data.model.StickerSettings = me.rerere.rikkahub.data.model.StickerSettings(),
 ) {
     companion object {
         // 构造一个用于初始化的settings, 但它不能用于保存，防止使用初始值存储

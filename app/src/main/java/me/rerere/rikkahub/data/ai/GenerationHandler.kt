@@ -19,6 +19,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withTimeoutOrNull
@@ -614,16 +615,18 @@ class GenerationHandler(
                     append(internalForcePrompt)
                 }
 
-                // 表情包渲染：若检测到表情包目录/外链列表，提示 AI 可用 <meme>/<sticker> 标签输出表情
+                // 表情包渲染：若开启自动注入且配置了表情目录/外链，注入可用表情名提示
                 runCatching {
-                    val stickerDirsExist = java.io.File("/sdcard/Download/sticker").exists()
-                    val externalFile = java.io.File(context.filesDir, "sticker_external.txt")
-                    if (stickerDirsExist || externalFile.exists()) {
-                        appendLine()
-                        appendLine("## 表情包")
-                        appendLine("你可以使用 <meme>表情名</meme> 或 <sticker>表情名</sticker> 标签输出表情包，表情会自动渲染成图片。")
-                        appendLine("每条回复最多用 2 个表情，插在合适的位置。不要解释，直接输出标签即可。")
-                        appendLine("如果表情名不存在或不确定，不要强行输出标签。")
+                    val sSettings = org.koin.java.KoinJavaComponent.getKoin()
+                        .get<me.rerere.rikkahub.data.datastore.SettingsStore>()
+                        .settingsFlow.first().stickerSettings
+                    if (sSettings.autoInject) {
+                        val prompt = me.rerere.rikkahub.data.ai.transformers.StickerRenderTransformer
+                            .buildValidNamesPrompt(sSettings.maxPerReply, sSettings.extraRules)
+                        if (prompt.isNotBlank()) {
+                            appendLine()
+                            append(prompt.trimEnd())
+                        }
                     }
                 }
 

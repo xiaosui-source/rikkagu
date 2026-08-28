@@ -93,6 +93,12 @@ fun ExtensionsPage() {
                         headlineContent = { Text(stringResource(R.string.extensions_page_workspace)) },
                         supportingContent = { Text(stringResource(R.string.extensions_page_workspace_desc)) },
                     )
+                    item(
+                        onClick = { navController.navigate(Screen.StickerSettings) },
+                        leadingContent = { Icon(HugeIcons.Zap, null) },
+                        headlineContent = { Text("表情包渲染器") },
+                        supportingContent = { Text("AI 输出 <meme>/<sticker> 标签自动渲染表情包图片") },
+                    )
                 }
             }
         }
