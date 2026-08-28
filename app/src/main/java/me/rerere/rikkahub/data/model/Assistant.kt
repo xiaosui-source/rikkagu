@@ -80,6 +80,17 @@ data class QuickMessage(
 data class AssistantMemory(
     val id: Int,
     val content: String = "",
+    // ===== OmbreBrain 仿人记忆字段（默认值保证向后兼容）=====
+    val title: String = "",
+    val importance: Double = 0.3,
+    val sentiment: Double = 0.0,
+    val tags: List<String> = emptyList(),
+    val createdAt: Long = System.currentTimeMillis(),
+    val lastTriggeredAt: Long = System.currentTimeMillis(),
+    val triggerCount: Int = 1,
+    val isActive: Boolean = true,
+    val isHabit: Boolean = false,
+    val source: String = "ai",
 )
  
 @Serializable

@@ -178,7 +178,17 @@ class GenerationHandler(
                     buildMemoryTools(
                         json = json,
                         onCreation = { content ->
-                            memoryRepo.addMemory(memoryAssistantId, content)
+                            // OmbreBrain: 从内容提取简短标题并计算初始重要度
+                            val title = content.trim().split('\n', '。', '.', '!', '？', '?')
+                                .firstOrNull { it.isNotBlank() }?.trim()?.take(40) ?: content.take(40)
+                            val initialImportance =
+                                me.rerere.rikkahub.data.ai.memory.ombrebrain.ImportanceScorer()
+                                    .initialScore(0.0, content.length, 0)
+                                    .coerceAtLeast(0.2)
+                            memoryRepo.addMemory(
+                                memoryAssistantId, content,
+                                title = title, importance = initialImportance
+                            )
                         },
                         onUpdate = { id, content ->
                             memoryRepo.updateContent(id, content)
@@ -607,7 +617,8 @@ class GenerationHandler(
                 // 记忆
                 if (assistant.enableMemory) {
                     appendLine()
-                    append(buildMemoryPrompt(memories = memories))
+                    val lastUserText = messages.lastOrNull { it.role == MessageRole.USER }?.toText()?.take(300)
+                    append(buildMemoryPrompt(memories = memories, userMessage = lastUserText))
                 }
  
                 // 外置记忆库召回

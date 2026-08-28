@@ -55,7 +55,7 @@ import me.rerere.rikkahub.utils.JsonInstant
         SshHostEntity::class,
         SecurityAuditEntity::class,
     ],
-    version = 29,
+    version = 30,
     exportSchema = false,
 )
 @TypeConverters(TokenUsageConverter::class)

@@ -91,4 +91,10 @@ val repositoryModule = module {
             get<me.rerere.rikkahub.data.db.AppDatabase>().securityAuditDao()
         )
     }
+
+    single {
+        me.rerere.rikkahub.data.ai.memory.ombrebrain.OmbreMemoryEngine(
+            memoryRepository = get()
+        )
+    }
 }

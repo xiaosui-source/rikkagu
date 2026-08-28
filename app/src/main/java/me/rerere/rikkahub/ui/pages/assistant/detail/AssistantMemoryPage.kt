@@ -497,6 +497,22 @@ private fun MemoryItem(
                     text = "#${memory.id}",
                     style = MaterialTheme.typography.titleMediumEmphasized,
                 )
+                // OmbreBrain 状态徽标
+                val stateLabel = when {
+                    memory.isHabit -> "固化"
+                    !memory.isActive -> "沉睡"
+                    else -> "活跃"
+                }
+                val stateColor = when {
+                    memory.isHabit -> MaterialTheme.colorScheme.primary
+                    !memory.isActive -> MaterialTheme.colorScheme.outline
+                    else -> MaterialTheme.colorScheme.tertiary
+                }
+                Text(
+                    text = "$stateLabel · 重要度 ${(memory.importance * 100).toInt()}% · 触发${memory.triggerCount}次",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = stateColor,
+                )
                 Text(
                     text = memory.content,
 

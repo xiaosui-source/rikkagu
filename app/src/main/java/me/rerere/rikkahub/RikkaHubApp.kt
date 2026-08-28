@@ -121,6 +121,19 @@ class LingxiApp : Application() {
         // 内置 AI: 自动创建默认工作区、自动安装 rootfs + 编程/反编译工具
         // 完全静默 + 强制安装: 失败持续重试直到全部装上
         CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+            // ===== OmbreBrain 仿人记忆：启动时对全局与各助手记忆跑一次遗忘曲线维护 =====
+            runCatching {
+                val memoryRepo: me.rerere.rikkahub.data.repository.MemoryRepository = get()
+                val engine = me.rerere.rikkahub.data.ai.memory.ombrebrain.OmbreMemoryEngine(memoryRepo)
+                engine.dailyTick(me.rerere.rikkahub.data.repository.MemoryRepository.GLOBAL_MEMORY_ID)
+                android.util.Log.d(
+                    "OmbreBrain",
+                    "记忆遗忘曲线维护完成 (dailyTick)"
+                )
+            }.onFailure { e ->
+                android.util.Log.w("OmbreBrain", "dailyTick 失败: ${e.message}")
+            }
+
             var attempt = 0
             while (isActive) {
                 attempt++

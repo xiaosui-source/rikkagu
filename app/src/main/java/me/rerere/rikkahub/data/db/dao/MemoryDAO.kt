@@ -41,4 +41,9 @@ interface MemoryDAO {
 
     @Query("DELETE FROM memoryentity WHERE assistant_id = :assistantId")
     suspend fun deleteMemoriesOfAssistant(assistantId: String)
+
+    // ===== OmbreBrain 仿人记忆 =====
+    /** 按标题模糊搜索（编码时去重用） */
+    @Query("SELECT * FROM memoryentity WHERE assistant_id = :assistantId AND title LIKE '%' || :title || '%' LIMIT 5")
+    suspend fun searchByTitle(assistantId: String, title: String): List<MemoryEntity>
 }
