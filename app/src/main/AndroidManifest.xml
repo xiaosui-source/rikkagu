@@ -286,6 +286,14 @@
       android:foregroundServiceType="dataSync"
       android:stopWithTask="false" />
 
+    <!-- 聊天生成前台服务: AI 流式生成期间保活, 切后台不被杀 (上游移植) -->
+    <service
+      android:name=".service.ChatGenerationForegroundService"
+      android:enabled="true"
+      android:exported="false"
+      android:foregroundServiceType="dataSync"
+      android:stopWithTask="false" />
+
     <!-- 微信 Bot (iLink 协议): 长轮询收微信消息, 转给关联助手处理, 回复发回微信 -->
     <service
       android:name=".service.WeixinBotService"

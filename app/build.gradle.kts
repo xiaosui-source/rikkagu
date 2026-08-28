@@ -98,6 +98,7 @@ dependencies {
     implementation(project(":speech"))
     implementation(project(":workspace"))
     implementation(project(":document"))
+    implementation(project(":videogen"))
 
     // ===== AndroidX 基础 =====
     implementation(libs.androidx.core.ktx)

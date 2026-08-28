@@ -433,6 +433,10 @@ class ChatService(
         val session = getOrCreateSession(conversationId)
         session.getJob()?.cancel()
 
+        // 生成前台服务保活: 切后台继续生成不被杀 (上游移植)
+        me.rerere.rikkahub.service.ChatGenerationForegroundService.acquire(
+            context, conversationId, conversationId
+        )
         val job = appScope.launch {
             try {
                 val settings = settingsStore.settingsFlow.first()
@@ -522,11 +526,13 @@ class ChatService(
                     handleMessageComplete(conversationId)
                 }
 
+                me.rerere.rikkahub.service.ChatGenerationForegroundService.release(context, conversationId)
                 _generationDoneFlow.emit(conversationId)
             } catch (e: Exception) {
                 Log.e(TAG, "Voice call generation failed", e)
                 Log.e(TAG, "sendMessage failed, conversationId=$conversationId", e)
                 addError(e, conversationId, title = context.getString(R.string.error_title_send_message))
+                me.rerere.rikkahub.service.ChatGenerationForegroundService.release(context, conversationId)
             }
         }
         session.setJob(job)
@@ -560,6 +566,10 @@ class ChatService(
         val session = getOrCreateSession(conversationId)
         session.getJob()?.cancel()
 
+        // 生成前台服务保活: 切后台继续生成不被杀 (上游移植)
+        me.rerere.rikkahub.service.ChatGenerationForegroundService.acquire(
+            context, conversationId, conversationId
+        )
         val job = appScope.launch {
             try {
                 if (message.role == MessageRole.USER) {
@@ -587,10 +597,12 @@ class ChatService(
                     }
                 }
 
+                me.rerere.rikkahub.service.ChatGenerationForegroundService.release(context, conversationId)
                 _generationDoneFlow.emit(conversationId)
             } catch (e: Exception) {
                 Log.e(TAG, "regenerateAtMessage failed, conversationId=$conversationId", e)
                 addError(e, conversationId, title = context.getString(R.string.error_title_regenerate_message))
+                me.rerere.rikkahub.service.ChatGenerationForegroundService.release(context, conversationId)
             }
         }
 
@@ -609,6 +621,10 @@ class ChatService(
         val session = getOrCreateSession(conversationId)
         session.getJob()?.cancel()
 
+        // 生成前台服务保活: 切后台继续生成不被杀 (上游移植)
+        me.rerere.rikkahub.service.ChatGenerationForegroundService.acquire(
+            context, conversationId, conversationId
+        )
         val job = appScope.launch {
             try {
                 val newApprovalState = when {
@@ -653,10 +669,12 @@ class ChatService(
                     handleMessageComplete(conversationId)
                 }
 
+                me.rerere.rikkahub.service.ChatGenerationForegroundService.release(context, conversationId)
                 _generationDoneFlow.emit(conversationId)
             } catch (e: Exception) {
                 Log.e(TAG, "handleToolApproval failed, conversationId=$conversationId, toolCallId=$toolCallId", e)
                 addError(e, conversationId, title = context.getString(R.string.error_title_tool_approval))
+                me.rerere.rikkahub.service.ChatGenerationForegroundService.release(context, conversationId)
             }
         }
 

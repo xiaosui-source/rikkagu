@@ -29,4 +29,21 @@ sealed class AppEvent {
      * 避免跳转到外部浏览器。
      */
     data class OpenWebView(val url: String) : AppEvent()
+
+    /** 聊天生成进度更新（流式输出中，后台通知用）。 */
+    data class ChatGenerationUpdate(
+        val conversationId: kotlin.uuid.Uuid,
+        val lastMessage: me.rerere.ai.ui.UIMessage,
+        val senderName: String,
+    ) : AppEvent()
+
+    /**
+     * 聊天生成结束（完成、失败或取消）。
+     * [contentPreview] 为 null 时仅取消 Live Update 通知，不发送完成通知。
+     */
+    data class ChatGenerationEnded(
+        val conversationId: kotlin.uuid.Uuid,
+        val senderName: String,
+        val contentPreview: String?,
+    ) : AppEvent()
 }
