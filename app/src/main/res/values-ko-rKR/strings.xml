@@ -328,6 +328,7 @@
   <string name="emoji_picker_select_skin_tone">스킨 톤 선택</string>
   <string name="error_title_compress_conversation">대화 압축 실패</string>
   <string name="error_title_generation">메시지 생성 실패</string>
+  <string name="error_no_model_available">사용 가능한 모델이 없습니다. 「설정 → 모델」에서 모델을 선택하거나 추가한 후 다시 시도하세요.</string>
   <string name="error_title_operation">작업 실패</string>
   <string name="error_title_regenerate_message">메시지 재생성 실패</string>
   <string name="error_title_send_message">메시지 전송 실패</string>

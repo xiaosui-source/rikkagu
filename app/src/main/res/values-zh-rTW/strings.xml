@@ -330,6 +330,7 @@
   <string name="emoji_picker_select_skin_tone">選擇膚色</string>
   <string name="error_title_compress_conversation">對話壓縮失敗</string>
   <string name="error_title_generation">訊息產生失敗</string>
+  <string name="error_no_model_available">目前沒有任何可用的模型。請在「設定 → 模型」中選擇或新增模型後重試。</string>
   <string name="error_title_operation">操作失敗</string>
   <string name="error_title_regenerate_message">訊息重新產生失敗</string>
   <string name="error_title_send_message">訊息傳送失敗</string>

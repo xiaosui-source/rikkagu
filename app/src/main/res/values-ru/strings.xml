@@ -328,6 +328,7 @@
   <string name="emoji_picker_select_skin_tone">Выберите тон кожи</string>
   <string name="error_title_compress_conversation">Сжатие переписки не удалось</string>
   <string name="error_title_generation">Ошибка генерации сообщения</string>
+  <string name="error_no_model_available">Нет доступных моделей. Выберите или добавьте модель в «Настройки → Модели» и повторите попытку.</string>
   <string name="error_title_operation">Операция не выполнена</string>
   <string name="error_title_regenerate_message">Не удалось повторно сгенерировать сообщение</string>
   <string name="error_title_send_message">Не удалось отправить сообщение</string>

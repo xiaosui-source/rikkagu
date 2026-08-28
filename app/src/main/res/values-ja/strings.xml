@@ -328,6 +328,7 @@
   <string name="emoji_picker_select_skin_tone">肌の色を選択</string>
   <string name="error_title_compress_conversation">会話の圧縮に失敗しました</string>
   <string name="error_title_generation">メッセージ生成に失敗しました</string>
+  <string name="error_no_model_available">利用可能なモデルがありません。「設定 → モデル」でモデルを選択または追加してから再試行してください。</string>
   <string name="error_title_operation">操作に失敗しました</string>
   <string name="error_title_regenerate_message">メッセージの再生成に失敗しました</string>
   <string name="error_title_send_message">メッセージ送信失敗</string>

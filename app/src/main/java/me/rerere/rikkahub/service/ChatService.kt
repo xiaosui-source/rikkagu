@@ -677,7 +677,15 @@ class ChatService(
         // 避免模型被删除/禁用后对话静默无法回复
         val model = settings.findModelById(assistant.chatModelId ?: settings.chatModelId)
             ?: settings.providers.asSequence().flatMap { it.models }.firstOrNull()
-            ?: return
+            ?: run {
+                // 完全无可用模型：给用户明确提示，避免"发送后无任何反应"的静默卡死
+                addError(
+                    IllegalStateException(context.getString(R.string.error_no_model_available)),
+                    conversationId = conversationId,
+                    title = context.getString(R.string.error_title_generation),
+                )
+                return
+            }
 
         // 上下文无任何限制：不自动压缩，完整保留所有历史消息
         // （原 smartCompressIfNeeded 已禁用）

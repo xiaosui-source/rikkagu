@@ -333,6 +333,7 @@
   <string name="emoji_picker_select_skin_tone">选择肤色</string>
   <string name="error_title_compress_conversation">对话压缩失败</string>
   <string name="error_title_generation">消息生成失败</string>
+  <string name="error_no_model_available">当前没有任何可用的模型。请在「设置 → 模型」中选择或添加模型后重试。</string>
   <string name="error_title_operation">操作失败</string>
   <string name="error_title_regenerate_message">消息重新生成失败</string>
   <string name="error_title_send_message">消息发送失败</string>

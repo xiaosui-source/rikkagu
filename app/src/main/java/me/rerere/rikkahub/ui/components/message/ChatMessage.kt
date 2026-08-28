@@ -574,12 +574,13 @@ private fun MessagePartsBlock(
                                     .shimmer(isLoading = true)
                             )
                         } else {
+                            // 聊天图片用更大的缩略图（原72dp过小，用户看不清内容），点击可放大查看
                             ZoomableAsyncImage(
                                 model = part.url,
                                 contentDescription = null,
                                 modifier = Modifier
                                     .clip(MaterialTheme.shapes.medium)
-                                    .height(72.dp)
+                                    .height(200.dp)
                             )
                         }
                     }
