@@ -51,7 +51,7 @@ fun swipeTool(
         )
     },
     execute = { input ->
-        AgentTurnTracker.recordAutomationAction()
+        AgentTurnTracker.recordAutomationAction(action = "swipe")
         me.rerere.rikkahub.service.RikkaAccessibilityService.instance?.let { wakeScreenIfNeeded(it) }
         val sx = numOrNull(input, "start_x")
         val sy = numOrNull(input, "start_y")

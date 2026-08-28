@@ -165,7 +165,7 @@ fun clickNodeTool(
         )
     },
     execute = { input ->
-        AgentTurnTracker.recordAutomationAction()
+        AgentTurnTracker.recordAutomationAction(action = "find_node")
         me.rerere.rikkahub.service.RikkaAccessibilityService.instance?.let { wakeScreenIfNeeded(it) }
         val (by, value, pkgFilter) = parseSelector(input)
         val nth = input.jsonObject["nth"]?.jsonPrimitive?.intOrNull ?: 0
@@ -286,7 +286,7 @@ fun setTextTool(
         )
     },
     execute = { input ->
-        AgentTurnTracker.recordAutomationAction()
+        AgentTurnTracker.recordAutomationAction(action = "find_node")
         me.rerere.rikkahub.service.RikkaAccessibilityService.instance?.let { wakeScreenIfNeeded(it) }
         val (by, value, pkgFilter) = parseSelector(input)
         val nth = input.jsonObject["nth"]?.jsonPrimitive?.intOrNull ?: 0

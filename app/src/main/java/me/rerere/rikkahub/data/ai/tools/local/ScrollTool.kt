@@ -85,7 +85,7 @@ fun scrollTool(
         )
     },
     execute = { input ->
-        AgentTurnTracker.recordAutomationAction()
+        AgentTurnTracker.recordAutomationAction(action = "scroll")
         me.rerere.rikkahub.service.RikkaAccessibilityService.instance?.let { wakeScreenIfNeeded(it) }
         val direction = input.jsonObject["direction"]?.jsonPrimitive?.contentOrNull
         if (direction == null || direction !in ALLOWED_DIRECTIONS) {

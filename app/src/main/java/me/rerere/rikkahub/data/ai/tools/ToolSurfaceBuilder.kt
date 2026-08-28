@@ -65,6 +65,8 @@ class ToolSurfaceBuilder(
         if (settings.enableWebSearch) {
             addAll(createSearchTools(settings))
         }
+        // 子 Agent 并行委派（#2）：主 agent 可把独立子任务委派给隔离的子代理深入完成
+        add(createSubAgentTool(settings = settings, assistant = assistant))
         addAll(localTools.getTools(assistant.localTools, invocationContext))
         val systemToolsOptions = settings.systemToolsSetting.getEnabledOptions()
         if (systemToolsOptions.isNotEmpty()) {

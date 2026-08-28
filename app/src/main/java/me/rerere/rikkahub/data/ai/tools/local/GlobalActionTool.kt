@@ -55,7 +55,7 @@ fun globalActionTool(
         )
     },
     execute = { input ->
-        AgentTurnTracker.recordAutomationAction()
+        AgentTurnTracker.recordAutomationAction(action = "global_action")
         me.rerere.rikkahub.service.RikkaAccessibilityService.instance?.let { wakeScreenIfNeeded(it) }
         val action = input.jsonObject["action"]?.jsonPrimitive?.contentOrNull
         val code = action?.let { ACTION_MAP[it] }

@@ -53,7 +53,7 @@ fun tapTool(
         )
     },
     execute = { input ->
-        AgentTurnTracker.recordAutomationAction()
+        AgentTurnTracker.recordAutomationAction(action = "tap")
         // Wake screen so gestures land on a visible surface, not a dark screen.
         me.rerere.rikkahub.service.RikkaAccessibilityService.instance?.let { wakeScreenIfNeeded(it) }
         val x = coordOrError(input, "x")
@@ -120,7 +120,7 @@ fun longPressTool(
         )
     },
     execute = { input ->
-        AgentTurnTracker.recordAutomationAction()
+        AgentTurnTracker.recordAutomationAction(action = "tap")
         me.rerere.rikkahub.service.RikkaAccessibilityService.instance?.let { wakeScreenIfNeeded(it) }
         val x = coordOrError(input, "x")
         val y = coordOrError(input, "y")
