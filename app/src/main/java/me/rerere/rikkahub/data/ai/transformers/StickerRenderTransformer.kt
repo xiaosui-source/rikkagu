@@ -163,8 +163,8 @@ object StickerRenderTransformer : OutputMessageTransformer {
     /** 生成提示词：列出所有可用表情名，指导 AI 用标签输出（无需配置） */
     suspend fun buildPrompt(): String {
         val names = scanIndex().keys.filterNot { it.startsWith("EL-") }.distinct()
-        // 注入上限：最多 60 个，避免表情过多时撑爆 system prompt
-        val MAX_INJECT = 60
+        // 注入上限：最多 120 个，避免表情过多时撑爆 system prompt
+        val MAX_INJECT = 120
         val injectNames = names.take(MAX_INJECT)
         val nameLine = injectNames.joinToString(" | ")
         val sb = StringBuilder()
