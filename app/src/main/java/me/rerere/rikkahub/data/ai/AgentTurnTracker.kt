@@ -8,6 +8,10 @@ package me.rerere.rikkahub.data.ai
 
 import android.util.Log
 import java.util.concurrent.ConcurrentLinkedDeque
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 /**
  * Agent 回合跟踪器（补实自上游的 no-op stub）。
@@ -93,7 +97,7 @@ object AgentTurnTracker {
     /** 写入安全审计日志（自动处理 DI 解析失败，保证不影响主流程；异步不阻塞）。 */
     private fun logEventAsync(action: String, detail: String, status: String) {
         try {
-            val scope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO + kotlinx.coroutines.SupervisorJob())
+            val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
             scope.launch {
                 runCatching {
                     val repo: me.rerere.rikkahub.data.security.SecurityAuditRepository =
