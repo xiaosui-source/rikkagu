@@ -369,6 +369,8 @@ class RouteActivity : ComponentActivity() {
                     is AppEvent.Speak -> tts.speak(event.text)
                     is AppEvent.EmojiSelected -> { /* handled in UIAvatar */ }
                     is AppEvent.McpOAuthCallback -> Unit // 由 McpManager 消费
+                    is AppEvent.ChatGenerationUpdate -> Unit // 由通知系统消费
+                    is AppEvent.ChatGenerationEnded -> Unit // 由通知系统消费
                     is AppEvent.OpenWebView -> {
                         // 在 App 内置 WebView 打开 URL，避免跳到外部浏览器
                         backStack.add(Screen.WebView(event.url, ""))
