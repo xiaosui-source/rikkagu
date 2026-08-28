@@ -163,11 +163,15 @@ object StickerRenderTransformer : OutputMessageTransformer {
     /** 生成提示词：列出所有可用表情名，指导 AI 用标签输出（无需配置） */
     suspend fun buildPrompt(): String {
         val names = scanIndex().keys.filterNot { it.startsWith("EL-") }.distinct()
-        val nameLine = names.joinToString(" | ")
+        // 注入上限：最多 60 个，避免表情过多时撑爆 system prompt
+        val MAX_INJECT = 60
+        val injectNames = names.take(MAX_INJECT)
+        val nameLine = injectNames.joinToString(" | ")
         val sb = StringBuilder()
         sb.appendLine("### 表情包")
         sb.appendLine("[Valid names]")
         if (nameLine.isNotBlank()) sb.appendLine(nameLine)
+        if (names.size > MAX_INJECT) sb.appendLine("（共 ${names.size} 个表情，仅列出前 $MAX_INJECT 个）")
         sb.appendLine("当你想发表情时，用 <meme>名字</meme> 或 <sticker>名字</sticker> 标签输出，表情会自动渲染成图片。")
         sb.appendLine("只使用上面 [Valid names] 里存在的名字，每条回复最多 2 个。")
         sb.appendLine("不要把标签包进 Markdown 或代码块。")
