@@ -29,7 +29,6 @@ private fun coordOrError(jsonObj: kotlinx.serialization.json.JsonElement, key: S
 
 fun tapTool(
     invocationContext: ToolInvocationContext = ToolInvocationContext.EMPTY,
-    streamer: InteractiveToolStreamer = InteractiveToolStreamer.NoOp,
 ): Tool = Tool(
     name = "tap",
     description = """
@@ -86,14 +85,12 @@ fun tapTool(
                 if (!ok) put("reason", "gesture_cancelled_or_timeout")
             }
         }
-        streamer.streamIfHeadless(invocationContext, "Tap (${x.toInt()}, ${y.toInt()})")
         listOf(UIMessagePart.Text(payload.toString()))
     }
 )
 
 fun longPressTool(
     invocationContext: ToolInvocationContext = ToolInvocationContext.EMPTY,
-    streamer: InteractiveToolStreamer = InteractiveToolStreamer.NoOp,
 ): Tool = Tool(
     name = "long_press",
     description = """
@@ -163,7 +160,6 @@ fun longPressTool(
                 if (!ok) put("reason", "gesture_cancelled_or_timeout")
             }
         }
-        streamer.streamIfHeadless(invocationContext, "LongPress (${x.toInt()}, ${y.toInt()}) ${durationRaw}ms")
         listOf(UIMessagePart.Text(payload.toString()))
     }
 )

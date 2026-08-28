@@ -33,7 +33,6 @@ private val ACTION_MAP: Map<String, Int> = mapOf(
 
 fun globalActionTool(
     invocationContext: ToolInvocationContext = ToolInvocationContext.EMPTY,
-    streamer: InteractiveToolStreamer = InteractiveToolStreamer.NoOp,
 ): Tool = Tool(
     name = "global_action",
     needsApproval = true,
@@ -83,7 +82,6 @@ fun globalActionTool(
                 if (!ok) put("reason", "rejected_by_os")
             }
         }
-        streamer.streamIfHeadless(invocationContext, "GlobalAction $action")
         listOf(UIMessagePart.Text(payload.toString()))
     }
 )

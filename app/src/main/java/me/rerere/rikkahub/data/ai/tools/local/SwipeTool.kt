@@ -27,7 +27,6 @@ private fun numOrNull(input: kotlinx.serialization.json.JsonElement, key: String
 
 fun swipeTool(
     invocationContext: ToolInvocationContext = ToolInvocationContext.EMPTY,
-    streamer: InteractiveToolStreamer = InteractiveToolStreamer.NoOp,
 ): Tool = Tool(
     name = "swipe",
     description = """
@@ -95,7 +94,6 @@ fun swipeTool(
                 if (!ok) put("reason", "gesture_cancelled_or_timeout")
             }
         }
-        streamer.streamIfHeadless(invocationContext, "Swipe (${sx.toInt()},${sy.toInt()})->(${ex.toInt()},${ey.toInt()}) ${duration}ms")
         listOf(UIMessagePart.Text(payload.toString()))
     }
 )

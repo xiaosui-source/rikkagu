@@ -59,7 +59,6 @@ private fun parseSelector(input: kotlinx.serialization.json.JsonElement): Triple
 
 fun findNodeTool(
     invocationContext: ToolInvocationContext = ToolInvocationContext.EMPTY,
-    streamer: InteractiveToolStreamer = InteractiveToolStreamer.NoOp,
 ): Tool = Tool(
     name = "find_node",
     description = """
@@ -131,14 +130,12 @@ fun findNodeTool(
                 })
             }
         }
-        streamer.streamIfHeadless(invocationContext, "FindNode $by=\"${value.take(30)}\"")
         listOf(UIMessagePart.Text(payload.toString()))
     }
 )
 
 fun clickNodeTool(
     invocationContext: ToolInvocationContext = ToolInvocationContext.EMPTY,
-    streamer: InteractiveToolStreamer = InteractiveToolStreamer.NoOp,
 ): Tool = Tool(
     name = "click_node",
     description = """
@@ -234,7 +231,6 @@ fun clickNodeTool(
                 })
             }
         }
-        streamer.streamIfHeadless(invocationContext, "ClickNode $by=\"${value.take(30)}\"")
         listOf(UIMessagePart.Text(payload.toString()))
     }
 )
@@ -247,7 +243,6 @@ fun clickNodeTool(
  */
 fun setTextTool(
     invocationContext: ToolInvocationContext = ToolInvocationContext.EMPTY,
-    streamer: InteractiveToolStreamer = InteractiveToolStreamer.NoOp,
 ): Tool = Tool(
     name = "set_text",
     description = """
@@ -361,7 +356,6 @@ fun setTextTool(
                 put("set_to", newText)
             }
         }
-        streamer.streamIfHeadless(invocationContext, "SetText $by=\"${value.take(20)}\" -> \"${newText.take(20)}\"")
         listOf(UIMessagePart.Text(payload.toString()))
     }
 )

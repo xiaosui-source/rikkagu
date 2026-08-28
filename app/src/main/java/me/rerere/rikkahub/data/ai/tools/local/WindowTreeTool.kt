@@ -62,7 +62,6 @@ internal fun defaultFilter(n: AccessibilityNodeInfo, depth: Int): Boolean {
 
 fun readWindowTreeTool(
     invocationContext: ToolInvocationContext = ToolInvocationContext.EMPTY,
-    streamer: InteractiveToolStreamer = InteractiveToolStreamer.NoOp,
 ): Tool = Tool(
     name = "read_window_tree",
     description = "Snapshot of the active window's a11y node tree. Default filters to visible nodes that are clickable / scrollable / editable / have text or content_description. verbose=true skips the filter (use sparingly). max_nodes caps result (default 500, max 2000). package_name optionally restricts + errors if the foreground app doesn't match.",
@@ -148,7 +147,6 @@ fun readWindowTreeTool(
                 root.window?.title?.toString()?.let { put("window_title", it) } ?: put("window_title", "")
             }
         }
-        streamer.streamIfHeadless(invocationContext, "ReadWindowTree")
         listOf(UIMessagePart.Text(payload.toString()))
     }
 )

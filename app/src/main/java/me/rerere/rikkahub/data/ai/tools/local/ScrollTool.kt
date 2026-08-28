@@ -60,7 +60,6 @@ private fun findFirstScrollable(root: AccessibilityNodeInfo): AccessibilityNodeI
 
 fun scrollTool(
     invocationContext: ToolInvocationContext = ToolInvocationContext.EMPTY,
-    streamer: InteractiveToolStreamer = InteractiveToolStreamer.NoOp,
 ): Tool = Tool(
     name = "scroll",
     description = """
@@ -151,7 +150,6 @@ fun scrollTool(
                 if (!ok) put("reason", "no_scroll_action_accepted")
             }
         }
-        streamer.streamIfHeadless(invocationContext, "Scroll $direction")
         listOf(UIMessagePart.Text(payload.toString()))
     }
 )
