@@ -52,23 +52,18 @@
   <string name="assistant_page_background_opacity_desc">调整聊天背景图显示透明度</string>
   <string name="assistant_page_background_opacity_value">透明度：%1$d%%</string>
   <string name="assistant_page_background_set">已设置背景图片</string>
-  <string name="assistant_page_balanced">平衡</string>
   <string name="assistant_page_body_key">Body Key</string>
   <string name="assistant_page_body_value">Body 值 (JSON)</string>
   <string name="assistant_page_cancel">取消</string>
   <string name="assistant_page_change_background">更换背景图片</string>
-  <string name="assistant_page_chaotic">混乱 (危险)</string>
   <string name="assistant_page_chat_background">聊天背景</string>
   <string name="assistant_page_chat_background_desc">设置助手聊天页面的背景图片</string>
   <string name="assistant_page_chat_model">聊天模型</string>
   <string name="assistant_page_chat_model_desc">设置助手的默认聊天模型，如果不设置，则使用全局默认聊天模型</string>
   <string name="assistant_page_clone">复制</string>
   <string name="assistant_page_confirm">确定</string>
-  <string name="assistant_page_context_message_count">上下文消息数量: %d</string>
   <string name="assistant_page_context_message_desc">控制多少条历史消息会被作为上下文发送给模型, 超过此数量的消息会被忽略，只有最近的N条消息会被保留，可以节省token</string>
   <string name="assistant_page_context_message_size">上下文消息数量</string>
-  <string name="assistant_page_context_message_unlimited">无限制的上下文消息</string>
-  <string name="assistant_page_creative">创造</string>
   <string name="assistant_page_current_assistant">当前助手</string>
   <string name="assistant_page_custom_bodies">自定义 Body</string>
   <string name="assistant_page_custom_headers">自定义 Headers</string>
@@ -129,7 +124,6 @@
   <string name="assistant_page_select_from_gallery">从相册选择</string>
   <string name="assistant_page_stream_output">流式输出</string>
   <string name="assistant_page_stream_output_desc">是否启用消息的流式输出</string>
-  <string name="assistant_page_strict">严谨</string>
   <string name="assistant_page_system_prompt">系统提示词</string>
   <string name="assistant_page_tab_basic">基础设定</string>
   <string name="assistant_page_tab_extensions">扩展管理</string>
@@ -152,14 +146,9 @@
   <string name="assistant_page_time_reminder_desc">在间隔较大的消息前自动插入时间提醒，帮助 AI 理解对话间隔</string>
   <string name="assistant_page_title">助手设置</string>
   <string name="assistant_page_top_p">Top P</string>
-  <string name="assistant_page_top_p_value">Top P: %s</string>
   <string name="assistant_page_top_p_warning">请不要修改此值, 除非你知道自己在做什么</string>
   <string name="assistant_page_use_assistant_avatar">使用助手头像</string>
   <string name="assistant_page_use_assistant_avatar_desc">在聊天中使用助手头像和名字而不是模型头像和名字</string>
-  <string name="assistant_page_split_bubble_by_line_title">按行拆分气泡</string>
-  <string name="assistant_page_split_bubble_by_line_desc">将助手回复按模型自己写的换行拆分成多个独立气泡发送</string>
-  <string name="assistant_page_split_user_bubble_by_line_title">用户消息按行拆分气泡</string>
-  <string name="assistant_page_split_user_bubble_by_line_desc">将你发送的消息按换行拆分成多个独立气泡显示</string>
   <string name="audio">音频</string>
   <string name="avatar_cancel">取消</string>
   <string name="avatar_change_avatar">更换头像</string>
@@ -331,7 +320,6 @@
   <string name="collapse_translation">折叠翻译</string>
   <string name="confirm">确认</string>
   <string name="confirm_delete">确认删除</string>
-  <string name="copied">已复制</string>
   <string name="copy">复制</string>
   <string name="copy_all">复制全部</string>
   <string name="create_fork">创建分支</string>
@@ -344,7 +332,6 @@
   <string name="emoji_picker_search_placeholder">搜索表情符号...</string>
   <string name="emoji_picker_select_skin_tone">选择肤色</string>
   <string name="error_title_compress_conversation">对话压缩失败</string>
-  <string name="error_title_generate_title">自动生成标题失败</string>
   <string name="error_title_generation">消息生成失败</string>
   <string name="error_title_operation">操作失败</string>
   <string name="error_title_regenerate_message">消息重新生成失败</string>
@@ -385,13 +372,10 @@
   <string name="assistant_page_workspace">工作区</string>
   <string name="assistant_page_workspace_desc">绑定工作区以启用文件/Shell 工具</string>
   <string name="assistant_page_context_message_size_hint">例如 20</string>
-  <string name="assistant_page_workspace_binding">工作区绑定</string>
-  <string name="assistant_page_workspace_binding_desc">绑定工作区以启用该助手的文件/Shell 工具</string>
   <string name="workspace_no_binding">未绑定</string>
   <string name="workspace_page_title">工作区</string>
   <string name="workspace_page_empty_title">暂无工作区</string>
   <string name="workspace_page_empty_hint">创建工作区以提供隔离的文件区和 Shell 供助手使用</string>
-  <string name="workspace_page_create_failed">创建工作区失败</string>
   <string name="workspace_page_delete_title">删除工作区</string>
   <string name="workspace_page_delete_message">删除工作区“%s”？其中的所有文件都将被移除。</string>
   <string name="workspace_page_add_title">新建工作区</string>
@@ -594,23 +578,16 @@
   <string name="quick_messages_page_empty_title">无快速消息</string>
   <string name="quick_messages_page_untitled">无标题</string>
   <string name="reasoning_auto">自动</string>
-  <string name="reasoning_auto_desc">让模型自动决定推理级别。</string>
-  <string name="reasoning_custom">自定义推理预算</string>
   <string name="reasoning_heavy">高</string>
-  <string name="reasoning_heavy_desc">模型将使用大量推理来回答问题。</string>
   <string name="reasoning_light">低</string>
-  <string name="reasoning_light_desc">模型将使用少量推理来回答问题。</string>
   <string name="reasoning_medium">中等</string>
-  <string name="reasoning_medium_desc">模型将使用更多推理来回答问题。</string>
   <string name="reasoning_off">关闭</string>
-  <string name="reasoning_off_desc">关闭推理功能，模型将直接回答问题。</string>
   <string name="reasoning_picker_hint">并非所有模型都支持深度调整。请参考模型和提供商文档。</string>
   <string name="reasoning_picker_title">调整模型思考深度</string>
   <string name="reasoning_xhigh">超高</string>
   <string name="reasoning_max">最大</string>
   <string name="regenerate">重新生成</string>
   <string name="regenerate_confirm_message">确定要重新生成此消息吗？</string>
-  <string name="rikkahub_provider_description">官方免费 AI 服务，使用用户赞助资金为新用户提供部分免费模型作为备用，无需 API 密钥。有严格速率限制，如已购买自有服务商，请尽量使用自有服务商。</string>
   <string name="safe_mode_assistants">助手</string>
   <string name="safe_mode_copy">复制</string>
   <string name="safe_mode_crash_report">崩溃报告</string>
@@ -624,23 +601,13 @@
   <string name="search_detail_api_key">API密钥</string>
   <string name="search_detail_api_url">API URL</string>
   <string name="search_detail_custom_search_placeholder">我的自定义搜索</string>
-  <string name="search_detail_custom_url">自定义网址</string>
-  <string name="search_detail_depth">深度</string>
   <string name="search_detail_engines">引擎</string>
   <string name="search_detail_language">语言</string>
-  <string name="search_detail_max_tokens">最大令牌数</string>
-  <string name="search_detail_max_tokens_per_page">每页最大 Tokens</string>
-  <string name="search_detail_model">型号</string>
   <string name="search_detail_name">名称</string>
   <string name="search_detail_password">密码</string>
   <string name="search_detail_scrape_script">抓取脚本</string>
   <string name="search_detail_scrape_script_desc">可选。实现 scrape(urls) 并返回 { urls: [{ url, content, metadata? }] }</string>
-  <string name="search_detail_scrape_url">抓取网址</string>
   <string name="search_detail_search_script">搜索脚本</string>
-  <string name="search_detail_search_url">搜索网址</string>
-  <string name="search_detail_summary">摘要</string>
-  <string name="search_detail_summary_desc">启用摘要生成</string>
-  <string name="search_detail_system_prompt">系统提示</string>
   <string name="search_detail_unknown_error">未知错误</string>
   <string name="search_detail_username">用户名</string>
   <string name="search_page_hint">输入关键词并点击搜索以查找消息</string>
@@ -658,9 +625,6 @@
   <string name="send">发送</string>
   <string name="setting_asr_configure_api_key">API密钥</string>
   <string name="setting_asr_configure_base_url">Base URL</string>
-  <string name="setting_asr_configure_dashscope_api_key_desc">DashScope API密钥</string>
-  <string name="setting_asr_configure_dashscope_vad_desc">服务器 VAD 灵敏度，设为 0 可禁用 VAD</string>
-  <string name="setting_asr_configure_dashscope_websocket_desc">DashScope 实时 WebSocket 端点</string>
   <string name="setting_asr_configure_language">语言</string>
   <string name="setting_asr_configure_language_code_desc">可选语言代码，例如 zh-CN、en-US、ja-JP</string>
   <string name="setting_asr_configure_language_iso_desc">可选的 ISO 语言代码，如 zh 或 en</string>
@@ -771,7 +735,6 @@
   <string name="setting_files_page_no_files">无文件</string>
   <string name="setting_files_page_title">文件管理</string>
   <string name="setting_mcp_page_add_header">添加请求头</string>
-  <string name="setting_mcp_page_add_one_to_get_started">添加一个即可开始使用</string>
   <string name="setting_mcp_page_basic_settings">基础设置</string>
   <string name="setting_mcp_page_custom_headers">自定义请求头</string>
   <string name="setting_mcp_page_custom_headers_desc">为MCP服务器请求添加自定义HTTP头</string>
@@ -791,7 +754,6 @@
   <string name="setting_mcp_page_name_desc">MCP服务器的显示名称</string>
   <string name="setting_mcp_page_name_placeholder">例如：My MCP Server</string>
   <string name="setting_mcp_page_needs_approval">需要审批</string>
-  <string name="setting_mcp_page_no_mcp_servers_found">未找到 MCP 服务器</string>
   <string name="setting_mcp_page_save">保存</string>
   <string name="setting_mcp_page_server_url">服务器地址</string>
   <string name="setting_mcp_page_sse_url_desc">SSE传输服务器的URL地址</string>
@@ -806,12 +768,6 @@
   <string name="setting_mcp_page_url_label">URL</string>
   <string name="setting_model_page_chat_model">聊天模型</string>
   <string name="setting_model_page_chat_model_desc">全局默认的聊天模型</string>
-  <string name="setting_model_page_compress_model">压缩模型</string>
-  <string name="setting_model_page_compress_model_desc">用于压缩对话历史的模型</string>
-  <string name="setting_model_page_compress_prompt_vars">变量：{content}、{target_tokens}、{additional_context}</string>
-  <string name="setting_model_page_ocr_model">OCR 模型</string>
-  <string name="setting_model_page_ocr_model_desc">用于图像光学字符识别的模型</string>
-  <string name="setting_model_page_ocr_prompt_vars">变量：图像数据：{images}</string>
   <string name="setting_model_page_prompt">提示词</string>
   <string name="setting_model_page_reset_to_default">重置为默认</string>
   <string name="setting_model_page_suggestion_model">聊天建议模型</string>
@@ -850,8 +806,6 @@
   <string name="setting_page_data_settings">数据设置</string>
   <string name="setting_page_default_model">默认模型和提示词</string>
   <string name="setting_page_default_model_desc">设置各个功能的默认模型</string>
-  <string name="setting_page_display_setting">显示设置</string>
-  <string name="setting_page_display_setting_desc">管理显示设置</string>
   <string name="setting_page_documentation">使用文档</string>
   <string name="setting_page_documentation_desc">查看应用使用说明和帮助文档</string>
   <string name="setting_page_dynamic_color">动态颜色</string>
@@ -872,7 +826,6 @@
   <string name="setting_page_search_add_provider">添加提供商</string>
   <string name="setting_page_search_common_options">通用选项</string>
   <string name="setting_page_search_config">配置</string>
-  <string name="setting_page_search_delete_provider">删除提供商</string>
   <string name="setting_page_search_result_size">结果数量</string>
   <string name="setting_page_search_service">搜索服务</string>
   <string name="setting_page_search_service_desc">设置搜索服务</string>
@@ -976,8 +929,6 @@
   <string name="setting_tts_page_base_url_placeholder">https://api.openai.com/v1</string>
   <string name="setting_tts_page_default_name">系统TTS</string>
   <string name="setting_tts_page_edit_provider">编辑提供商</string>
-  <string name="setting_tts_page_emotion">情感</string>
-  <string name="setting_tts_page_emotion_description">语音合成的情感风格</string>
   <string name="setting_tts_page_model">模型</string>
   <string name="setting_tts_page_model_description">要使用的TTS模型</string>
   <string name="setting_tts_page_model_placeholder_gemini">gemini-2.5-flash-preview-tts</string>
@@ -988,8 +939,6 @@
   <string name="setting_tts_page_name_placeholder">输入提供商名称</string>
   <string name="setting_tts_page_pitch">音调</string>
   <string name="setting_tts_page_pitch_description">控制语音音调高低 (0.1 - 2.0，1.0为正常音调)</string>
-  <string name="setting_tts_page_provider_gemini">Gemini</string>
-  <string name="setting_tts_page_provider_openai">OpenAI</string>
   <string name="setting_tts_page_provider_system">系统TTS</string>
   <string name="setting_tts_page_provider_type">提供商类型</string>
   <string name="setting_tts_page_provider_type_description">选择TTS提供商类型</string>
@@ -1003,7 +952,6 @@
   <string name="setting_tts_page_similarity_boost">相似度增强</string>
   <string name="setting_tts_page_similarity_boost_description">生成语音与原始音色的相似程度 (0.0 - 1.0)</string>
   <string name="setting_tts_page_test_text">你好，这是文字转语音测试。</string>
-  <string name="setting_tts_page_title">语音合成</string>
   <string name="setting_tts_page_voice">语音</string>
   <string name="setting_tts_page_voice_description">用于语音合成的声音</string>
   <string name="setting_tts_page_voice_id">语音 ID</string>
@@ -1014,9 +962,6 @@
   <string name="settings">设置</string>
   <string name="share">分享</string>
   <string name="share_handler_page_title">选择一个助手处理分享</string>
-  <string name="shortcut_take_picture">拍照提问</string>
-  <string name="silicon_flow_description">**全球领先的 AI 能力提供商，加速 AGI 普惠人类。**</string>
-  <string name="silicon_flow_website">官网: [https://cloud.siliconflow.cn/](https://cloud.siliconflow.cn/i/u1Ia4Ycf)</string>
   <string name="skill_detail_page_content">内容</string>
   <string name="skill_detail_page_create">创建</string>
   <string name="skill_detail_page_delete_confirm">确定要删除文件“%s”吗？</string>
@@ -1084,7 +1029,6 @@
     <string name="theme_name_pearltide">珍珠潮汐</string>
   <string name="theme_name_sakura">樱花粉</string>
   <string name="theme_name_spring">原野绿</string>
-  <string name="title_activity_safe_mode">安全模式</string>
   <string name="tools_warning">当前模型未开启工具调用，请在设置内启用模型的工具能力，再使用搜索/MCP等功能</string>
   <string name="translate">翻译</string>
   <string name="translating">翻译中...</string>
@@ -1154,42 +1098,11 @@
   <string name="legal_plugin_security_text">插件安全说明\n\n1. 插件能力\n灵犀支持用户安装基于 JavaScript 的插件。插件运行在 QuickJS 沙箱中，可调用 manifest 声明的工具、hooks 以及我们显式注入的 fetch、dataStore、memoryBank、musicPlayer 等桥接。\n\n2. 潜在风险\n- 插件可以发起网络请求，可能将您在软件内输入或 AI 读取到的隐私信息发送到任意服务器；\n- 插件无法直接反射调用 Java 代码或加载原生代码，但如果您的设备已授予本软件相关系统权限，插件可能通过桥接间接利用这些权限；\n- 恶意插件可能包含后门、诱导性提示词或数据收集逻辑。\n\n3. 安全建议\n- 请仅从您信任的来源安装插件；\n- 安装前尽量审查插件源码（manifest.json 和入口 JS 文件）；\n- 不要为来历不明的插件配置模型 API Key 或敏感账户信息；\n- 一旦发现插件行为异常，请立即在插件管理中禁用或删除。\n\n4. 责任边界\n开发者不提供插件市场审核，也不对第三方插件的行为、稳定性或安全性承担责任。因安装、使用插件导致的任何损失由您自行承担。</string>
 
   <!-- 高危操作风险确认 -->
-  <string name="risk_confirm_title">安全提示</string>
   <string name="risk_confirm_understood">我已了解风险，继续开启</string>
   <string name="risk_confirm_cancel">取消</string>
 
-  <string name="risk_web_server_title">确认开启 Web 服务器？</string>
-  <string name="risk_web_server_message">开启后，同一网络下的其他设备可能通过浏览器访问您的对话记录、文件和部分设置。请务必设置强访问密码并启用 JWT，避免在公共网络中使用。</string>
-  <string name="risk_web_server_public_title">确认暴露到局域网？</string>
-  <string name="risk_web_server_public_message">当前未勾选“仅本机访问”，服务将监听所有网络接口。请确认您处于可信的家庭或私人网络，否则任何人只要知道 IP 和端口就能访问您的数据。</string>
-
   <string name="risk_weixin_bot_title">确认开启微信 Bot？</string>
   <string name="risk_weixin_bot_message">开启后，您的微信消息将被转发给 AI 处理，AI 的回复也会通过微信发送出去。这意味着您的微信聊天记录可能离开本机，请确认您了解相关隐私风险。</string>
-  <string name="risk_qq_bot_title">确认开启 QQ Bot？</string>
-  <string name="risk_qq_bot_message">开启后，QQ 私聊消息将被发送到 AI 处理并自动回复。请确保 Bot 账号、Token 等信息安全，避免被他人滥用。</string>
-
-  <string name="risk_supabase_title">确认开启 Supabase 同步？</string>
-  <string name="risk_supabase_message">开启后，您的设备数据（可能包括位置、通知、应用使用情况、健康数据等）将按照您配置的 URL 和表名上传到 Supabase 服务端。请确认服务端由您或您信任的一方管理。</string>
-  <string name="risk_device_event_tracking_title">确认开启设备事件追踪？</string>
-  <string name="risk_device_event_tracking_message">开启后，设备开机、亮屏、熄屏等事件将实时推送到 Supabase。该功能需要保持后台运行，可能会增加电量消耗并产生持续的数据上传。</string>
-
-  <string name="risk_proactive_message_title">确认开启主动消息？</string>
-  <string name="risk_proactive_message_message">开启后，AI 将在设定时间间隔内主动读取您的上下文并发送消息。这可能涉及后台唤醒、通知权限和长期运行服务，请确认您已阅读隐私政策并了解数据使用方式。</string>
-
-  <string name="risk_accessibility_title">确认开启无障碍相关功能？</string>
-  <string name="risk_accessibility_message">无障碍服务允许 AI 读取屏幕内容、模拟点击、锁定其他应用等。这是最高级别的系统权限之一，可能被恶意配置或插件利用。请仅在完全信任当前助手和插件时开启。</string>
-
-  <string name="risk_notification_listener_title">确认开启通知监听？</string>
-  <string name="risk_notification_listener_message">开启后，AI 可以读取设备上的通知内容，包括短信、聊天应用、银行提醒等敏感信息。请确认您只在必要时开启，并了解这些数据可能被模型或插件处理。</string>
-
-  <string name="risk_sms_title">确认开启短信读取？</string>
-  <string name="risk_sms_message">开启后，AI 可以读取您设备上的短信内容，包括验证码、银行通知、隐私对话等。请确认您了解该权限的敏感性。</string>
-
-  <string name="risk_app_usage_title">确认开启应用使用统计？</string>
-  <string name="risk_app_usage_message">开启后，AI 可以查看您每天使用各应用的时长和次数。该数据属于敏感行为信息，请确认您愿意让 AI 访问。</string>
-
-  <string name="risk_plugin_import_title">确认安装插件？</string>
-  <string name="risk_plugin_import_message">插件可以执行 JavaScript 代码并发起网络请求。如果该插件来源不明或代码未审查，可能导致隐私泄露、财产损失或设备异常。请仅从可信来源安装。</string>
 
   <string name="plugin_import_security_warning_title">插件安全提示</string>
   <string name="plugin_import_security_warning_message">插件可以执行 JavaScript 代码并发起网络请求，可能访问您已授权的系统数据。请仅从可信来源安装插件，安装前尽量审查源码。</string>
@@ -1198,9 +1111,6 @@
   <string name="system_tools_security_warning_title">系统工具安全提示</string>
   <string name="system_tools_security_warning_message">本页工具会调用系统级权限、读取敏感数据或连接外部服务。请只在信任当前助手和模型的情况下开启，并仔细阅读免责声明。</string>
   <string name="system_tools_security_warning_action">查看免责声明</string>
-
-  <string name="plugin_security_banner">⚠ 插件可执行网络请求并访问您已授权的系统数据。请仅从可信来源安装插件。</string>
-  <string name="web_server_security_warning_no_jwt">⚠ 未启用 JWT 鉴权或密码为空。当前任何可访问该地址的人都能读取您的对话记录，强烈建议立即设置密码并开启 JWT。</string>
 
   <!-- 从上游恢复的字符串 -->
   <string name="setting_display_page_bubble_opacity_title">气泡不透明度</string>
@@ -1215,8 +1125,6 @@
   <string name="setting_display_page_show_datetime_in_message_title">在消息中显示日期和时间</string>
   <string name="setting_display_page_tts_read_outside_brackets_desc">启用后，TTS将不朗读括号内的内容</string>
   <string name="setting_display_page_tts_read_outside_brackets_title">TTS不朗读括号内的内容</string>
-  <string name="setting_model_page_prompt_compress">上下文压缩</string>
-  <string name="setting_model_page_prompt_ocr">OCR识别</string>
   <string name="setting_model_page_prompt_suggestion">聊天回复建议</string>
   <string name="setting_model_page_prompt_title">标题生成</string>
   <string name="setting_model_page_prompt_translation">翻译</string>
@@ -1270,8 +1178,6 @@
   <string name="workspace_terminal_close_tab">关闭标签页</string>
   <string name="workspace_terminal_no_tabs">暂无终端会话</string>
   <string name="setting_model_page_enable_suggestion">启用聊天建议</string>
-  <string name="setting_model_page_fast_model">快速模型</string>
-  <string name="setting_model_page_fast_model_desc">用于快速或后台任务的模型，未设置时也作为标题和建议模型的回退</string>
   <string name="setting_model_page_tab_model">模型</string>
   <string name="setting_model_page_tab_prompt">提示词</string>
   <string name="setting_tts_page_temperature">温度</string>
