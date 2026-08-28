@@ -614,6 +614,19 @@ class GenerationHandler(
                     append(internalForcePrompt)
                 }
 
+                // 表情包渲染：若检测到表情包目录/外链列表，提示 AI 可用 <meme>/<sticker> 标签输出表情
+                runCatching {
+                    val stickerDirsExist = java.io.File("/sdcard/Download/sticker").exists()
+                    val externalFile = java.io.File(context.filesDir, "sticker_external.txt")
+                    if (stickerDirsExist || externalFile.exists()) {
+                        appendLine()
+                        appendLine("## 表情包")
+                        appendLine("你可以使用 <meme>表情名</meme> 或 <sticker>表情名</sticker> 标签输出表情包，表情会自动渲染成图片。")
+                        appendLine("每条回复最多用 2 个表情，插在合适的位置。不要解释，直接输出标签即可。")
+                        appendLine("如果表情名不存在或不确定，不要强行输出标签。")
+                    }
+                }
+
                 // 记忆
                 if (assistant.enableMemory) {
                     appendLine()

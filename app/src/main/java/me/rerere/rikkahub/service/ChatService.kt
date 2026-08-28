@@ -167,6 +167,7 @@ private val outputTransformers by lazy {
         ThinkTagTransformer,
         Base64ImageToLocalFileTransformer,
         RegexOutputTransformer,
+        me.rerere.rikkahub.data.ai.transformers.StickerRenderTransformer,
     )
 }
 
