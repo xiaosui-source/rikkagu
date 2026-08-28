@@ -994,7 +994,7 @@
   <string name="chat_page_delete_folder_confirm">Удалить папку "%1$s"? Беседы внутри не будут удалены, только исключены из папки.</string>
   <string name="chat_page_delete_folder_generating">Некоторые беседы в этой папке все еще генерируются. Пожалуйста, остановите их перед удалением.</string>
   <string name="title_activity_safe_mode">Безопасный режим</string>
-  <string name="setting_model_page_ocr_model">Модель OCR</string>
-  <string name="setting_model_page_ocr_model_desc">Модель, используемая для оптического распознавания текста на изображениях</string>
+  <string name="setting_model_page_ocr_model">Модель распознавания изображений</string>
+  <string name="setting_model_page_ocr_model_desc">Модель для понимания содержимого изображений (объекты/сцена/люди/текст)</string>
   <string name="setting_model_page_ocr_prompt_vars">Переменные: Данные изображения: {images}</string>
 </resources>

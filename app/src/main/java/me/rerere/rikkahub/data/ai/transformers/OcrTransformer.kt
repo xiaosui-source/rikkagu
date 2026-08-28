@@ -216,10 +216,10 @@ object OcrTransformer : InputMessageTransformer, KoinComponent {
             val providerImpl = providerManager.getProviderByType(provider)
 
             val prompt = ocrPrompt.replace("{images}", part.url)
-                .ifBlank { "请识别这张图片里的文字和内容：${part.url}" }
+                .ifBlank { "请仔细观察这张图片，告诉我图片里是什么、有什么内容：${part.url}" }
 
             val messages = listOf(
-                UIMessage.system("你是图像识别助手。请识别图片中的文字与内容并返回结果，用简体中文。"),
+                UIMessage.system("你是图片理解助手。请仔细观察图片，识别图片里的物体、场景、人物与文字内容，用简体中文回答。"),
                 UIMessage.user(prompt),
             )
 
