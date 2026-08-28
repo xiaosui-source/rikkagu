@@ -27,7 +27,7 @@ data class StickerProfile(
 @Serializable
 data class StickerSettings(
     /** 是否开启自动注入系统提示词 */
-    val autoInject: Boolean = false,
+    val autoInject: Boolean = true,
     /** 每条回复最多表情数 */
     val maxPerReply: Int = 2,
     /** 附加自定义规则 */

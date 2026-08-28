@@ -175,15 +175,16 @@ object StickerRenderTransformer : OutputMessageTransformer {
 
     /** 生成可复制/注入的提示词片段（供管理界面展示） */
     suspend fun buildValidNamesPrompt(maxPerReply: Int, extraRules: String): String {
-        val names = scanIndex().keys.filter { !it.startsWith("EL-") && !it.contains("-") }
+        val names = scanIndex().keys
+            .filterNot { it.startsWith("EL-") }
             .distinct()
-        val nameLine = names.joinToString(" | ") { it }
+        val nameLine = names.joinToString(" | ")
         val sb = StringBuilder()
         sb.appendLine("### 表情包")
         sb.appendLine("[Valid names]")
         if (nameLine.isNotBlank()) sb.appendLine(nameLine)
         sb.appendLine("你可以使用 <meme>名字</meme> 或 <sticker>名字</sticker> 标签输出表情，每条回复最多 $maxPerReply 个。")
-        sb.appendLine("不要把标签包进 Markdown 或代码块。")
+        sb.appendLine("必须使用上述 [Valid names] 中存在的表情名；不要把标签包进 Markdown 或代码块。")
         val extra = extraRules.trim()
         if (extra.isNotEmpty()) {
             sb.appendLine("附加规则：$extra")
