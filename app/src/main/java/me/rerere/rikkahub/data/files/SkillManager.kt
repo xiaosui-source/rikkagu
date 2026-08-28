@@ -20,15 +20,15 @@ class SkillManager(
 ) {
     companion object {
         private const val TAROT_SKILL = "精准占卜"
-        private const val XINGCE_SKILL = "行测方法论"
+        private const val KARPATHY_SKILL = "Karpathy方法论"
         private const val CHESS_SKILL = "棋类全能王"
         /** 旧版英文技能名 → 新中文名 迁移映射 */
         private val LEGACY_SKILL_RENAMES = mapOf(
             "tarot-extreme-accuracy" to TAROT_SKILL,
-            "xingce-methods" to XINGCE_SKILL,
         )
         /** 已移除的废弃技能目录（首启清理，避免残留显示） */
         private val REMOVED_SKILL_DIRS = listOf(
+            "行测方法论",
             "万能技能合集",
             "Superpowers技能合集",
             "brainstorming",
@@ -125,7 +125,7 @@ class SkillManager(
         // 技能内容固定存放在 assets/skills/<技能名>/SKILL.md，首启复制到 files/skills/ 供读取
         val builtinSkills = listOf(
             TAROT_SKILL to "精准占卜",
-            XINGCE_SKILL to "行测方法论",
+            KARPATHY_SKILL to "Karpathy方法论",
             CHESS_SKILL to "棋类全能王",
         )
         builtinSkills.forEach { (skillKey, assetDir) ->

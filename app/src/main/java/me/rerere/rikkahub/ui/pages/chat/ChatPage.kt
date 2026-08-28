@@ -70,7 +70,6 @@ import me.rerere.ai.ui.UIMessagePart
 import me.rerere.hugeicons.HugeIcons
 import me.rerere.hugeicons.stroke.Cancel01
 import me.rerere.hugeicons.stroke.ChartColumn
-import me.rerere.hugeicons.stroke.MessageMultiple01
 import me.rerere.hugeicons.stroke.LeftToRightListBullet
 import me.rerere.hugeicons.stroke.Menu03
 import me.rerere.hugeicons.stroke.MessageAdd01
@@ -279,7 +278,6 @@ private fun ChatPageContent(
     val scope = rememberCoroutineScope()
     val toaster = LocalToaster.current
     var previewMode by rememberSaveable { mutableStateOf(false) }
-    var showGroupChatDialog by remember { mutableStateOf(false) }
     var showTokenStats by remember { mutableStateOf(false) }
     val hazeState = rememberHazeState()
 
@@ -320,9 +318,6 @@ private fun ChatPageContent(
                                 toaster.show("当前有通话进行中，请先挂断", type = ToastType.Warning)
                             }
                         }
-                    },
-                    onGroupChat = {
-                        showGroupChatDialog = true
                     },
                     onTokenStats = {
                         showTokenStats = true
@@ -496,23 +491,6 @@ private fun ChatPageContent(
                     onDismiss = { showTokenStats = false }
                 )
             }
-
-            // 群聊成员选择弹窗
-            if (showGroupChatDialog) {
-                GroupChatMemberDialog(
-                    settings = setting,
-                    currentAssistantIds = conversation.assistantIds.ifEmpty { listOf(conversation.assistantId) },
-                    onDismiss = { showGroupChatDialog = false },
-                    onConfirm = { ids ->
-                        vm.updateConversationAssistantIds(ids)
-                        showGroupChatDialog = false
-                        toaster.show(
-                            if (ids.size > 1) "群聊模式已开启（${ids.size} 个 AI）" else "已切换为单聊",
-                            type = ToastType.Success
-                        )
-                    }
-                )
-            }
         }
     }
 }
@@ -528,7 +506,6 @@ private fun TopBar(
     onNewChat: () -> Unit,
     onUpdateTitle: (String) -> Unit,
     onVoiceCall: () -> Unit,
-    onGroupChat: () -> Unit,
     onTokenStats: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -597,14 +574,6 @@ private fun TopBar(
 
             IconButton(
                 onClick = {
-                    onGroupChat()
-                }
-            ) {
-                Icon(HugeIcons.MessageMultiple01, "Group Chat")
-            }
-
-            IconButton(
-                onClick = {
                     onTokenStats()
                 }
             ) {
@@ -664,89 +633,6 @@ private fun TopBar(
             }
         )
     }
-}
-/**
- * 群聊成员选择弹窗：勾选多个 AI 进入群聊模式。
- */
-@Composable
-private fun GroupChatMemberDialog(
-    settings: Settings,
-    currentAssistantIds: List<Uuid>,
-    onDismiss: () -> Unit,
-    onConfirm: (List<Uuid>) -> Unit,
-) {
-    val assistants = settings.assistants
-    val selected = remember(currentAssistantIds) {
-        mutableStateListOf<Uuid>().apply {
-            addAll(assistants.filter { it.id in currentAssistantIds }.map { it.id })
-        }
-    }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("群聊成员") },
-        text = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    "勾选多个 AI 后，发送的问题所有成员可见；每个 AI 的回复默认私有，可通过公开操作让全体可见。",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(Modifier.height(8.dp))
-                if (assistants.isEmpty()) {
-                    Text("暂无可用助手，请先在设置中创建助手")
-                }
-                assistants.forEach { assistant ->
-                    val model = settings.findModelById(assistant.chatModelId ?: settings.chatModelId)
-                    val label = assistant.name.ifBlank { "未命名助手" } +
-                        (model?.displayName?.let { "（$it）" } ?: "")
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                if (assistant.id in selected) {
-                                    selected.remove(assistant.id)
-                                } else {
-                                    selected.add(assistant.id)
-                                }
-                            }
-                            .padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = assistant.id in selected,
-                            onCheckedChange = { checked ->
-                                if (checked) {
-                                    if (assistant.id !in selected) selected.add(assistant.id)
-                                } else {
-                                    selected.remove(assistant.id)
-                                }
-                            }
-                        )
-                        Text(label, style = MaterialTheme.typography.bodyMedium)
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                enabled = selected.isNotEmpty(),
-                onClick = {
-                    onConfirm(selected.toList())
-                }
-            ) {
-                Text(if (selected.size > 1) "开启群聊" else "确定")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel))
-            }
-        }
-    )
 }
 
 /**

@@ -35,8 +35,6 @@ data class Conversation(
     val workspaceCwd: String? = null,
     // 所属文件夹（助手内分组），null 表示未归入任何文件夹
     val folderId: Uuid? = null,
-    // 群聊成员（多 AI 协作）。空 = 单聊，仅使用 assistantId
-    val assistantIds: List<Uuid> = emptyList(),
     @Transient
     val newConversation: Boolean = false
 ) {

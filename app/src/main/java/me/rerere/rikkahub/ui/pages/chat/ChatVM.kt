@@ -234,14 +234,6 @@ class ChatVM(
         }
     }
 
-    fun updateConversationAssistantIds(assistantIds: List<Uuid>) {
-        chatService.updateConversationAssistantIds(_conversationId, assistantIds)
-    }
-
-    fun publishGroupMessage(messageId: Uuid) {
-        chatService.publishGroupMessage(_conversationId, messageId)
-    }
-
     fun saveConversationAsync() {
         viewModelScope.launch {
             chatService.saveConversation(_conversationId, conversation.value)
