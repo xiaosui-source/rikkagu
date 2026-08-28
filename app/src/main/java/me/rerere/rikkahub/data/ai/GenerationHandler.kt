@@ -19,7 +19,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.conflate
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withTimeoutOrNull
@@ -615,14 +614,11 @@ class GenerationHandler(
                     append(internalForcePrompt)
                 }
 
-                // 表情包渲染：若开启自动注入且配置了表情目录/外链，注入可用表情名提示
+                // 表情包渲染：只要检测到表情目录里有图，就自动注入可用表情名提示（零配置）
                 runCatching {
-                    val sSettings = org.koin.java.KoinJavaComponent.getKoin()
-                        .get<me.rerere.rikkahub.data.datastore.SettingsStore>()
-                        .settingsFlow.first().stickerSettings
-                    if (sSettings.autoInject) {
-                        val prompt = me.rerere.rikkahub.data.ai.transformers.StickerRenderTransformer
-                            .buildValidNamesPrompt(sSettings.maxPerReply, sSettings.extraRules)
+                    val hasStickers = me.rerere.rikkahub.data.ai.transformers.StickerRenderTransformer.hasStickers()
+                    if (hasStickers) {
+                        val prompt = me.rerere.rikkahub.data.ai.transformers.StickerRenderTransformer.buildPrompt()
                         if (prompt.isNotBlank()) {
                             appendLine()
                             append(prompt.trimEnd())

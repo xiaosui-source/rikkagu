@@ -2,20 +2,17 @@
  * 灵犀 Lingxi
  * 本项目基于 GNU AGPL v3 开源，详见根目录 LICENSE 文件
  *
- * 表情包渲染器 —— 对齐 Operit "洛玑表情包渲染器" (com.loki.sticker_renderer)
+ * 表情包渲染器 —— 极简零配置版
  *
- * 在 ai 输出文本中把 <meme>名字</meme> 或 <sticker>名字</sticker> 标签渲染为表情包图片。
- * 配置读取自 SettingsStore.stickerSettings：
- * - local dirs（多目录、可配置）
- * - external list（外链表情，本地优先 EL- 前缀）
- * - maxPerReply（提示词中限定的单次表情数）
+ * 把表情图片放进 /sdcard/Download/sticker，AI 就会自动用 <meme>/<sticker> 标签发出来。
+ * 无需任何配置页/开关。可选：filesDir/sticker_external.txt 每行 `名字: url` 追加外链表情。
  */
 
 package me.rerere.rikkahub.data.ai.transformers
 
+import android.content.Context
 import android.net.Uri
 import android.util.Log
-import kotlinx.coroutines.flow.first
 import me.rerere.ai.core.MessageRole
 import me.rerere.ai.ui.UIMessage
 import me.rerere.ai.ui.UIMessagePart
@@ -29,42 +26,35 @@ object StickerRenderTransformer : OutputMessageTransformer {
     private val IMAGE_EXTS = setOf("gif", "png", "jpg", "jpeg", "webp")
     private val INDEX_TTL_MS = 5 * 60 * 1000L
 
-    // 索引缓存：目录组合签名 -> (名字 -> 路径)
-    private var indexSignature = ""
-    private var indexCache: Map<String, String> = emptyMap()
+    /** 默认表情包目录（为了便捷】可直接把图丢这） */
+    val DEFAULT_DIRS: List<String> = listOf(
+        "/sdcard/Download/sticker",
+        "/storage/emulated/0/Download/sticker",
+    )
+
+    private var indexCache: Map<String, String>? = null
     private var indexStamp = 0L
 
-    /** 从 Settings 读取当前目录列表（全局默认 profile 的 dirs） */
-    private suspend fun currentDirs(): List<String> {
-        return runCatching {
-            val settingsStore: me.rerere.rikkahub.data.datastore.SettingsStore = getKoin().get()
-            val s = settingsStore.settingsFlow.first().stickerSettings
-            val dirs = s.profiles.firstOrNull { it.characterCardId.isBlank() }?.dirs?.filter { it.isNotBlank() }
-                ?: listOf(s.defaultDirs)
-            dirs.ifEmpty { listOf(s.defaultDirs) }
-        }.getOrElse { listOf("/sdcard/Download/sticker") }
+    private fun stickerDirs(): List<File> {
+        val dirs = mutableListOf<File>()
+        DEFAULT_DIRS.forEach { p -> runCatching { File(p) }.getOrNull()?.let { dirs.add(it) } }
+        // 兼容内置 app 私有目录下的 sticker 目录（手动放入也可）
+        runCatching {
+            val ctx: Context = getKoin().get()
+            val internalSticker = File(ctx.filesDir, "sticker")
+            if (internalSticker.exists() || internalSticker.mkdirs()) dirs.add(internalSticker)
+        }
+        return dirs
     }
 
-    /** 从 Settings 读取当前外链表情原始文本 */
-    private suspend fun currentExternalText(): String {
-        return runCatching {
-            val settingsStore: me.rerere.rikkahub.data.datastore.SettingsStore = getKoin().get()
-            settingsStore.settingsFlow.first().stickerSettings.profiles
-                .firstOrNull { it.characterCardId.isBlank() }?.externalText ?: ""
-        }.getOrElse { "" }
-    }
-
-    private suspend fun scanIndex(): Map<String, String> {
-        val dirs = currentDirs()
-        val externalText = currentExternalText()
-        val signature = "$dirs|$externalText"
+    private fun scanIndex(): Map<String, String> {
         val now = System.currentTimeMillis()
-        if (signature == indexSignature && now - indexStamp < INDEX_TTL_MS) return indexCache
-
+        if (indexCache != null && now - indexStamp < INDEX_TTL_MS) return indexCache!!
         val map = LinkedHashMap<String, String>()
+        val dirs = stickerDirs()
         dirs.forEachIndexed { dirIndex, dir ->
-            val f = File(dir)
-            val files = runCatching { f.listFiles()?.toList() ?: emptyList() }.getOrDefault(emptyList())
+            if (!dir.exists()) return@forEachIndexed
+            val files = runCatching { dir.listFiles()?.toList() ?: emptyList() }.getOrDefault(emptyList())
             files.forEach { file ->
                 val ext = file.extension.lowercase()
                 if (file.isFile && ext in IMAGE_EXTS) {
@@ -74,19 +64,17 @@ object StickerRenderTransformer : OutputMessageTransformer {
                 }
             }
         }
-        parseExternalRecords(externalText).forEach { (name, url) ->
+        // 外链（可选）
+        parseExternalRecords().forEach { (name, url) ->
             map.putIfAbsent(name, url)
-            val key = "EL-$name"
-            map.putIfAbsent(key, url)
+            map.putIfAbsent("EL-$name", url)
         }
-
-        indexSignature = signature
         indexCache = map
         indexStamp = now
         return map
     }
 
-    private suspend fun resolveSticker(name: String): String? {
+    private fun resolveSticker(name: String): String? {
         val trimmed = name.trim()
         if (trimmed.isEmpty()) return null
         val idx = scanIndex()
@@ -109,8 +97,7 @@ object StickerRenderTransformer : OutputMessageTransformer {
     ): List<UIMessage> {
         return messages.map { message ->
             if (message.role != MessageRole.ASSISTANT) return@map message
-            val hasText = message.parts.any { it is UIMessagePart.Text }
-            if (!hasText) return@map message
+            if (!message.parts.any { it is UIMessagePart.Text }) return@map message
             message.copy(
                 parts = message.parts.flatMap { part ->
                     if (part is UIMessagePart.Text && extRegex.containsMatchIn(part.text)) {
@@ -148,47 +135,49 @@ object StickerRenderTransformer : OutputMessageTransformer {
         return if (anyMatched) result else listOf(UIMessagePart.Text(text))
     }
 
-    private fun parseExternalRecords(text: String): Map<String, String> {
-        val map = LinkedHashMap<String, String>()
-        text.lines().forEach { rawLine ->
-            val line = rawLine.trim()
-            if (line.isEmpty() || line.startsWith("#")) return@forEach
-            val sep = line.indexOfFirst { it == ':' || it == '：' }
-            if (sep > 0) {
-                val name = line.substring(0, sep).trim()
-                val url = line.substring(sep + 1).trim()
-                if (name.isNotEmpty() && (url.startsWith("http://") || url.startsWith("https://"))) {
-                    map[name] = url
+    private fun parseExternalRecords(): Map<String, String> {
+        return runCatching {
+            val ctx: Context = getKoin().get()
+            val f = File(ctx.filesDir, "sticker_external.txt")
+            if (!f.exists()) return@runCatching emptyMap()
+            val map = LinkedHashMap<String, String>()
+            f.readLines().forEach { raw ->
+                val line = raw.trim()
+                if (line.isEmpty() || line.startsWith("#")) return@forEach
+                val sep = line.indexOfFirst { it == ':' || it == '：' }
+                if (sep > 0) {
+                    val name = line.substring(0, sep).trim()
+                    val url = line.substring(sep + 1).trim()
+                    if (name.isNotEmpty() && (url.startsWith("http://") || url.startsWith("https://"))) {
+                        map[name] = url
+                    }
                 }
             }
-        }
-        return map
+            map
+        }.getOrDefault(emptyMap())
     }
 
-    /** 重建索引 */
-    fun rebuildIndex() {
-        indexSignature = ""
-        indexCache = emptyMap()
-        indexStamp = 0L
-        Log.d(TAG, "sticker index rebuilt")
-    }
+    /** 检测是否有可用表情 */
+    suspend fun hasStickers(): Boolean = scanIndex().isNotEmpty()
 
-    /** 生成可复制/注入的提示词片段（供管理界面展示） */
-    suspend fun buildValidNamesPrompt(maxPerReply: Int, extraRules: String): String {
-        val names = scanIndex().keys
-            .filterNot { it.startsWith("EL-") }
-            .distinct()
+    /** 生成提示词：列出所有可用表情名，指导 AI 用标签输出（无需配置） */
+    suspend fun buildPrompt(): String {
+        val names = scanIndex().keys.filterNot { it.startsWith("EL-") }.distinct()
         val nameLine = names.joinToString(" | ")
         val sb = StringBuilder()
         sb.appendLine("### 表情包")
         sb.appendLine("[Valid names]")
         if (nameLine.isNotBlank()) sb.appendLine(nameLine)
-        sb.appendLine("你可以使用 <meme>名字</meme> 或 <sticker>名字</sticker> 标签输出表情，每条回复最多 $maxPerReply 个。")
-        sb.appendLine("必须使用上述 [Valid names] 中存在的表情名；不要把标签包进 Markdown 或代码块。")
-        val extra = extraRules.trim()
-        if (extra.isNotEmpty()) {
-            sb.appendLine("附加规则：$extra")
-        }
+        sb.appendLine("当你想发表情时，用 <meme>名字</meme> 或 <sticker>名字</sticker> 标签输出，表情会自动渲染成图片。")
+        sb.appendLine("只使用上面 [Valid names] 里存在的名字，每条回复最多 2 个。")
+        sb.appendLine("不要把标签包进 Markdown 或代码块。")
         return sb.toString()
+    }
+
+    /** 重建索引 */
+    fun rebuildIndex() {
+        indexCache = null
+        indexStamp = 0L
+        Log.d(TAG, "sticker index rebuilt")
     }
 }
