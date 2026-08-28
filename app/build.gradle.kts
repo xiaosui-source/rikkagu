@@ -188,7 +188,6 @@ dependencies {
     implementation(libs.ucrop)
     implementation(libs.pebble)
     implementation(libs.modelcontextprotocol.kotlin.sdk)
-    implementation(libs.jmdns)
     implementation(libs.jlatexmath)
     implementation(libs.jlatexmath.font.greek)
     implementation(libs.jlatexmath.font.cyrillic)
