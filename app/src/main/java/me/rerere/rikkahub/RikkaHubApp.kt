@@ -118,10 +118,9 @@ class LingxiApp : Application() {
         // Start App Lock guard (intercepts locked apps when opened) if any app is locked
         startAppLockGuardIfEnabled()
 
-        // 内置 AI: 自动创建默认工作区、自动安装 rootfs + 编程/反编译工具
-        // 完全静默 + 强制安装: 失败持续重试直到全部装上
+        // 内置 AI: 仿人记忆启动维护（原自动创建工作区+自动安装环境的逻辑已按需求移除，
+        // 工作区环境不再自动安装，需要时由用户在工作区页面手动触发）
         CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
-            // ===== OmbreBrain 仿人记忆：启动时对全局与各助手记忆跑一次遗忘曲线维护 =====
             runCatching {
                 val memoryRepo: me.rerere.rikkahub.data.repository.MemoryRepository = get()
                 val engine = me.rerere.rikkahub.data.ai.memory.ombrebrain.OmbreMemoryEngine(memoryRepo)
@@ -132,80 +131,6 @@ class LingxiApp : Application() {
                 )
             }.onFailure { e ->
                 android.util.Log.w("OmbreBrain", "dailyTick 失败: ${e.message}")
-            }
-
-            var attempt = 0
-            while (isActive) {
-                attempt++
-                val success = runCatching {
-                    val workspaceRepo: me.rerere.rikkahub.data.repository.WorkspaceRepository = get()
-                    val prefs: me.rerere.rikkahub.data.datastore.SettingsStore = get()
-                    val settings = prefs.settingsFlow.first()
-                    val defaultAssistant = settings.assistants.firstOrNull {
-                        it.id == me.rerere.rikkahub.data.datastore.DEFAULT_ASSISTANT_ID
-                    }
-                    // 确保有默认工作区 (已关联的复用, 否则复用第一个或新建)
-                    val linkedWsId = defaultAssistant?.workspaceId?.toString()
-                    val existingWs = if (linkedWsId != null) {
-                        workspaceRepo.getById(linkedWsId)
-                    } else {
-                        workspaceRepo.listFlow().first().firstOrNull()
-                    }
-                    val ws = existingWs ?: workspaceRepo.create("默认工作区")
-
-                    // 0. 立即关联默认助手（不等工具链装完）：默认助手第一时间就有自己的工作区
-                    prefs.update { s ->
-                        s.copy(
-                            assistants = s.assistants.map {
-                                if (it.id == me.rerere.rikkahub.data.datastore.DEFAULT_ASSISTANT_ID) {
-                                    it.copy(workspaceId = kotlin.uuid.Uuid.parse(ws.id))
-                                } else {
-                                    it
-                                }
-                            }
-                        )
-                    }
-
-                    // 1. rootfs: 不是 READY 就下载安装 (失败抛异常)
-                    if (ws.shellStatus != me.rerere.workspace.WorkspaceShellStatus.READY.name) {
-                        Log.i(TAG, "auto-installing rootfs for workspace ${ws.id}, status=${ws.shellStatus}")
-                        workspaceRepo.installDefaultRootfs(ws.id) { p ->
-                            Log.i(TAG, "rootfs install progress: ${p.bytesRead} bytes")
-                        }
-                    }
-
-                    // 2. 补打 patch (passwd/group)
-                    workspaceRepo.patchRootfs(ws.id)
-
-                    // 3. 编程工具 (git/python3/gcc/make), 内部含验证, 失败抛异常
-                    workspaceRepo.installProgrammingTools(ws.id) { step ->
-                        Log.i(TAG, "installing programming tools: $step")
-                    }
-
-                    // 4. 反编译工具 (Java + apktool + jadx), 内部含验证, 失败抛异常
-                    workspaceRepo.installReverseTools(ws.id) { step ->
-                        Log.i(TAG, "installing reverse tools: $step")
-                    }
-
-                    // 5. Android 编译环境 (Java17 + Android SDK + Gradle), 支持 workspace_build_apk / workspace_apk_rework
-                    workspaceRepo.installAndroidBuildEnv(ws.id) { step ->
-                        Log.i(TAG, "installing android build env: $step")
-                    }
-
-                    // 6. 免root脱壳工具 (Unicorn + Capstone), 支持 workspace_apk_unpack
-                    workspaceRepo.executeCommand(
-                        ws.id,
-                        "pip3 install -q unicorn capstone 2>/dev/null || pip3 install -q unicorn 2>/dev/null || true",
-                        timeoutMillis = 600_000,
-                    )
-
-                    Log.i(TAG, "workspace fully installed: ${ws.id}")
-                    true
-                }.getOrDefault(false)
-
-                if (success) break
-                Log.w(TAG, "workspace auto-install attempt $attempt failed, retrying in 60s...")
-                delay(60_000)
             }
         }
 

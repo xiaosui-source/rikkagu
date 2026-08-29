@@ -134,9 +134,6 @@ class McpManager(
         if ("12306" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.buildTicket12306McpTools()
         }
-        if ("apk" in enabled) {
-            list += me.rerere.rikkahub.data.ai.tools.buildApkReverseMcpTools(context)
-        }
         if ("context7" in enabled) {
             list += me.rerere.rikkahub.data.ai.tools.buildContext7McpTools()
         }
