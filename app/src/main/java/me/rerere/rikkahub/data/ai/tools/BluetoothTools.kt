@@ -398,7 +398,7 @@ fun createBluetoothTools(context: Context): List<Tool> = listOf(
             val s = bleSessions[sid] ?: return@Tool listOf(UIMessagePart.Text("""{"error":"BLE session not found"}"""))
             val svc = s.gatt.getService(UUID.fromString(suuid)) ?: return@Tool listOf(UIMessagePart.Text("""{"error":"service not found"}"""))
             val ch = svc.getCharacteristic(UUID.fromString(cuuid)) ?: return@Tool listOf(UIMessagePart.Text("""{"error":"characteristic not found"}"""))
-            withContext(Dispatchers.Main) { s.gatt.setCharacteristicNotification(ch) }
+            withContext(Dispatchers.Main) { s.gatt.setCharacteristicNotification(ch, true) }
             val d = ch.getDescriptor(CCCD_UUID)
             if (d != null) {
                 d.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
