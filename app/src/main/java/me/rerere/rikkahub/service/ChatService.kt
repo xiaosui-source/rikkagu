@@ -787,6 +787,8 @@ class ChatService(
                             }
                         }
                     })
+                    // 计算器（参考 Operit calculator）：精确数学计算，避免幻觉
+                    add(me.rerere.rikkahub.data.ai.tools.createCalculatorTool())
                     // 自定义 HTTP 请求（#602）
                     // 内置 MCP 服务器（移植自 Kelivo）：GitHub/Files/Memory
                     addAll(mcpManager.getBuiltinServerTools(assistant))
