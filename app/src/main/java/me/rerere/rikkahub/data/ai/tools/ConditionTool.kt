@@ -11,6 +11,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.put
 import me.rerere.ai.core.InputSchema
 import me.rerere.ai.core.Tool
@@ -60,9 +61,9 @@ fun createConditionTool(): Tool = Tool(
                     put(
                         "enum",
                         buildJsonArray {
-                            add("=="); add("!="); add("contains"); add("!contains")
-                            add("startswith"); add("endswith"); add("empty"); add("!empty")
-                            add("regex"); add("lt"); add("lte"); add("gt"); add("gte")
+                            add(JsonPrimitive("==")); add(JsonPrimitive("!=")); add(JsonPrimitive("contains")); add(JsonPrimitive("!contains"))
+                            add(JsonPrimitive("startswith")); add(JsonPrimitive("endswith")); add(JsonPrimitive("empty")); add(JsonPrimitive("!empty"))
+                            add(JsonPrimitive("regex")); add(JsonPrimitive("lt")); add(JsonPrimitive("lte")); add(JsonPrimitive("gt")); add(JsonPrimitive("gte"))
                         }
                     )
                     put("description", "The comparison operator")

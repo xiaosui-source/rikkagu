@@ -119,7 +119,9 @@ fun createAppManagerTools(context: Context): List<Tool> = listOf(
                 ?: return@Tool listOf(UIMessagePart.Text("""{"error":"package_name required"}"""))
             val result = runCatching {
                 val am = context.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
-                am.forceStopPackage(pkg)
+                // forceStopPackage 是隐藏 API，用反射调用
+                val method = am.javaClass.getMethod("forceStopPackage", String::class.java)
+                method.invoke(am, pkg)
                 "OK"
             }.getOrElse { "FAILED: ${it.message} (可能缺少 FORCE_STOP_PACKAGES 权限)" }
             listOf(UIMessagePart.Text(buildJsonObject { put("result", result) }.toString()))

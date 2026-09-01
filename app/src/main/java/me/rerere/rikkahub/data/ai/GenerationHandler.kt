@@ -128,7 +128,7 @@ class GenerationHandler(
         var consecutiveToolRepeatCount = 0
         var lastToolSignature = ""
         var consecutiveTextRepeatCount = 0
-        var lastTextSignature = ""
+        var lastTextSignature = 0
 
         // ===== Agent 编排状态（#2 规划 + #5 反思）=====
         // 标记本线程是否已注入过规划/反思提示，避免每步都重复注入
