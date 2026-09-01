@@ -67,7 +67,7 @@ class SimpleToolExecutor(private val tool: me.rerere.ai.core.Tool) : ToolExecuto
             val parts = tool.execute(args)
             val result = parts.joinToString("\n") { part ->
                 when (part) {
-                    is me.rerere.ai.ui.UIMessagePart.Text -> part.content.toString()
+                    is me.rerere.ai.ui.UIMessagePart.Text -> part.toString()
                     else -> part.toString()
                 }
             }

@@ -651,7 +651,7 @@ class GenerationHandler(
         conversationSystemPrompt: String? = null,
         workspaceCwd: String? = null,
         /** 内部强制指令（仅进 system、不进 messages，源头不可见）——用于正文空白自动补全等静默催答 */
-        internalForcePrompt: String? = null,
+        var internalForcePrompt: String? = null,
     ) {
         val internalMessages = buildList {
             val system = buildString {

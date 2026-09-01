@@ -8,7 +8,11 @@
 package me.rerere.rikkahub.core.tools
 
 import android.content.Context
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import me.rerere.ai.core.Tool
 import me.rerere.rikkahub.core.tools.hook.AIToolHook
 import me.rerere.rikkahub.core.tools.hook.AIToolHookDecision
@@ -18,9 +22,6 @@ import java.util.concurrent.ConcurrentHashMap
 
 /**
  * AI 工具处理器。
- * 管理工具的注册、执行和生命周期钩子。
- *
- * 参考 Operit 的 AIToolHandler 实现。
  */
 class AIToolHandler private constructor(private val context: Context) {
     companion object {
@@ -36,43 +37,28 @@ class AIToolHandler private constructor(private val context: Context) {
         }
     }
     
-    // 可用工具注册表
     private val availableTools = ConcurrentHashMap<String, Tool>()
     private val toolExecutors = ConcurrentHashMap<String, ToolExecutor>()
     private val toolHooks = mutableListOf<AIToolHook>()
-    
-    // 权限系统
     private val toolPermissionSystem = ToolPermissionSystem.getInstance(context)
     
-    /**
-     * 注册工具。
-     */
     fun registerTool(tool: Tool, executor: ToolExecutor? = null) {
         availableTools[tool.name] = tool
         executor?.let { toolExecutors[tool.name] = it }
         ToolExecutionManager.registerTool(tool, executor ?: SimpleToolExecutor(tool))
     }
     
-    /**
-     * 批量注册工具。
-     */
     fun registerTools(tools: List<Tool>, executorProvider: ((Tool) -> ToolExecutor)? = null) {
         tools.forEach { tool ->
             registerTool(tool, executorProvider?.invoke(tool))
         }
     }
     
-    /**
-     * 注销工具。
-     */
     fun unregisterTool(toolName: String) {
         availableTools.remove(toolName)
         toolExecutors.remove(toolName)
     }
     
-    /**
-     * 添加工具生命周期钩子。
-     */
     fun addToolHook(hook: AIToolHook) {
         if (!toolHooks.contains(hook)) {
             toolHooks.add(hook)
@@ -80,40 +66,24 @@ class AIToolHandler private constructor(private val context: Context) {
         }
     }
     
-    /**
-     * 移除工具生命周期钩子。
-     */
     fun removeToolHook(hook: AIToolHook) {
         toolHooks.remove(hook)
         ToolExecutionManager.removeHook(hook)
     }
     
-    /**
-     * 清除所有钩子。
-     */
     fun clearToolHooks() {
         toolHooks.clear()
         ToolExecutionManager.reset()
     }
     
-    /**
-     * 获取工具权限系统。
-     */
     fun getToolPermissionSystem(): ToolPermissionSystem = toolPermissionSystem
     
-    /**
-     * 检查工具是否存在。
-     */
     fun hasTool(toolName: String): Boolean = availableTools.containsKey(toolName)
     
-    /**
-     * 获取所有已注册工具。
-     */
     fun getRegisteredTools(): List<Tool> = availableTools.values.toList()
     
     /**
      * 执行工具调用。
-     * @return 工具执行结果
      */
     suspend fun executeTool(invocation: ToolInvocation): ToolResult {
         val tool = invocation.tool
@@ -129,36 +99,23 @@ class AIToolHandler private constructor(private val context: Context) {
             )
         }
         
-        // 通知钩子
-        notifyHooks("onToolCallRequested") { hook -> hook.onToolCallRequested(tool) }
-        
         // 检查拦截
         val interception = checkToolInterception(tool)
         if (interception is AIToolHookDecision.Block) {
-            val interceptedResult = ToolResult(
+            return ToolResult(
                 toolName = tool.name,
                 success = false,
                 result = "",
                 error = interception.reason,
             )
-            notifyHooks("onToolExecutionResult") { hook -> hook.onToolExecutionResult(tool, interceptedResult) }
-            notifyHooks("onToolExecutionFinished") { hook -> hook.onToolExecutionFinished(tool) }
-            return interceptedResult
         }
         
         // 执行工具
         return try {
-            notifyHooks("onToolExecutionStarted") { hook -> hook.onToolExecutionStarted(tool) }
-            
             val result = ToolExecutionManager.executeInvocation(invocation)
-            
-            notifyHooks("onToolExecutionResult") { hook -> hook.onToolExecutionResult(tool, result) }
             result
         } catch (e: Exception) {
-            notifyHooks("onToolExecutionError") { hook -> hook.onToolExecutionError(tool, e) }
             throw e
-        } finally {
-            notifyHooks("onToolExecutionFinished") { hook -> hook.onToolExecutionFinished(tool) }
         }
     }
     
@@ -170,22 +127,9 @@ class AIToolHandler private constructor(private val context: Context) {
     }
     
     /**
-     * 通知所有钩子。
-     */
-    private suspend fun notifyHooks(eventName: String, action: (AIToolHook) -> Unit) {
-        toolHooks.forEach { hook ->
-            try {
-                action(hook)
-            } catch (e: Exception) {
-                // 忽略钩子执行异常
-            }
-        }
-    }
-    
-    /**
      * 检查工具拦截。
      */
-    private suspend fun checkToolInterception(tool: Tool): AIToolHookDecision {
+    private fun checkToolInterception(tool: Tool): AIToolHookDecision {
         return toolHooks.firstNotNullOfOrNull { hook ->
             hook.onToolCallRequested(tool)
         } ?: AIToolHookDecision.Allow
