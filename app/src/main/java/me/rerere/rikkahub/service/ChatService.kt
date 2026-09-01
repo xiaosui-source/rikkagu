@@ -799,6 +799,7 @@ class ChatService(
                     addAll(me.rerere.rikkahub.data.ai.tools.createA2aTools())
                     // 应用管理（参考 Operit app manager）：列/启/停/卸
                     addAll(me.rerere.rikkahub.data.ai.tools.createAppManagerTools(context))
+                    addAll(me.rerere.rikkahub.data.ai.tools.createBluetoothTools(context))
                     // 自定义 HTTP 请求（#602）
                     // 内置 MCP 服务器（移植自 Kelivo）：GitHub/Files/Memory
                     addAll(mcpManager.getBuiltinServerTools(assistant))
