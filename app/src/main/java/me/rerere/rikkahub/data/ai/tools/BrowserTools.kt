@@ -18,6 +18,10 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.util.Base64
+import java.io.ByteArrayOutputStream
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
@@ -437,7 +441,7 @@ fun createBrowserTools(context: Context): List<Tool> {
                 when (action) {
                     "list" -> {
                         listOf(UIMessagePart.Text(buildJsonObject {
-                            put("tabs", listOf("current"))
+                            put("tabs", com.google.gson.JsonArray().apply { add("current") })
                             put("active_index", 0)
                         }.toString()))
                     }

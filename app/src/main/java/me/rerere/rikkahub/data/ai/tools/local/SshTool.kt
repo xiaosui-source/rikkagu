@@ -727,26 +727,36 @@ class SshConnectionPool(private val context: Context) {
     /**
      * 获取或创建 SSH 连接
      */
-    suspend fun getConnection(host: String, port: Int = 22): SshSession = synchronized(connections) {
-        connections[host]?.let { 
-            if (!it.isClosed) return it
-            connections.remove(host)
+    suspend fun getConnection(host: String, port: Int = 22): SshSession {
+        val existing = connections[host]
+        if (existing != null && !existing.isClosed) {
+            return existing
         }
         
         // 限制连接数
         if (connections.size >= maxConnections) {
-            // 关闭最旧的连接
-            val oldestKey = connections.keys.minByOrNull { 
-                connections[it]?.lastUsed ?: 0L 
+            // 找到并关闭最旧的连接
+            var oldestKey: String? = null
+            var oldestTime = Long.MAX_VALUE
+            for ((k, v) in connections) {
+                if (v.lastUsed < oldestTime) {
+                    oldestTime = v.lastUsed
+                    oldestKey = k
+                }
             }
-            oldestKey?.let { connections.remove(it)?.close() }
+            if (oldestKey != null) {
+                connections.remove(oldestKey)
+                connections[oldestKey]?.close()
+            }
         }
         
-        val session = SshSession(context, host, port).also {
-            it.connect()
-            connections[host] = it
-        }
-        session
+        // 移除旧的连接引用
+        connections.remove(host)
+        
+        val session = SshSession(context, host, port)
+        session.connect()
+        connections[host] = session
+        return session
     }
     
     /**
