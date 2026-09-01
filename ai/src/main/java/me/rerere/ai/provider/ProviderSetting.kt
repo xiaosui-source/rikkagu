@@ -1,4 +1,4 @@
-﻿/*
+/*
  * 灵犀 Lingxi
  * 衍生自 Lingxi (https://github.com/xiaosui-source/rikkagu)，原作者 xiaosui-source
  * 本项目基于 GNU AGPL v3 开源，详见根目录 LICENSE 文件
@@ -252,12 +252,104 @@ sealed class ProviderSetting {
         }
     }
 
+    @Serializable
+    @SerialName("local_llm")
+    data class LocalLLM(
+        override var id: Uuid = Uuid.random(),
+        override var enabled: Boolean = true,
+        override var name: String = "本地模型",
+        override var models: List<Model> = emptyList(),
+        override val balanceOption: BalanceOption = BalanceOption(),
+        @Transient override val builtIn: Boolean = false,
+        @Transient override val description: @Composable (() -> Unit) = {},
+        @Transient override val shortDescription: @Composable (() -> Unit) = {},
+        /**
+         * 推理引擎类型: llama.cpp / mnn / onnx
+         */
+        var engineType: EngineType = EngineType.LLAMA,
+        /**
+         * 模型文件路径
+         */
+        var modelPath: String = "",
+        /**
+         * GPU 加速: true=使用 GPU (Vulkan/Metal), false=纯 CPU
+         */
+        var gpuAcceleration: Boolean = true,
+        /**
+         * 上下文长度
+         */
+        var contextSize: Int = 4096,
+        /**
+         * GPU 层数 (llama.cpp 专用)
+         */
+        var gpuLayers: Int = 35,
+        /**
+         * 批处理大小
+         */
+        var batchSize: Int = 512,
+        /**
+         * 线程数
+         */
+        var threads: Int = 4,
+    ) : ProviderSetting() {
+        enum class EngineType(val displayName: String) {
+            LLAMA("llama.cpp (GGUF)"),
+            MNN("MNN"),
+            ONNX("ONNX Runtime"),
+        }
+
+        override fun addModel(model: Model): ProviderSetting {
+            return copy(models = models.filter { it.modelId != model.modelId } + model)
+        }
+
+        override fun editModel(model: Model): ProviderSetting {
+            return copy(models = models.map { if (it.id == model.id) model.copy() else it })
+        }
+
+        override fun delModel(model: Model): ProviderSetting {
+            return copy(models = models.filter { it.id != model.id })
+        }
+
+        override fun moveMove(
+            from: Int,
+            to: Int
+        ): ProviderSetting {
+            return copy(models = models.toMutableList().apply {
+                val model = removeAt(from)
+                add(to, model)
+            })
+        }
+
+        override fun copyProvider(
+            id: Uuid,
+            enabled: Boolean,
+            name: String,
+            models: List<Model>,
+            balanceOption: BalanceOption,
+            builtIn: Boolean,
+            description: @Composable (() -> Unit),
+            shortDescription: @Composable (() -> Unit),
+        ): ProviderSetting {
+            return this.copy(
+                id = id,
+                enabled = enabled,
+                name = name,
+                models = models,
+                balanceOption = balanceOption,
+                builtIn = builtIn,
+                description = description,
+                shortDescription = shortDescription,
+            )
+        }
+    }
+
     companion object {
         val Types by lazy {
             listOf(
                 OpenAI::class,
                 Google::class,
                 Claude::class,
+                LocalLLM::class,
             )
         }
     }

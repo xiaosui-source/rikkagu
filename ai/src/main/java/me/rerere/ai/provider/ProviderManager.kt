@@ -1,4 +1,4 @@
-﻿/*
+/*
  * 灵犀 Lingxi
  * 衍生自 Lingxi (https://github.com/xiaosui-source/rikkagu)，原作者 xiaosui-source
  * 本项目基于 GNU AGPL v3 开源，详见根目录 LICENSE 文件
@@ -10,6 +10,7 @@ import android.content.Context
 import me.rerere.ai.provider.providers.ClaudeProvider
 import me.rerere.ai.provider.providers.GoogleProvider
 import me.rerere.ai.provider.providers.OpenAIProvider
+import me.rerere.ai.provider.providers.local.LocalLLMProvider
 import okhttp3.OkHttpClient
 
 /**
@@ -24,6 +25,7 @@ class ProviderManager(client: OkHttpClient, context: Context) {
         registerProvider("openai", OpenAIProvider(client, context))
         registerProvider("google", GoogleProvider(client, context))
         registerProvider("claude", ClaudeProvider(client, context))
+        registerProvider("local_llm", LocalLLMProvider(context))
     }
 
     /**
@@ -58,6 +60,7 @@ class ProviderManager(client: OkHttpClient, context: Context) {
             is ProviderSetting.OpenAI -> getProvider("openai")
             is ProviderSetting.Google -> getProvider("google")
             is ProviderSetting.Claude -> getProvider("claude")
+            is ProviderSetting.LocalLLM -> getProvider("local_llm")
         } as Provider<T>
     }
 }

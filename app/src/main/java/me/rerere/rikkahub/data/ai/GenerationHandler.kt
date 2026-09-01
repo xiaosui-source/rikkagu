@@ -56,6 +56,8 @@ import me.rerere.rikkahub.data.ai.transformers.visualTransforms
 import me.rerere.rikkahub.data.ai.tools.buildMemoryTools
 import me.rerere.rikkahub.data.ai.tools.buildWriteFilesTool
 import me.rerere.rikkahub.data.ai.tools.createSearchConversationsTool
+import me.rerere.rikkahub.core.tools.ToolExecutionManager
+import me.rerere.rikkahub.core.tools.ToolInvocation
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.service.MemoryBankService
 import me.rerere.rikkahub.data.datastore.findModelById
@@ -353,7 +355,7 @@ class GenerationHandler(
                     }
 
                     // 弱模型兜底：模型未返回 tool_calls，但用户消息明确需要工具时，
-                    // 客户端自动调用工具（结构化 UIMessagePart.Tool 执行，不注入任何提示）
+                    // 客户端自动调用工具（使用 ToolExecutionManager 统一管理）
                     val lastUserMsg = messages.lastOrNull { it.role == MessageRole.USER }
                     val userText = lastUserMsg?.toText()?.trim() ?: ""
                     val alreadyHasTool = messages.any { m ->
@@ -378,9 +380,23 @@ class GenerationHandler(
                                     )
                                     emit(GenerationChunk.Messages(messages))
 
-                                    val argsElement = json.parseToJsonElement(argsJson)
-                                    val output = toolDef.execute(argsElement)
-                                    val executed = toolPart.copy(output = output)
+                                    // 使用 ToolExecutionManager 执行工具
+                                    val invocation = me.rerere.rikkahub.core.tools.ToolInvocation(
+                                        tool = toolDef,
+                                        rawText = argsJson,
+                                    )
+                                    val result = me.rerere.rikkahub.core.tools.ToolExecutionManager.executeInvocation(invocation)
+                                    
+                                    val outputParts = if (result.success) {
+                                        listOf(UIMessagePart.Text(result.result))
+                                    } else {
+                                        listOf(UIMessagePart.Text(
+                                            json.encodeToString(buildJsonObject {
+                                                put("error", JsonPrimitive(result.error ?: "Unknown error"))
+                                            })
+                                        ))
+                                    }
+                                    val executed = toolPart.copy(output = outputParts)
 
                                     val updatedLast = messages.last()
                                     messages = messages.dropLast(1) + updatedLast.copy(
@@ -416,9 +432,7 @@ class GenerationHandler(
                             val pureThinkingWarning = "⚠️ 你只进行了思考但没有输出正式答案。请直接给出完整回答。"
                             emit(UIMessagePart.Text(pureThinkingWarning))
                             // 将告警作为工具结果注入到历史，让AI知道需要继续输出
-                            internalForcePrompt = "$internalForcePrompt
-
-【系统指令】你刚才的回复只有思考内容而没有正式回答。请立刻输出完整的正式答案，不要再沉默。"
+                            internalForcePrompt = "$internalForcePrompt\n
                             continue
                         }
                     }
@@ -496,7 +510,12 @@ class GenerationHandler(
             }
  
             // Handle tools (execute approved tools, handle denied tools)
+            // 使用 Operit 风格的 ToolExecutionManager 统一处理工具执行
             val executedTools = arrayListOf<UIMessagePart.Tool>()
+            
+            // 根据 CLI 模式决定是否过滤工具
+            val toolExposureMode = me.rerere.rikkahub.core.tools.ToolExposureMode.FULL
+            
             toolsToProcess.forEach { tool ->
                 // 协程取消检查：用户点取消后能及时中断工具执行循环
                 coroutineContext.ensureActive()
@@ -519,7 +538,7 @@ class GenerationHandler(
                             )
                         )
                     }
- 
+
                     is ToolApprovalState.Answered -> {
                         // Tool was answered by user (e.g., ask_user tool)
                         val answer = (tool.approvalState as ToolApprovalState.Answered).answer
@@ -529,29 +548,39 @@ class GenerationHandler(
                             )
                         )
                     }
- 
+
                     is ToolApprovalState.Pending -> {
                         // Should not reach here, but just in case
                     }
- 
+
                     else -> {
-                        // Auto or Approved - execute the tool
+                        // Auto or Approved - execute the tool via ToolExecutionManager
                         runCatching {
                             val toolDef = toolsInternal.find { toolDef -> toolDef.name == tool.toolName }
                                 ?: error("Tool ${tool.toolName} not found in ${toolsInternal.map { it.name }}")
-                            val args = runCatching {
-                                json.parseToJsonElement(tool.input.ifBlank { "{}" })
-                            }.getOrElse {
-                                error("Invalid tool arguments JSON for ${tool.toolName}")
-                            }
-                            Log.i(TAG, "generateText: executing tool ${toolDef.name} with args: $args")
+                            Log.i(TAG, "generateText: executing tool ${toolDef.name}")
                             coroutineContext.ensureActive()
-                            val result = withContext(Dispatchers.Default) {
-                                coroutineContext.ensureActive()
-                                toolDef.execute(args)
-                            }
+                            
+                            // 使用 ToolExecutionManager 执行工具
+                            val invocation = me.rerere.rikkahub.core.tools.ToolInvocation(
+                                tool = toolDef,
+                                rawText = tool.input.ifBlank { "{}" },
+                            )
+                            val result = me.rerere.rikkahub.core.tools.ToolExecutionManager.executeInvocation(invocation)
+                            
                             coroutineContext.ensureActive()
-                            executedTools += tool.copy(output = result)
+                            
+                            // 将 ToolResult 转换为 UIMessagePart
+                            val outputParts = if (result.success) {
+                                listOf(UIMessagePart.Text(result.result))
+                            } else {
+                                listOf(UIMessagePart.Text(
+                                    json.encodeToString(buildJsonObject {
+                                        put("error", JsonPrimitive(result.error ?: "Unknown error"))
+                                    })
+                                ))
+                            }
+                            executedTools += tool.copy(output = outputParts)
                         }.onFailure {
                             Log.e(TAG, "Tool execution failed", it)
                             executedTools += tool.copy(

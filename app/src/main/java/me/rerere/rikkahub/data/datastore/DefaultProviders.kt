@@ -13,6 +13,7 @@ import me.rerere.ai.provider.Modality
 import me.rerere.ai.provider.Model
 import me.rerere.ai.provider.ModelAbility
 import me.rerere.ai.provider.ProviderSetting
+import me.rerere.ai.provider.providers.local.LocalLLMProvider
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.ui.components.richtext.MarkdownBlock
 import kotlin.uuid.Uuid
@@ -134,5 +135,23 @@ val DEFAULT_PROVIDERS = listOf(
         models = emptyList(),
         // 不内置任何模型：模型全部由用户自己添加（API 拉取或手动添加）
     ),
+    // 本地模型支持（llama.cpp GGUF / MNN / ONNX）
+    ProviderSetting.LocalLLM(
+        id = Uuid.parse("9c8b7a6f-5e4d-3c2b-1a0f-9e8d7c6b5a4f"),
+        name = "本地模型 (llama.cpp)",
+        engineType = ProviderSetting.LocalLLM.EngineType.LLAMA,
+        enabled = false,
+        builtIn = true,
+        models = LocalLLMProvider.DEFAULT_MODELS,
+        description = {
+            Text(
+                text = "本地运行大语言模型，无需联网。支持 llama.cpp (GGUF 格式)、MNN、ONNX Runtime。可在设置中指定模型文件路径。"
+            )
+        },
+        shortDescription = {
+            Text(
+                text = "本地 GGUF 模型推理"
+            )
+        },
+    ),
 )
-

@@ -48,6 +48,9 @@ class ToolSurfaceBuilder(
         recentMessages: List<UIMessage> = emptyList(),
         workspaceCwd: String? = null,
     ): List<Tool> = buildList {
+        // 注册工具到 ToolExecutionManager（Operit 风格统一管理）
+        val toolHandler = me.rerere.rikkahub.core.tools.AIToolHandler.getInstance(context)
+        
         // Memory tools - mirror GenerationHandler: only when the assistant has memory enabled.
         if (assistant.enableMemory) {
             val memoryAssistantId = if (assistant.useGlobalMemory) {
@@ -67,28 +70,44 @@ class ToolSurfaceBuilder(
             addAll(createSearchTools(settings))
         }
         // 计算器（参考 Operit calculator）：精确数学计算，避免幻觉
-        add(createCalculatorTool())
+        val calculatorTool = createCalculatorTool()
+        add(calculatorTool)
+        toolHandler.registerTool(calculatorTool)
+        
         // 条件判断（参考 Operit condition）：确定性逻辑分支
-        add(createConditionTool())
+        val conditionTool = createConditionTool()
+        add(conditionTool)
+        toolHandler.registerTool(conditionTool)
+        
         // 调试器（参考 Operit debugger）：设备/进程/logcat 诊断
         addAll(createDebuggerTools(context))
+        
         // 外部集成（参考 Operit tasker/intent）：Tasker 任务 + Intent 执行
         addAll(createIntegrationTools(context))
+        
         // A2A 协议（参考 Operit a2a）：Agent 间任务交换
         addAll(createA2aTools())
+        
         // 应用管理（参考 Operit app manager）：列/启/停/卸
         addAll(createAppManagerTools(context))
+        
         addAll(createBluetoothTools(context))
+        
         // 网页会话工具（参考 Operit WebSession）：AI 可用内置 WebView 操作网页
         addAll(createBrowserTools(context))
+        
         // 子 Agent 并行委派（#2）：主 agent 可把独立子任务委派给隔离的子代理深入完成
         add(createSubAgentTool(settings = settings, assistant = assistant))
+        
         addAll(localTools.getTools(assistant.localTools, invocationContext))
+        
         val systemToolsOptions = settings.systemToolsSetting.getEnabledOptions()
         if (systemToolsOptions.isNotEmpty()) {
             addAll(SystemTools(context, settings).getTools(systemToolsOptions, recentMessages, filesManager))
         }
+        
         addAll(createWorkspaceTools(assistant.workspaceId?.toString(), workspaceRepository, workspaceCwd))
+        
         // use_skill 仅在用户启用了技能时装配（不做全局强制装配）
         if (assistant.enabledSkills.isNotEmpty()) {
             addAll(
@@ -99,6 +118,7 @@ class ToolSurfaceBuilder(
                 )
             )
         }
+        
         mcpManager.getAllAvailableTools().forEach { (serverId, tool) ->
             add(
                 Tool(
@@ -112,6 +132,7 @@ class ToolSurfaceBuilder(
                 )
             )
         }
+        
         addAll(pluginToolProvider.getTools())
     }
 }

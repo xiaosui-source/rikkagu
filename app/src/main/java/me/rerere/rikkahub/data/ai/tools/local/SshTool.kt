@@ -708,3 +708,120 @@ internal fun forgetHostKey(context: Context, host: String): Int {
     }
     return before
 }
+
+// ===== 新增功能：从 Operit 移植 =====
+
+/**
+ * SSH 连接池管理 - 增强版
+ * 支持连接复用和超时管理
+ */
+class SshConnectionPool(private val context: Context) {
+    private val connections = ConcurrentHashMap<String, SshSession>()
+    private val maxConnections = 5
+    private val connectionTimeoutMs = 30_000L
+    
+    /**
+     * 获取或创建 SSH 连接
+     */
+    suspend fun getConnection(host: String, port: Int = 22): SshSession = synchronized(connections) {
+        connections[host]?.let { 
+            if (!it.isClosed) return it
+            connections.remove(host)
+        }
+        
+        // 限制连接数
+        if (connections.size >= maxConnections) {
+            // 关闭最旧的连接
+            val oldestKey = connections.keys.minByOrNull { 
+                connections[it]?.lastUsed ?: 0L 
+            }
+            oldestKey?.let { connections.remove(it)?.close() }
+        }
+        
+        val session = SshSession(context, host, port).also {
+            it.connect()
+            connections[host] = it
+        }
+        session
+    }
+    
+    /**
+     * 关闭所有连接
+     */
+    fun closeAll() {
+        synchronized(connections) {
+            connections.values.forEach { it.close() }
+            connections.clear()
+        }
+    }
+}
+
+/**
+ * SSH 会话封装
+ */
+class SshSession(private val context: Context, host: String, port: Int) {
+    var isClosed = false
+        private set
+    var lastUsed = System.currentTimeMillis()
+    
+    private val client = org.apache.sshd.client.SshClient.setUpDefaultClient()
+    private var session: org.apache.sshd.client.session.ClientSession? = null
+    
+    suspend fun connect() {
+        client.start()
+        session = client.connect(username, host, port)
+            .verify(connectionTimeoutMs)
+            .session
+        session?.authPassword(username, password)
+            ?.verify(authTimeoutMs)
+    }
+    
+    suspend fun exec(command: String): String {
+        lastUsed = System.currentTimeMillis()
+        val future = session?.execCommand(command)
+        return future?.get(execTimeoutMs) ?: ""
+    }
+    
+    fun close() {
+        isClosed = true
+        session?.close()
+        client.stop()
+    }
+    
+    companion object {
+        private const val username = "user"
+        private const val password = "password"
+        private const val authTimeoutMs = 10_000L
+        private const val execTimeoutMs = 60_000L
+    }
+}
+
+/**
+ * SFTP 文件传输增强
+ */
+class SftpTransfer(private val context: Context) {
+    private var sftp: org.apache.sshd.sftp.client.SftpClient? = null
+    
+    suspend fun upload(remotePath: String, localFile: File): Long {
+        val outputStream = sftp?.open(remotePath, 
+            org.apache.sshd.sftp.client.SftpClient.OpenMode.Write,
+            org.apache.sshd.sftp.client.SftpClient.OpenMode.Create)
+        
+        val bytes = localFile.readBytes()
+        outputStream?.write(bytes, 0, bytes.size)
+        outputStream?.close()
+        
+        return bytes.size.toLong()
+    }
+    
+    suspend fun download(remotePath: String, localFile: File): Long {
+        val inputStream = sftp?.open(remotePath, 
+            org.apache.sshd.sftp.client.SftpClient.OpenMode.Read)
+        
+        val bytes = inputStream?.readAll() ?: byteArrayOf()
+        localFile.writeBytes(bytes)
+        inputStream?.close()
+        
+        return bytes.size.toLong()
+    }
+}

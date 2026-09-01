@@ -630,6 +630,172 @@ fun createBrowserTools(context: Context): List<Tool> {
     }
 }
 
+        // 18. browser_close
+        Tool(
+            name = "browser_close",
+            description = "Close the current browser tab.",
+            needsApproval = false,
+            parameters = { InputSchema.Obj(properties = buildJsonObject { }) },
+            execute = {
+                webViewRef.set(null)
+                listOf(UIMessagePart.Text(buildJsonObject {
+                    put("closed", true)
+                    put("message", "Tab closed")
+                }.toString()))
+            }
+        ),
+
+        // 19. browser_fill_form - 填写多个表单字段
+        Tool(
+            name = "browser_fill_form",
+            description = "Fill multiple form fields in the browser page by CSS selectors.",
+            needsApproval = true,
+            parameters = {
+                InputSchema.Obj(
+                    properties = buildJsonObject {
+                        put("fields", buildJsonObject {
+                            put("type", "array")
+                            put("description", "Array of field objects with selector and value")
+                        })
+                    },
+                    required = listOf("fields")
+                )
+            },
+            execute = { input ->
+                val fieldsJson = input.jsonObject["fields"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"fields required"}"""))
+                val js = "((function() { " +
+                    var results = emptyList<String>()
+                    try {
+                        val fields = kotlinx.serialization.json.Json.decodeFromString<List<Map<String, String>>>(fieldsJson)
+                        for (field in fields) {
+                            val selector = field["selector"] ?: continue
+                            val value = field["value"] ?: continue
+                            results += "document.querySelector('$selector')?.value='$value';"
+                        }
+                    } catch(e: Exception) {
+                        return@Tool listOf(UIMessagePart.Text("""{"error":"Invalid fields format"}"""))
+                    }
+                    results.joinToString(" ") + " return 'Filled'; })())"
+                mainHandler.post { webViewRef.get()?.evaluateJavascript(js) {} }
+                kotlinx.coroutines.delay(300)
+                listOf(UIMessagePart.Text(buildJsonObject {
+                    put("filled", results.size)
+                    put("success", true)
+                }.toString()))
+            }
+        ),
+
+        // 20. browser_file_upload - 选择文件上传
+        Tool(
+            name = "browser_file_upload",
+            description = "Trigger file upload dialog for a file input element.",
+            needsApproval = true,
+            parameters = {
+                InputSchema.Obj(
+                    properties = buildJsonObject {
+                        put("selector", buildJsonObject { put("type", "string"); put("description", "File input selector") })
+                        put("path", buildJsonObject { put("type", "string"); put("description", "File path to upload") })
+                    },
+                    required = listOf("selector")
+                )
+            },
+            execute = { input ->
+                val selector = input.jsonObject["selector"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"selector required"}"""))
+                val path = input.jsonObject["path"]?.jsonPrimitive?.contentOrNull ?: ""
+                val js = "var input=document.querySelector('$selector');if(input){input.setAttribute('webkitdirectory','');input.value='$path';var e=new Event('change',{bubbles:true});input.dispatchEvent(e);}"
+                mainHandler.post { webViewRef.get()?.evaluateJavascript(js) {} }
+                kotlinx.coroutines.delay(500)
+                listOf(UIMessagePart.Text(buildJsonObject {
+                    put("triggered", true)
+                    put("selector", selector)
+                }.toString()))
+            }
+        ),
+
+        // 21. browser_take_screenshot - 截图
+        Tool(
+            name = "browser_take_screenshot",
+            description = "Take a screenshot of the current browser page.",
+            needsApproval = false,
+            parameters = {
+                InputSchema.Obj(
+                    properties = buildJsonObject {
+                        put("filename", buildJsonObject { put("type", "string"); put("description", "Output filename (optional)") })
+                        put("fullPage", buildJsonObject { put("type", "boolean"); put("description", "Full page or viewport") })
+                    },
+                    required = emptyList()
+                )
+            },
+            execute = { input ->
+                val filename = input.jsonObject["filename"]?.jsonPrimitive?.contentOrNull ?: "screenshot_${System.currentTimeMillis()}.png"
+                val fullPage = input.jsonObject["fullPage"]?.jsonPrimitive?.contentOrNull?.toBoolean() ?: false
+                val webView = webViewRef.get() ?: return@Tool listOf(UIMessagePart.Text("""{"error":"No active browser"}"""))
+                val latch = kotlinx.coroutines.sync.Mutex()
+                var result: String? = null
+                mainHandler.post {
+                    val bitmap = if (fullPage) {
+                        // 全页截图（简化：仅截图可见区域）
+                        val w = webView.width
+                        val h = webView.height
+                        val bmp = android.graphics.Bitmap.createBitmap(w, h, android.graphics.Bitmap.Config.ARGB_8888)
+                        webView.draw(android.graphics.Canvas(bmp))
+                        bmp
+                    } else {
+                        webView.draw(android.graphics.Canvas(android.graphics.Bitmap.createBitmap(webView.width, webView.height, android.graphics.Bitmap.Config.ARGB_8888)))
+                    }
+                    val f = java.io.File(android.os.Environment.getExternalStorageDirectory(), "RikkaHub/$filename")
+                    f.parentFile?.mkdirs()
+                    val fos = java.io.FileOutputStream(f)
+                    bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 90, fos)
+                    fos.close()
+                    result = f.absolutePath
+                    latch.release()
+                    latch.close()
+                }
+                latch.acquire(); latch.close()
+                listOf(UIMessagePart.Text(buildJsonObject {
+                    put("saved", result != null)
+                    put("path", result)
+                    put("fullPage", fullPage)
+                }.toString()))
+            }
+        ),
+
+        // 22. browser_type - 在元素中输入文本
+        Tool(
+            name = "browser_type",
+            description = "Type text into a browser element by CSS selector ref.",
+            needsApproval = true,
+            parameters = {
+                InputSchema.Obj(
+                    properties = buildJsonObject {
+                        put("ref", buildJsonObject { put("type", "string"); put("description", "CSS selector") })
+                        put("text", buildJsonObject { put("type", "string"); put("description", "Text to type") })
+                        put("submit", buildJsonObject { put("type", "boolean"); put("description", "Press Enter after typing") })
+                        put("slowly", buildJsonObject { put("type", "boolean"); put("description", "Type character by character") })
+                    },
+                    required = listOf("ref", "text")
+                )
+            },
+            execute = { input ->
+                val ref = input.jsonObject["ref"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"ref required"}"""))
+                val text = input.jsonObject["text"]?.jsonPrimitive?.contentOrNull ?: ""
+                val submit = input.jsonObject["submit"]?.jsonPrimitive?.contentOrNull?.toBoolean() ?: false
+                val slowly = input.jsonObject["slowly"]?.jsonPrimitive?.contentOrNull?.toBoolean() ?: false
+                val safeText = text.replace("'", "\'").replace("\", "\\")
+                var js = "var el=document.querySelector('$ref');if(el){el.focus();el.value='$safeText';var e=new Event('input',{bubbles:true});el.dispatchEvent(e);}"
+                if (submit) js += "el.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));"
+                mainHandler.post { webViewRef.get()?.evaluateJavascript(js) {} }
+                if (slowly) kotlinx.coroutines.delay(500)
+                else kotlinx.coroutines.delay(100)
+                listOf(UIMessagePart.Text(buildJsonObject {
+                    put("typed", true)
+                    put("ref", ref)
+                    put("text", text)
+                }.toString()))
+            }
+        ),
+
 private fun createWebView(context: Context): WebView {
     val webView = WebView(context)
     webView.settings.javaScriptEnabled = true
@@ -645,4 +811,277 @@ private fun createWebView(context: Context): WebView {
         }
     }
     return webView
+}
+// ===== 新增功能：从 Operit WebSession 移植 =====
+
+/**
+ * 多标签浏览器管理器
+ */
+class MultiTabBrowserManager(private val context: Context) {
+    private val tabs = ConcurrentHashMap<String, BrowserTab>()
+    private val activeTabId = AtomicReference<String?>(null)
+    
+    /**
+     * 创建新标签页
+     */
+    fun createTab(url: String? = null): String {
+        val tabId = "tab_${System.currentTimeMillis()}_${tabs.size}"
+        val tab = BrowserTab(context, tabId).apply {
+            if (url != null) navigate(url)
+        }
+        tabs[tabId] = tab
+        activeTabId.set(tabId)
+        return tabId
+    }
+    
+    /**
+     * 切换到指定标签页
+     */
+    fun switchTab(tabId: String): Boolean {
+        return if (tabs.containsKey(tabId)) {
+            activeTabId.set(tabId)
+            true
+        } else false
+    }
+    
+    /**
+     * 关闭标签页
+     */
+    fun closeTab(tabId: String): Boolean {
+        tabs.remove(tabId)?.destroy()
+        if (activeTabId.get() == tabId) {
+            activeTabId.set(tabs.keys.firstOrNull())
+        }
+        return true
+    }
+    
+    /**
+     * 获取当前活动标签页
+     */
+    fun getActiveTab(): BrowserTab? = tabs[activeTabId.get()]
+    
+    /**
+     * 获取所有标签页
+     */
+    fun getAllTabs(): List<BrowserTab> = tabs.values.toList()
+    
+    /**
+     * 关闭所有标签页
+     */
+    fun closeAll() {
+        tabs.values.forEach { it.destroy() }
+        tabs.clear()
+        activeTabId.set(null)
+    }
+}
+
+/**
+ * 单个浏览器标签页
+ */
+class BrowserTab(internal val context: Context, val tabId: String) {
+    private val webView = WebView(context).apply {
+        settings.javaScriptEnabled = true
+        settings.domStorageEnabled = true
+        webViewClient = object : WebViewClient() {
+            override fun onPageFinished(view: WebView?, url: String?) {
+                onContentLoaded?.invoke(url)
+            }
+        }
+        // 注入用户脚本
+        addJavascriptInterface(UserScriptInterface(), "UserScript")
+    }
+    
+    var onContentLoaded: ((String?) -> Unit)? = null
+    
+    /**
+     * 导航到 URL
+     */
+    fun navigate(url: String) {
+        webView.loadUrl(url)
+    }
+    
+    /**
+     * 执行 JavaScript
+     */
+    fun evaluateJs(script: String): String {
+        val latch = CountDownLatch(1)
+        var result = ""
+        webView.post {
+            webView.evaluateJavascript(script) { value ->
+                result = value
+                latch.countDown()
+            }
+        }
+        latch.await(15, TimeUnit.SECONDS)
+        return result
+    }
+    
+    /**
+     * 截图
+     */
+    fun screenshot(): Bitmap? {
+        val bitmap = Bitmap.createBitmap(
+            webView.width, webView.height, Bitmap.Config.ARGB_8888
+        )
+        webView.draw(Canvas(bitmap))
+        return bitmap
+    }
+    
+    /**
+     * 点击元素
+     */
+    fun clickSelector(selector: String) {
+        evaluateJs("""
+            (function() {
+                var element = document.querySelector('$selector');
+                if (element) {
+                    element.click();
+                    return 'clicked';
+                }
+                return 'not found';
+            })();
+        """.trimIndent())
+    }
+    
+    /**
+     * 填充表单
+     */
+    fun fillSelector(selector: String, value: String) {
+        evaluateJs("""
+            (function() {
+                var element = document.querySelector('$selector');
+                if (element) {
+                    element.value = '$value';
+                    element.dispatchEvent(new Event('input', { bubbles: true }));
+                    return 'filled';
+                }
+                return 'not found';
+            })();
+        """.trimIndent())
+    }
+    
+    /**
+     * 获取页面文本
+     */
+    fun getPageText(): String {
+        return evaluateJs("document.body.innerText")
+    }
+    
+    /**
+     * 获取页面 HTML
+     */
+    fun getPageHtml(): String {
+        return evaluateJs("document.documentElement.outerHTML")
+    }
+    
+    /**
+     * 销毁标签页
+     */
+    fun destroy() {
+        webView.destroy()
+    }
+}
+
+/**
+ * 用户脚本接口
+ */
+class UserScriptInterface {
+    @JavascriptInterface
+    fun execute(script: String): String {
+        // 执行用户脚本
+        return "script executed"
+    }
+}
+
+/**
+ * 创建增强版浏览器工具
+ */
+fun createEnhancedBrowserTools(context: Context): List<Tool> {
+    val manager = MultiTabBrowserManager(context)
+    
+    return listOf(
+        // 标签管理
+        Tool(
+            name = "browser_tab_create",
+            description = "创建新的浏览器标签页",
+            execute = { _ ->
+                val tabId = manager.createTab()
+                listOf(UIMessagePart.Text(tabId))
+            },
+        ),
+        Tool(
+            name = "browser_tab_switch",
+            description = "切换到指定标签页",
+            execute = { args ->
+                val tabId = args.jsonObject["tab_id"]?.jsonPrimitive?.contentOrNull ?: ""
+                val success = manager.switchTab(tabId)
+                listOf(UIMessagePart.Text(if (success) "Switched to $tabId" else "Tab not found"))
+            },
+        ),
+        Tool(
+            name = "browser_tab_close",
+            description = "关闭指定标签页",
+            execute = { args ->
+                val tabId = args.jsonObject["tab_id"]?.jsonPrimitive?.contentOrNull ?: ""
+                manager.closeTab(tabId)
+                listOf(UIMessagePart.Text("Tab closed"))
+            },
+        ),
+        Tool(
+            name = "browser_tab_list",
+            description = "列出所有标签页",
+            execute = { _ ->
+                val tabs = manager.getAllTabs()
+                val json = buildJsonObject {
+                    put("count", tabs.size)
+                    put("tabs", JsonArray(tabs.map { tab ->
+                        buildJsonObject {
+                            put("id", tab.tabId)
+                            put("title", tab.webView.title)
+                        }
+                    }))
+                }
+                listOf(UIMessagePart.Text(json.toString()))
+            },
+        ),
+        
+        // 截图功能（新增）
+        Tool(
+            name = "browser_screenshot",
+            description = "对当前标签页截图",
+            execute = { _ ->
+                val tab = manager.getActiveTab()
+                if (tab != null) {
+                    val bitmap = tab.screenshot()
+                    if (bitmap != null) {
+                        val byteArrayOutputStream = ByteArrayOutputStream()
+                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+                        val base64 = Base64.encodeToString(byteArrayOutputStream.toByteArray(), Base64.NO_WRAP)
+                        listOf(UIMessagePart.Text("data:image/png;base64,$base64"))
+                    } else {
+                        listOf(UIMessagePart.Text("Screenshot failed"))
+                    }
+                } else {
+                    listOf(UIMessagePart.Text("No active tab"))
+                }
+            },
+        ),
+        
+        // 用户脚本支持（新增）
+        Tool(
+            name = "browser_run_script",
+            description = "在指定标签页运行 JavaScript 脚本",
+            execute = { args ->
+                val tabId = args.jsonObject["tab_id"]?.jsonPrimitive?.contentOrNull ?: ""
+                val script = args.jsonObject["script"]?.jsonPrimitive?.contentOrNull ?: ""
+                
+                val tab = manager.tabs[tabId] ?: run {
+                    return@Tool listOf(UIMessagePart.Text("Tab not found: $tabId"))
+                }
+                
+                val result = tab.evaluateJs(script)
+                listOf(UIMessagePart.Text(result))
+            },
+        ),
+    ) + createBrowserTools(context) // 保留原有工具
 }
