@@ -789,6 +789,14 @@ class ChatService(
                     })
                     // 计算器（参考 Operit calculator）：精确数学计算，避免幻觉
                     add(me.rerere.rikkahub.data.ai.tools.createCalculatorTool())
+                    // 条件判断（参考 Operit condition）：确定性逻辑分支
+                    add(me.rerere.rikkahub.data.ai.tools.createConditionTool())
+                    // 调试器（参考 Operit debugger）：设备/进程/logcat 诊断
+                    addAll(me.rerere.rikkahub.data.ai.tools.createDebuggerTools(context))
+                    // 外部集成（参考 Operit tasker/intent）：Tasker 任务 + Intent 执行
+                    addAll(me.rerere.rikkahub.data.ai.tools.createIntegrationTools(context))
+                    // A2A 协议（参考 Operit a2a）：Agent 间任务交换
+                    addAll(me.rerere.rikkahub.data.ai.tools.createA2aTools())
                     // 自定义 HTTP 请求（#602）
                     // 内置 MCP 服务器（移植自 Kelivo）：GitHub/Files/Memory
                     addAll(mcpManager.getBuiltinServerTools(assistant))

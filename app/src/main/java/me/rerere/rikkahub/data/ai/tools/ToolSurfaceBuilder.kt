@@ -67,6 +67,14 @@ class ToolSurfaceBuilder(
         }
         // 计算器（参考 Operit calculator）：精确数学计算，避免幻觉
         add(createCalculatorTool())
+        // 条件判断（参考 Operit condition）：确定性逻辑分支
+        add(createConditionTool())
+        // 调试器（参考 Operit debugger）：设备/进程/logcat 诊断
+        addAll(createDebuggerTools(context))
+        // 外部集成（参考 Operit tasker/intent）：Tasker 任务 + Intent 执行
+        addAll(createIntegrationTools(context))
+        // A2A 协议（参考 Operit a2a）：Agent 间任务交换
+        addAll(createA2aTools())
         // 网页会话工具（参考 Operit WebSession）：AI 可用内置 WebView 操作网页
         addAll(createBrowserTools(context))
         // 子 Agent 并行委派（#2）：主 agent 可把独立子任务委派给隔离的子代理深入完成
