@@ -432,7 +432,7 @@ class GenerationHandler(
                             val pureThinkingWarning = "⚠️ 你只进行了思考但没有输出正式答案。请直接给出完整回答。"
                             emit(UIMessagePart.Text(pureThinkingWarning))
                             // 将告警作为工具结果注入到历史，让AI知道需要继续输出
-                            internalForcePrompt = "$internalForcePrompt\n
+                            internalForcePrompt = "$internalForcePrompt\n【系统指令】你刚才的回复只有思考内容而没有正式回答。请立刻输出完整的正式答案，不要再沉默。\n"
                             continue
                         }
                     }
