@@ -75,6 +75,8 @@ class ToolSurfaceBuilder(
         addAll(createIntegrationTools(context))
         // A2A 协议（参考 Operit a2a）：Agent 间任务交换
         addAll(createA2aTools())
+        // 应用管理（参考 Operit app manager）：列/启/停/卸
+        addAll(createAppManagerTools(context))
         // 网页会话工具（参考 Operit WebSession）：AI 可用内置 WebView 操作网页
         addAll(createBrowserTools(context))
         // 子 Agent 并行委派（#2）：主 agent 可把独立子任务委派给隔离的子代理深入完成

@@ -797,6 +797,8 @@ class ChatService(
                     addAll(me.rerere.rikkahub.data.ai.tools.createIntegrationTools(context))
                     // A2A 协议（参考 Operit a2a）：Agent 间任务交换
                     addAll(me.rerere.rikkahub.data.ai.tools.createA2aTools())
+                    // 应用管理（参考 Operit app manager）：列/启/停/卸
+                    addAll(me.rerere.rikkahub.data.ai.tools.createAppManagerTools(context))
                     // 自定义 HTTP 请求（#602）
                     // 内置 MCP 服务器（移植自 Kelivo）：GitHub/Files/Memory
                     addAll(mcpManager.getBuiltinServerTools(assistant))
