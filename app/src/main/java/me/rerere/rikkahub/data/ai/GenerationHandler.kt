@@ -124,6 +124,12 @@ class GenerationHandler(
         // 静默催答提示（仅注入下一轮 system，用户不可见）：正文空白自动补全时设置
         var forcePrompt: String? = null
 
+        // ===== 死循环/重复检测（对齐 Operit EnhancedAIService：静默纠偏，用户无感知）=====
+        var consecutiveToolRepeatCount = 0
+        var lastToolSignature = ""
+        var consecutiveTextRepeatCount = 0
+        var lastTextSignature = ""
+
         // ===== Agent 编排状态（#2 规划 + #5 反思）=====
         // 标记本线程是否已注入过规划/反思提示，避免每步都重复注入
         var agentPlannerInjected = false
@@ -305,6 +311,26 @@ class GenerationHandler(
                 }
 
                 val tools = messages.last().getTools().filter { !it.isExecuted }
+
+                // ===== 死循环/重复检测：工具调用重复（对齐 Operit：静默纠偏或停止）=====
+                if (tools.isNotEmpty()) {
+                    val currentToolSignature = tools.joinToString(";") { "${it.toolName}:${it.input}" }
+                    if (currentToolSignature == lastToolSignature) {
+                        consecutiveToolRepeatCount++
+                        Log.w(TAG, "streamText: 检测到连续重复工具调用 ($consecutiveToolRepeatCount 次): $currentToolSignature")
+                        if (consecutiveToolRepeatCount >= 3) {
+                            // 连续重复 3 次，判定为死循环，直接终止
+                            Log.e(TAG, "streamText: 工具调用死循环，强制终止")
+                            break
+                        }
+                        // 静默注入纠偏提示（用户无感知）
+                        forcePrompt = (forcePrompt ?: "") + "\n\n【系统警告】你刚刚已经执行过完全相同的工具调用，但似乎没有解决问题或仍在重复。请立刻停止重复操作，重新审视当前状态和上下文，换一种方法，或者直接给用户回复当前的结果和遇到的问题。不要再执行相同的工具。"
+                    } else {
+                        consecutiveToolRepeatCount = 0
+                        lastToolSignature = currentToolSignature
+                    }
+                }
+
                 if (tools.isEmpty()) {
                     // finish_reason == "length" means the model hit the token limit
                     // but hasn't finished generating. Auto-continue by not breaking.
@@ -374,6 +400,25 @@ class GenerationHandler(
                         forcePrompt = "你刚才只进行了思考但还没有给出正式回答。请立即直接输出这个问题的完整答案，不要再次沉默或只思考。"
                         continue
                     }
+
+                    // ===== 死循环/重复检测：文字输出重复（对齐 Operit：静默纠偏或停止）=====
+                    val currentTextSig = finalText.hashCode()
+                    if (currentTextSig == lastTextSignature && finalText.length > 20) {
+                        consecutiveTextRepeatCount++
+                        Log.w(TAG, "streamText: 检测到连续重复文字输出 ($consecutiveTextRepeatCount 次)")
+                        if (consecutiveTextRepeatCount >= 2) {
+                            // 连续重复 2 次，判定为死循环，直接终止
+                            Log.e(TAG, "streamText: 文字输出死循环，强制终止")
+                            break
+                        }
+                        // 静默注入纠偏提示（用户无感知）
+                        forcePrompt = (forcePrompt ?: "") + "\n\n【系统警告】你刚才的回复内容与上一次几乎完全相同，这是不允许的。请不要再重复刚才的回复。如果任务已经完成就直接结束；如果遇到困难，请尝试换一种思路或直接向用户说明情况。"
+                        continue
+                    } else {
+                        consecutiveTextRepeatCount = 0
+                        lastTextSignature = currentTextSig
+                    }
+
                     // 无工具调用，正常结束
                     break
                 }
