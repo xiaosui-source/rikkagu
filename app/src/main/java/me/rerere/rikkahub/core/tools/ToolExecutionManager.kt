@@ -20,7 +20,7 @@ import kotlinx.coroutines.withContext
 import me.rerere.ai.core.Tool
 import me.rerere.rikkahub.core.tools.hook.AIToolHook
 import me.rerere.rikkahub.core.tools.hook.AIToolHookDecision
-import me.rerere.rikkahub.core.tools.permission.ToolPermissionDecision
+import me.rerere.rikkahub.core.tools.hook.ToolPermissionDecision
 import me.rerere.rikkahub.core.tools.permission.ToolPermissionSystem
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
