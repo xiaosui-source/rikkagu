@@ -77,6 +77,10 @@ class ForgettingCurve(
         val currentImp = currentImportance(importance, lastTriggeredAt, isHabit = false, nowMs = nowMs)
 
         if (currentImp >= habitThreshold && triggerCount >= habitMinCount) return "habitize"
+        // 新记忆保护：创建/最近触发 3 天内不沉入沉睡池，避免新记忆刚存就被误判"该遗忘"
+        val recentDays = 3
+        val daysSinceTrigger = (nowMs - lastTriggeredAt) / (1000.0 * 60 * 60 * 24)
+        if (daysSinceTrigger < recentDays) return "none"
         if (currentImp < dormantThreshold && isActive) return "sink_to_dormant"
         if (currentImp < dormantThreshold && !isActive) return "dormant"
         if (currentImp >= dormantThreshold && !isActive) return "awaken"

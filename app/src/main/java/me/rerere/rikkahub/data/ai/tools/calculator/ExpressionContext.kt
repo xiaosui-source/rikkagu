@@ -10,6 +10,8 @@ import kotlin.math.sqrt
 object ExpressionContext {
     // 变量存储
     private val variables = mutableMapOf<String, Any>()
+    // 字符串变量（convert 单位等）
+    private val stringVariables = mutableMapOf<String, String>()
 
     // 常量
     init {
@@ -37,6 +39,11 @@ object ExpressionContext {
     /** 设置变量值 */
     fun setVariable(name: String, value: Double) {
         variables[name] = value
+    }
+
+    /** 设置字符串变量值（convert 单位等） */
+    fun setStringVariable(name: String, value: String) {
+        stringVariables[name] = value
     }
 
     /** 将任意值转换为数字（JavaScript风格） */
@@ -209,15 +216,15 @@ object ExpressionContext {
                 if (args.size < 3) throw IllegalArgumentException("convert requires 3 parameters")
                 val value = args[0]
                 val fromUnit =
-                        variables["_convert_from"] as? String
+                        stringVariables["_convert_from"]
                                 ?: throw IllegalArgumentException("from_unit not provided")
                 val toUnit =
-                        variables["_convert_to"] as? String
+                        stringVariables["_convert_to"]
                                 ?: throw IllegalArgumentException("to_unit not provided")
 
                 // 清除临时变量
-                variables.remove("_convert_from")
-                variables.remove("_convert_to")
+                stringVariables.remove("_convert_from")
+                stringVariables.remove("_convert_to")
 
                 convertUnit(value, fromUnit, toUnit)
             }

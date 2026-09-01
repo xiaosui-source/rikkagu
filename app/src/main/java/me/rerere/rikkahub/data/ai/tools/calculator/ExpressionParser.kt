@@ -276,16 +276,16 @@ class ExpressionParser(private val expression: String) {
                     }
                     nextToken() // 跳过)
 
-                    // 特殊处理 convert 函数，它需要三个参数，但第2和第3个是字符串
+                        // 特殊处理 convert 函数，它需要三个参数，但第2和第3个是字符串
                     if (identifier.equals("convert", ignoreCase = true) && args.size >= 3) {
                         val fromUnit =
                                 (args[1] as? VariableNode)?.name ?: args[1].evaluate().toString()
                         val toUnit =
                                 (args[2] as? VariableNode)?.name ?: args[2].evaluate().toString()
 
-                        // 将单位存储为临时变量供函数使用
-                        ExpressionContext.setVariable("_convert_from", 0.0) // 会被类型转换为字符串
-                        ExpressionContext.setVariable("_convert_to", 0.0) // 同上
+                        // 将单位字符串存为全局字符串变量，供 ExpressionContext.convertUnit 使用
+                        ExpressionContext.setStringVariable("_convert_from", fromUnit)
+                        ExpressionContext.setStringVariable("_convert_to", toUnit)
 
                         return FunctionCallNode(identifier, listOf(args[0]))
                     }

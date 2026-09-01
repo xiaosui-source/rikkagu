@@ -1968,6 +1968,8 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
         // 带超时等待：若工具执行卡在不可取消的阻塞调用（网络/进程），
         // 不无限阻塞取消流程，让 UI 立即响应
         withTimeoutOrNull(5_000) { job.join() }
+        // 用户停止生成：释放前台服务（否则通知/前台保活会一直挂着）
+        me.rerere.rikkahub.service.ChatGenerationForegroundService.release(context, conversationId)
 
         val currentConversation = getConversationFlow(conversationId).value
         val lastNode = currentConversation.messageNodes.lastOrNull() ?: return

@@ -32,7 +32,9 @@ object StickerRenderTransformer : OutputMessageTransformer {
         "/storage/emulated/0/Download/sticker",
     )
 
+    @Volatile
     private var indexCache: Map<String, String>? = null
+    @Volatile
     private var indexStamp = 0L
 
     private fun stickerDirs(): List<File> {
