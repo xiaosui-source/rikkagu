@@ -24,6 +24,19 @@ import me.rerere.ai.ui.UIMessage
  */
 class LocalLLMProvider(private val context: android.content.Context) : Provider<ProviderSetting.LocalLLM> {
     
+    companion object {
+        val DEFAULT_MODELS = listOf(
+            Model(
+                id = kotlin.uuid.Uuid.random(),
+                modelId = "llama-3.2-1b",
+                displayName = "Llama 3.2 1B (GGUF)",
+                inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
+                outputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
+                abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL),
+            ),
+        )
+    }
+    
     override suspend fun listModels(providerSetting: ProviderSetting.LocalLLM): List<Model> {
         return providerSetting.models
     }
@@ -106,16 +119,3 @@ class LocalLLMProvider(private val context: android.content.Context) : Provider<
         return ImageGenerationResult(emptyList())
     }
 }
-
-    companion object {
-        val DEFAULT_MODELS = listOf(
-            Model(
-                id = kotlin.uuid.Uuid.random(),
-                modelId = "llama-3.2-1b",
-                displayName = "Llama 3.2 1B (GGUF)",
-                inputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-                outputModalities = listOf(me.rerere.ai.provider.Modality.TEXT),
-                abilities = listOf(me.rerere.ai.provider.ModelAbility.TOOL),
-            ),
-        )
-    }
