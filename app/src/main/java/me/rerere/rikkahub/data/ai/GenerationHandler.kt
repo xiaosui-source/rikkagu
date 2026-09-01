@@ -514,7 +514,7 @@ class GenerationHandler(
             val executedTools = arrayListOf<UIMessagePart.Tool>()
             
             // 根据 CLI 模式决定是否过滤工具
-            val toolExposureMode = me.rerere.rikkahub.core.tools.ToolExposureMode.FULL
+            val toolExposureMode = "FULL"
             
             toolsToProcess.forEach { tool ->
                 // 协程取消检查：用户点取消后能及时中断工具执行循环

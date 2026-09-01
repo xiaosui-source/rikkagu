@@ -12,38 +12,24 @@ import kotlinx.serialization.json.put
 import me.rerere.ai.core.Tool
 import me.rerere.rikkahub.core.tools.ToolExecutionManager
 import me.rerere.rikkahub.core.tools.ToolInvocation
-import me.rerere.rikkahub.core.tools.cli.CliToolModeSupport
-import me.rerere.rikkahub.core.tools.cli.ToolExposureMode
 
 /**
  * 工具路由（增强版）。
  * 
  * 弱模型不支持原生 tool_calls 时，根据用户消息匹配工具并自动调用。
- * 支持 CLI 模式的工具过滤。
  * 
  * 参考 Operit 的工具路由逻辑。
  */
 object ToolRouter {
     
-    private val cliSupport = CliToolModeSupport()
-    
     /**
      * 根据用户消息路由到对应工具。
      * 
      * @param userMessage 用户消息
-     * @param toolExposureMode 工具暴露模式
      * @return 工具名和参数JSON，若无需工具则返回 null
      */
-    fun route(userMessage: String, toolExposureMode: ToolExposureMode = ToolExposureMode.FULL): Pair<String, String>? {
+    fun route(userMessage: String): Pair<String, String>? {
         val msg = userMessage.lowercase()
-        
-        // CLI 模式下跳过危险工具
-        if (toolExposureMode == ToolExposureMode.CLI) {
-            // 检查是否是危险工具调用意图
-            if (isDangerousToolIntent(msg)) {
-                return null
-            }
-        }
         
         // 抖音搜索相关
         if ((msg.contains("douyin_web_search") || msg.contains("搜索") || msg.contains("查找") ||
@@ -141,16 +127,6 @@ object ToolRouter {
         }
         
         return null
-    }
-    
-    /**
-     * 检查是否是危险工具意图（CLI 模式下应跳过）。
-     */
-    private fun isDangerousToolIntent(msg: String): Boolean {
-        val dangerousPatterns = listOf(
-            "bluetooth", "wifi", "sms", "notification", "app_lock", "send_broadcast"
-        )
-        return dangerousPatterns.any { pattern -> msg.contains(pattern) }
     }
     
     /**

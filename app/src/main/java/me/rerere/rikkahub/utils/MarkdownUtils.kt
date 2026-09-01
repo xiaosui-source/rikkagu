@@ -7,6 +7,7 @@
 package me.rerere.rikkahub.utils
 
 import kotlin.text.RegexOption
+import me.rerere.ai.ui.UIMessagePart
 
 /**
  * 移除内容中的思考标签（think/thinking/search）
@@ -50,25 +51,4 @@ fun formatThinkingContent(content: String): String {
     } else {
         content
     }
-}
-
-/**
- * 从消息列表中提取最后一个 assistant 消息
- */
-fun List<UIMessagePart>.lastAssistantText(): String? {
-    return lastOrNull { it is UIMessagePart.Text }?.toText()?.trim()
-}
-
-/**
- * 检查消息是否包含工具调用
- */
-fun List<UIMessagePart>.hasToolCall(): Boolean {
-    return any { it is UIMessagePart.Tool }
-}
-
-/**
- * 将消息列表中的工具调用提取为工具列表
- */
-fun List<UIMessagePart>.extractTools(): List<UIMessagePart.Tool> {
-    return filterIsInstance<UIMessagePart.Tool>()
 }
