@@ -496,9 +496,9 @@ fun createBrowserTools(context: Context): List<Tool> {
                 val js = "var e=document.querySelector('''$selector''' );if(e)e.dispatchEvent(new MouseEvent(''mouseenter''));"
                 val latch = java.util.concurrent.Semaphore(0)
                 mainHandler.post {
-                    webViewRef.get()?.evaluateJavascript(js) { latch.release(); latch.close() }
+                    webViewRef.get()?.evaluateJavascript(js) { latch.release() }
                 }
-                latch.acquire(); latch.close()
+                latch.acquire()
                 listOf(UIMessagePart.Text(buildJsonObject { put("hovered", true); put("selector", selector) }.toString()))
             }
         ),
@@ -752,7 +752,7 @@ fun createBrowserTools(context: Context): List<Tool> {
                     latch.release()
                     latch.close()
                 }
-                latch.acquire(); latch.close()
+                latch.acquire()
                 listOf(UIMessagePart.Text(buildJsonObject {
                     put("saved", result != null)
                     put("path", result)
