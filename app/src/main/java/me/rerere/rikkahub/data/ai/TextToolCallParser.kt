@@ -84,31 +84,32 @@ object TextToolCallParser {
         if (text.isBlank()) {
             return text to emptyList()
         }
+        var working = text
         // 无标准 XML 标签时：尝试多种兼容格式
-        if (!TOOL_START.containsMatchIn(text)) {
+        if (!TOOL_START.containsMatchIn(working)) {
             // ① <工具名>{"参数":...}</工具名> 格式（弱模型输出）
-            val tagJsonTools = parseTagJsonToolCalls(text, allowedToolNames)
+            val tagJsonTools = parseTagJsonToolCalls(working, allowedToolNames)
             if (tagJsonTools.isNotEmpty()) {
-                val cleaned = TAG_JSON_TOOL.replace(text, "").trim()
+                val cleaned = TAG_JSON_TOOL.replace(working, "").trim()
                 return cleaned to tagJsonTools
             }
             // ② 裸 JSON 工具调用 {"name":"xxx"}
-            val jsonTools = parseJsonToolCalls(text, allowedToolNames)
+            val jsonTools = parseJsonToolCalls(working, allowedToolNames)
             if (jsonTools.isNotEmpty()) {
-                val cleaned = JSON_TOOL_CALL.replace(text, "").trim()
+                val cleaned = JSON_TOOL_CALL.replace(working, "").trim()
                 return cleaned to jsonTools
             }
-            return text to emptyList()
+            return working to emptyList()
         }
 
         val tools = mutableListOf<UIMessagePart.Tool>()
         val cleaned = StringBuilder()
         var cursor = 0
-        var match = TOOL_START.find(text)
+        var match = TOOL_START.find(working)
 
         while (match != null) {
             // 追加 start 之前的纯文本
-            cleaned.append(text, cursor, match.range.first)
+            cleaned.append(working, cursor, match.range.first)
 
             val tagStart = match.range.first
             val attrs = match.groupValues[2]
@@ -120,20 +121,34 @@ object TextToolCallParser {
 
             // 找到对应的结束标签 </invoke> 等
             val endTag = "</${match.groupValues[1]}>"
-            val endIdx = text.indexOf(endTag, match.range.last + 1, ignoreCase = true)
+            var endIdx = working.indexOf(endTag, match.range.last + 1, ignoreCase = true)
+
+            // Operit 截断修复：输出被 token 截断、工具 XML 未闭合时，自动补全闭合标签
+            // 让半截的 <invoke name="xxx"><parameter name="cmd">ls</parameter> 变成完整调用
+            if (endIdx < 0 && toolName.isNotBlank() && attrs.contains("name", ignoreCase = true)) {
+                // 统计未闭合的 <parameter> 数量，补全 </parameter> 和 </invoke>
+                val tagName = match.groupValues[1]
+                val bodyFragment = working.substring(match.range.last + 1)
+                val openParams = Regex("<parameter\\b", RegexOption.IGNORE_CASE).findAll(bodyFragment).count()
+                val closeParams = Regex("</parameter>", RegexOption.IGNORE_CASE).findAll(bodyFragment).count()
+                val missingParams = (openParams - closeParams).coerceAtLeast(0)
+                val suffix = "</parameter>".repeat(missingParams) + "</$tagName>"
+                working = working + suffix
+                endIdx = working.indexOf(endTag, match.range.last + 1, ignoreCase = true)
+            }
 
             // 解析参数（在开始标签后的 body 内）
             val bodyStart = match.range.last + 1
-            val bodyEnd = if (endIdx >= 0) endIdx else text.length
+            val bodyEnd = if (endIdx >= 0) endIdx else working.length
 
             val params = mutableMapOf<String, String>()
-            var pm = PARAM.find(text, bodyStart)
+            var pm = PARAM.find(working, bodyStart)
             while (pm != null && pm.range.first < bodyEnd) {
                 val pName = jackAttrName(pm.groupValues[1])
                 if (pName != null) {
                     params[pName] = pm.groupValues[2].trim()
                 }
-                pm = PARAM.find(text, pm.range.last + 1)
+                pm = PARAM.find(working, pm.range.last + 1)
             }
 
             // 有空 name 或没有参数时, 若找不到 name 则跳过 (不误伤普通文本)
@@ -154,11 +169,11 @@ object TextToolCallParser {
 
             // 跳过整个工具调用块
             cursor = if (endIdx >= 0) endIdx + endTag.length else match.range.last + 1
-            match = TOOL_START.find(text, cursor)
+            match = TOOL_START.find(working, cursor)
         }
 
         // 追加最后的剩余文本
-        cleaned.append(text, cursor, text.length)
+        cleaned.append(working, cursor, working.length)
         return cleaned.toString().trim() to tools
     }
 
