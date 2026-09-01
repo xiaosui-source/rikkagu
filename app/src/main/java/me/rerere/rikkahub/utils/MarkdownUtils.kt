@@ -52,3 +52,70 @@ fun formatThinkingContent(content: String): String {
         content
     }
 }
+
+/**
+ * 将文本拆分成气泡片段（保护代码块和表格内部的换行）
+ */
+fun String.splitIntoBubbleSegments(): List<String> {
+    val segments = mutableListOf<String>()
+    val lines = this.split("\n")
+    var inCodeBlock = false
+    var buffer = StringBuilder()
+    
+    for (line in lines) {
+        if (line.trim().startsWith("```")) {
+            if (inCodeBlock) {
+                buffer.append(line).append("\n")
+                segments.add(buffer.toString())
+                buffer = StringBuilder()
+            }
+            inCodeBlock = !inCodeBlock
+            buffer.append(line).append("\n")
+        } else if (inCodeBlock) {
+            buffer.append(line).append("\n")
+        } else {
+            if (line.isEmpty()) {
+                if (buffer.isNotEmpty()) {
+                    segments.add(buffer.toString().trim())
+                    buffer = StringBuilder()
+                }
+            } else {
+                buffer.append(line).append("\n")
+            }
+        }
+    }
+    
+    if (buffer.isNotEmpty()) {
+        segments.add(buffer.toString().trim())
+    }
+    
+    return segments.filter { it.isNotEmpty() }
+}
+
+/**
+ * 从思考内容中提取标题
+ */
+fun String.extractThinkingTitle(): String? {
+    val lines = this.split("\n").filter { it.isNotEmpty() }
+    return if (lines.isNotEmpty()) lines.firstOrNull()?.trim() else null
+}
+
+/**
+ * 移除 Markdown 格式标记
+ */
+fun String.stripMarkdown(): String {
+    return this
+        .replace(Regex("\\*\\*(.*?)\\*\\*"), "$1")  // **bold**
+        .replace(Regex("\\*(.*?)\\*"), "$1")        // *italic*
+        .replace(Regex("__(.*?)__"), "$1")          // __bold__
+        .replace(Regex("_ (.*?)_"), "$1")           // _italic_
+        .replace(Regex("`([^`]+)`"), "$1")         // `code`
+        .replace(Regex("\\[([^]]+)\\]\\([^)]+\\)"), "$1")  // [text](url)
+        .replace(Regex("!\\[[^]]*\\]\\([^)]+\\)"), "")  // ![alt](url)
+        .replace(Regex("^#{1,6}\\s+"), "")         // headings
+        .replace(Regex("^[-*+]\\s+"), "")          // lists
+        .replace(Regex("^>\\s+"), "")              // quotes
+        .replace(Regex("^---+$"), "")              // horizontal rules
+        .replace(Regex("\\n{3,}"), "\n\n")         // 压缩多余换行
+        .trim()
+}
