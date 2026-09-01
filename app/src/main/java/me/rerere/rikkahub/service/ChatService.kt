@@ -803,6 +803,8 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
                     addAll(createWorkspaceToolsIfReady(assistant.workspaceId?.toString(), conversation.workspaceCwd))
                     // 子 Agent 并行委派（#2）：主 agent 可把独立子任务委派给隔离的子代理深入完成
                     add(me.rerere.rikkahub.data.ai.tools.createSubAgentTool(settings = settings, assistant = assistant))
+                    // 网页会话工具（参考 Operit WebSession）：AI 可用内置 WebView 操作网页
+                    addAll(me.rerere.rikkahub.data.ai.tools.createBrowserTools(context))
                     // use_skill 仅在用户启用了技能时装配（不做全局强制装配）
                     if (assistant.enabledSkills.isNotEmpty()) {
                         addAll(

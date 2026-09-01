@@ -65,6 +65,8 @@ class ToolSurfaceBuilder(
         if (settings.enableWebSearch) {
             addAll(createSearchTools(settings))
         }
+        // 网页会话工具（参考 Operit WebSession）：AI 可用内置 WebView 操作网页
+        addAll(createBrowserTools(context))
         // 子 Agent 并行委派（#2）：主 agent 可把独立子任务委派给隔离的子代理深入完成
         add(createSubAgentTool(settings = settings, assistant = assistant))
         addAll(localTools.getTools(assistant.localTools, invocationContext))
