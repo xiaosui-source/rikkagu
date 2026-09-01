@@ -494,7 +494,7 @@ fun createBrowserTools(context: Context): List<Tool> {
             execute = { input ->
                 val selector = input.jsonObject["selector"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"selector required"}"""))
                 val js = "var e=document.querySelector('''$selector''' );if(e)e.dispatchEvent(new MouseEvent(''mouseenter''));"
-                val latch = kotlinx.coroutines.sync.Mutex()
+                val latch = java.util.concurrent.Semaphore(0)
                 mainHandler.post {
                     webViewRef.get()?.evaluateJavascript(js) { latch.release(); latch.close() }
                 }
@@ -730,7 +730,7 @@ fun createBrowserTools(context: Context): List<Tool> {
                 val filename = input.jsonObject["filename"]?.jsonPrimitive?.contentOrNull ?: "screenshot_${System.currentTimeMillis()}.png"
                 val fullPage = input.jsonObject["fullPage"]?.jsonPrimitive?.contentOrNull?.toBoolean() ?: false
                 val webView = webViewRef.get() ?: return@Tool listOf(UIMessagePart.Text("""{"error":"No active browser"}"""))
-                val latch = kotlinx.coroutines.sync.Mutex()
+                val latch = java.util.concurrent.Semaphore(0)
                 var result: String? = null
                 mainHandler.post {
                     val bitmap = if (fullPage) {
