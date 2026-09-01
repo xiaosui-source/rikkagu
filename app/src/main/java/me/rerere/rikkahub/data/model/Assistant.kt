@@ -67,8 +67,13 @@ data class Assistant(
     // 长程自主 Agent：复杂任务先规划子任务清单再逐个执行；每次工具执行后反思自评、修正路线。
     val enableAgentPlanning: Boolean = true,            // 复杂任务前先输出行动计划（Planner）
     val enableAgentReflection: Boolean = true,          // 工具执行后反思自评，失败则修正/重试
+    // 对话引擎增强（对齐 Operit EnhancedAIService）
+    val disablePureThinkingWarning: Boolean = false,      // 禁止纯思考输出：移除思考后正文为空时，是否发出专用告警并回传给 AI 继续生成
+    val enableTruncatedToolRepair: Boolean = true,       // 启用工具 XML 截断修复（detectAndRepairTruncatedToolRound）
+    val enableDeadLoopDetection: Boolean = true,         // 启用死循环/重复检测（静默纠偏或停止）
+    val enablePureThinkingDetection: Boolean = true,     // 启用纯思考检测（静默催答或回传告警）
 )
- 
+
 @Serializable
 data class QuickMessage(
     val id: Uuid = Uuid.random(),

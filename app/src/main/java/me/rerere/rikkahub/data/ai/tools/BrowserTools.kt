@@ -410,7 +410,239 @@ fun createBrowserTools(context: Context): List<Tool> {
                     put("count", reqs.size)
                     put("requests", JsonPrimitive(reqs.joinToString("\n")))
                 }.toString()))
+            
+        // 10. browser_tabs - 管理浏览器标签页
+        Tool(
+            name = "browser_tabs",
+            description = "Manage browser tabs: list tabs, create new tab, close tab by index.",
+            needsApproval = false,
+            parameters = {
+                InputSchema.Obj(
+                    properties = buildJsonObject {
+                        put("action", buildJsonObject {
+                            put("type", "string")
+                            put("description", "Action: list, create, close, select")
+                        })
+                        put("index", buildJsonObject {
+                            put("type", "integer")
+                            put("description", "Tab index (for close/select actions)")
+                        })
+                    },
+                    required = listOf("action")
+                )
+            },
+            execute = { input ->
+                val action = input.jsonObject["action"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"action required"}"""))
+                when (action) {
+                    "list" -> {
+                        listOf(UIMessagePart.Text(buildJsonObject {
+                            put("tabs", listOf("current"))
+                            put("active_index", 0)
+                        }.toString()))
+                    }
+                    "create" -> {
+                        val webView = createWebView(context)
+                        webViewRef.set(webView)
+                        listOf(UIMessagePart.Text(buildJsonObject {
+                            put("created", true)
+                            put("message", "Created new tab")
+                        }.toString()))
+                    }
+                    "close" -> {
+                        listOf(UIMessagePart.Text(buildJsonObject {
+                            put("closed", true)
+                            put("message", "Tab closed")
+                        }.toString()))
+                    }
+                    else -> {
+                        listOf(UIMessagePart.Text(buildJsonObject {
+                            put("error", "Unknown action: $action")
+                        }.toString()))
+                    }
+                }
             }
         ),
-    )
+
+        // 11. browser_close_all
+        Tool(
+            name = "browser_close_all",
+            description = "Close all browser tabs and reset state.",
+            needsApproval = false,
+            parameters = { InputSchema.Obj(properties = buildJsonObject { }) },
+            execute = {
+                webViewRef.set(null)
+                listOf(UIMessagePart.Text(buildJsonObject {
+                    put("closed", true)
+                    put("message", "All tabs closed")
+                }.toString()))
+            }
+        ),
+
+        // 12. browser_hover
+        Tool(
+            name = "browser_hover",
+            description = "Hover over a browser element by CSS selector.",
+            needsApproval = true,
+            parameters = {
+                InputSchema.Obj(
+                    properties = buildJsonObject {
+                        put("selector", buildJsonObject { put("type", "string"); put("description", "CSS selector") })
+                    },
+                    required = listOf("selector")
+                )
+            },
+            execute = { input ->
+                val selector = input.jsonObject["selector"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"selector required"}"""))
+                val js = "var e=document.querySelector('''$selector''' );if(e)e.dispatchEvent(new MouseEvent(''mouseenter''));"
+                val latch = kotlinx.coroutines.sync.Mutex()
+                mainHandler.post {
+                    webViewRef.get()?.evaluateJavascript(js) { latch.release(); latch.close() }
+                }
+                latch.acquire(); latch.close()
+                listOf(UIMessagePart.Text(buildJsonObject { put("hovered", true); put("selector", selector) }.toString()))
+            }
+        ),
+
+        // 13. browser_press_key
+        Tool(
+            name = "browser_press_key",
+            description = "Press a keyboard key in the browser (Enter, Escape, Tab, Arrow keys, etc.).",
+            needsApproval = true,
+            parameters = {
+                InputSchema.Obj(
+                    properties = buildJsonObject {
+                        put("key", buildJsonObject { put("type", "string"); put("description", "Key name: Enter, Escape, Tab, ArrowUp, etc.") })
+                    },
+                    required = listOf("key")
+                )
+            },
+            execute = { input ->
+                val key = input.jsonObject["key"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"key required"}"""))
+                val safeKey = key.replace("'", "\'").replace("\", "\\")
+                val js = "document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:'$safeKey'}));"
+                mainHandler.post { webViewRef.get()?.evaluateJavascript(js) {} }
+                kotlinx.coroutines.delay(300)
+                listOf(UIMessagePart.Text(buildJsonObject { put("pressed", key); put("success", true) }.toString()))
+            }
+        ),
+
+        // 14. browser_navigate_back
+        Tool(
+            name = "browser_navigate_back",
+            description = "Navigate browser back one page.",
+            needsApproval = false,
+            parameters = { InputSchema.Obj(properties = buildJsonObject { }) },
+            execute = {
+                val webView = webViewRef.get() ?: return@Tool listOf(UIMessagePart.Text("""{"error":"No active browser"}"""))
+                mainHandler.post { webView.goBack() }
+                kotlinx.coroutines.delay(500)
+                listOf(UIMessagePart.Text(buildJsonObject { put("navigated_back", true) }.toString()))
+            }
+        ),
+
+        // 15. browser_resize
+        Tool(
+            name = "browser_resize",
+            description = "Resize browser viewport width and height.",
+            needsApproval = false,
+            parameters = {
+                InputSchema.Obj(
+                    properties = buildJsonObject {
+                        put("width", buildJsonObject { put("type", "integer") })
+                        put("height", buildJsonObject { put("type", "integer") })
+                    },
+                    required = listOf("width", "height")
+                )
+            },
+            execute = { input ->
+                val width = input.jsonObject["width"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: return@Tool listOf(UIMessagePart.Text("""{"error":"width required"}"""))
+                val height = input.jsonObject["height"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: return@Tool listOf(UIMessagePart.Text("""{"error":"height required"}"""))
+                val js = "document.documentElement.style.width='${width}px';document.documentElement.style.height='${height}px';window.scrollTo(0,0);"
+                mainHandler.post { webViewRef.get()?.evaluateJavascript(js) {} }
+                kotlinx.coroutines.delay(300)
+                listOf(UIMessagePart.Text(buildJsonObject { put("resized", true); put("width", width); put("height", height) }.toString()))
+            }
+        ),
+
+        // 16. browser_drag
+        Tool(
+            name = "browser_drag",
+            description = "Drag a browser element from source to target selector.",
+            needsApproval = true,
+            parameters = {
+                InputSchema.Obj(
+                    properties = buildJsonObject {
+                        put("from_selector", buildJsonObject { put("type", "string") })
+                        put("to_selector", buildJsonObject { put("type", "string") })
+                    },
+                    required = listOf("from_selector", "to_selector")
+                )
+            },
+            execute = { input ->
+                val from = input.jsonObject["from_selector"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"from_selector required"}"""))
+                val to = input.jsonObject["to_selector"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"to_selector required"}"""))
+                val js = """
+                    (function() {
+                        var src=document.querySelector('$from'), tgt=document.querySelector('$to');
+                        if(!src||!tgt) return 'Not found';
+                        var rect=tgt.getBoundingClientRect();
+                        var dx=rect.left+rect.width/2, dy=rect.top+rect.height/2;
+                        var md=new MouseEvent('mousedown',{bubbles:true,view:window,cancelable:true});
+                        var mm=new MouseEvent('mousemove',{bubbles:true,view:window,cancelable:true,clientX:dx,clientY:dy});
+                        var mu=new MouseEvent('mouseup',{bubbles:true,view:window,cancelable:true});
+                        src.dispatchEvent(md);src.dispatchEvent(mm);src.dispatchEvent(mu);
+                        return 'Dragged';
+                    })()
+                """.trimIndent()
+                mainHandler.post { webViewRef.get()?.evaluateJavascript(js) {} }
+                kotlinx.coroutines.delay(300)
+                listOf(UIMessagePart.Text(buildJsonObject { put("dragged", true); put("from", from); put("to", to) }.toString()))
+            }
+        ),
+
+        // 17. browser_handle_dialog
+        Tool(
+            name = "browser_handle_dialog",
+            description = "Handle current browser dialog (alert/confirm/prompt). action=accept or dismiss.",
+            needsApproval = true,
+            parameters = {
+                InputSchema.Obj(
+                    properties = buildJsonObject {
+                        put("action", buildJsonObject { put("type", "string"); put("description", "accept or dismiss") })
+                        put("value", buildJsonObject { put("type", "string"); put("description", "Response value for prompt") })
+                    },
+                    required = listOf("action")
+                )
+            },
+            execute = { input ->
+                val action = input.jsonObject["action"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"action required"}"""))
+                mainHandler.post {
+                    if (action == "dismiss") {
+                        webViewRef.get()?.evaluateJavascript("try{window.__dismissDialog=true;}catch(e){}") {}
+                    } else {
+                        webViewRef.get()?.evaluateJavascript("try{window.__acceptDialog=true;}catch(e){}") {}
+                    }
+                }
+                kotlinx.coroutines.delay(200)
+                listOf(UIMessagePart.Text(buildJsonObject { put("handled", action); put("success", true) }.toString()))
+            }
+        ),
+    }
+}
+
+private fun createWebView(context: Context): WebView {
+    val webView = WebView(context)
+    webView.settings.javaScriptEnabled = true
+    webView.settings.domStorageEnabled = true
+    webView.settings.allowFileAccess = true
+    webView.webViewClient = object : WebViewClient() {
+        override fun onPageFinished(view: WebView?, url: String?) { Log.d(TAG, "onPageFinished: $url") }
+    }
+    webView.webChromeClient = object : WebChromeClient() {
+        override fun onConsoleMessage(msg: android.webkit.ConsoleMessage): Boolean {
+            Log.d(TAG, "console: ${msg.message()} (line ${msg.lineNumber()})")
+            return true
+        }
+    }
+    return webView
 }

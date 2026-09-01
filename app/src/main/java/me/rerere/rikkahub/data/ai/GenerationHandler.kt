@@ -65,6 +65,9 @@ import me.rerere.rikkahub.data.model.AssistantMemory
 import me.rerere.rikkahub.data.repository.ConversationRepository
 import me.rerere.rikkahub.data.repository.MemoryRepository
 import me.rerere.rikkahub.utils.applyPlaceholders
+import me.rerere.rikkahub.utils.removeThinkingContent
+import me.rerere.rikkahub.utils.extractThinkingContent
+import me.rerere.rikkahub.utils.isPureThinking
 import java.util.Locale
 import kotlin.time.Clock
  
@@ -402,6 +405,22 @@ class GenerationHandler(
                         // 静默催答：下一轮 generateInternal 通过 internalForcePrompt 注入提示，用户无感知
                         forcePrompt = "你刚才只进行了思考但还没有给出正式回答。请立即直接输出这个问题的完整答案，不要再次沉默或只思考。"
                         continue
+                    }
+                    
+                    // Operit 纯思考检测：移除 thinking 标签后内容为空，说明 AI 只思考没输出
+                    if (assistant?.enablePureThinkingDetection == true && !assistant?.disablePureThinkingWarning == true) {
+                        val contentWithoutThinking = removeThinkingContent(finalText)
+                        if (contentWithoutThinking.isEmpty()) {
+                            Log.w(TAG, "streamText: 检测到纯思考输出（移除thinking后为空），回传告警让AI继续生成 step #$stepIndex")
+                            // 向 UI 发出纯思考告警
+                            val pureThinkingWarning = "⚠️ 你只进行了思考但没有输出正式答案。请直接给出完整回答。"
+                            emit(UIMessagePart.Text(pureThinkingWarning))
+                            // 将告警作为工具结果注入到历史，让AI知道需要继续输出
+                            internalForcePrompt = "$internalForcePrompt
+
+【系统指令】你刚才的回复只有思考内容而没有正式回答。请立刻输出完整的正式答案，不要再沉默。"
+                            continue
+                        }
                     }
 
                     // ===== 死循环/重复检测：文字输出重复（对齐 Operit：静默纠偏或停止）=====
