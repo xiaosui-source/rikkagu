@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -120,7 +121,7 @@ class AssistantDetailVM(
 
     fun updateTags(tagIds: List<Uuid>, tags: List<Tag>) {
         viewModelScope.launch {
-            val settings = settings.value
+            val settings = settingsStore.settingsFlow.first()
             settingsStore.update(
                 settings = settings.copy(
                     assistantTags = tags
@@ -138,7 +139,7 @@ class AssistantDetailVM(
 
     fun cleanupUnusedTags() {
         viewModelScope.launch {
-            val settings = settings.value
+            val settings = settingsStore.settingsFlow.first()
             val validTagIds = settings.assistantTags.map { it.id }.toSet()
 
             // 清理 assistant 中的无效 tag id
@@ -178,7 +179,8 @@ class AssistantDetailVM(
 
     fun update(assistant: Assistant) {
         viewModelScope.launch {
-            val settings = settings.value
+            // 用最新 settings（避免 settings.value 是 stale/dummy 导致保存被丢弃或覆盖丢字段）
+            val settings = settingsStore.settingsFlow.first()
             settingsStore.update(
                 settings = settings.copy(
                     assistants = settings.assistants.map {
