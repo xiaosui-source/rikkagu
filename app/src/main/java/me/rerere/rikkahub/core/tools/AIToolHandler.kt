@@ -129,7 +129,7 @@ class AIToolHandler private constructor(private val context: Context) {
     /**
      * 检查工具拦截。
      */
-    private fun checkToolInterception(tool: Tool): AIToolHookDecision {
+    private suspend fun checkToolInterception(tool: Tool): AIToolHookDecision {
         return toolHooks.firstNotNullOfOrNull { hook ->
             hook.onToolCallRequested(tool)
         } ?: AIToolHookDecision.Allow

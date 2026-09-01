@@ -436,7 +436,7 @@ fun createBrowserTools(context: Context): List<Tool> {
                 when (action) {
                     "list" -> {
                         listOf(UIMessagePart.Text(buildJsonObject {
-                            put("tabs", listOf("current"))
+                            put("tabs", com.google.gson.JsonArray().apply { add("current") })
                             put("active_index", 0)
                         }.toString()))
                     }
@@ -521,7 +521,6 @@ fun createBrowserTools(context: Context): List<Tool> {
                 val safeKey = key.replace("'", "\'").replace("\", "\\")
                 val js = "document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:'$safeKey'}));"
                 mainHandler.post { webViewRef.get()?.evaluateJavascript(js) {} }
-                kotlinx.coroutines.delay(300)
                 listOf(UIMessagePart.Text(buildJsonObject { put("pressed", key); put("success", true) }.toString()))
             }
         ),
@@ -559,7 +558,6 @@ fun createBrowserTools(context: Context): List<Tool> {
                 val height = input.jsonObject["height"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: return@Tool listOf(UIMessagePart.Text("""{"error":"height required"}"""))
                 val js = "document.documentElement.style.width='${width}px';document.documentElement.style.height='${height}px';window.scrollTo(0,0);"
                 mainHandler.post { webViewRef.get()?.evaluateJavascript(js) {} }
-                kotlinx.coroutines.delay(300)
                 listOf(UIMessagePart.Text(buildJsonObject { put("resized", true); put("width", width); put("height", height) }.toString()))
             }
         ),
@@ -595,7 +593,6 @@ fun createBrowserTools(context: Context): List<Tool> {
                     })()
                 """.trimIndent()
                 mainHandler.post { webViewRef.get()?.evaluateJavascript(js) {} }
-                kotlinx.coroutines.delay(300)
                 listOf(UIMessagePart.Text(buildJsonObject { put("dragged", true); put("from", from); put("to", to) }.toString()))
             }
         ),
@@ -677,7 +674,6 @@ fun createBrowserTools(context: Context): List<Tool> {
                     }
                     results.joinToString(" ") + " return 'Filled'; })())"
                 mainHandler.post { webViewRef.get()?.evaluateJavascript(js) {} }
-                kotlinx.coroutines.delay(300)
                 listOf(UIMessagePart.Text(buildJsonObject {
                     put("filled", results.size)
                     put("success", true)
