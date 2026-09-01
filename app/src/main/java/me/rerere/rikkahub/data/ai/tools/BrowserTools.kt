@@ -43,6 +43,9 @@ private const val DEFAULT_TIMEOUT_MS = 15_000L
 fun createBrowserTools(context: Context): List<Tool> {
     val webViewRef = AtomicReference<WebView?>()
     val mainHandler = Handler(Looper.getMainLooper())
+    // 浏览器日志收集（参考 Operit browser_console_messages / browser_network_requests）
+    val consoleLogs = java.util.concurrent.ConcurrentLinkedQueue<String>()
+    val networkLogs = java.util.concurrent.ConcurrentLinkedQueue<String>()
 
     /** 确保 WebView 在主线程创建 */
     fun ensureWebView(): WebView {
@@ -53,8 +56,28 @@ fun createBrowserTools(context: Context): List<Tool> {
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
                 settings.userAgentString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-                webViewClient = WebViewClient()
-                webChromeClient = WebChromeClient()
+                webViewClient = object : WebViewClient() {
+                    override fun shouldInterceptRequest(
+                        view: WebView?,
+                        request: android.webkit.WebResourceRequest?,
+                    ): android.webkit.WebResourceResponse? {
+                        request?.url?.toString()?.let { url ->
+                            if (networkLogs.size > 500) networkLogs.poll()
+                            networkLogs.add(url)
+                        }
+                        return null
+                    }
+                }
+                webChromeClient = object : WebChromeClient() {
+                    override fun onConsoleMessage(message: android.webkit.ConsoleMessage?): Boolean {
+                        if (message != null) {
+                            val line = "${message.messageLevel()}: ${message.message()} (${message.sourceId()}:${message.lineNumber()})"
+                            if (consoleLogs.size > 500) consoleLogs.poll()
+                            consoleLogs.add(line)
+                        }
+                        return super.onConsoleMessage(message)
+                    }
+                }
                 addJavascriptInterface(object {
                     @JavascriptInterface
                     fun onResult(value: String) {
@@ -119,7 +142,19 @@ fun createBrowserTools(context: Context): List<Tool> {
                 val latch = CountDownLatch(1)
                 mainHandler.post {
                     val wv = ensureWebView()
+                    // 保留 ensureWebView 安装的 network 拦截器，只补充 onPageFinished 计数
                     wv.webViewClient = object : WebViewClient() {
+                        override fun shouldInterceptRequest(
+                            view: WebView?,
+                            request: android.webkit.WebResourceRequest?,
+                        ): android.webkit.WebResourceResponse? {
+                            request?.url?.toString()?.let { u ->
+                                if (networkLogs.size > 500) networkLogs.poll()
+                                networkLogs.add(u)
+                            }
+                            return null
+                        }
+
                         override fun onPageFinished(view: WebView?, url: String?) {
                             latch.countDown()
                         }
@@ -322,6 +357,58 @@ fun createBrowserTools(context: Context): List<Tool> {
                 listOf(UIMessagePart.Text(buildJsonObject {
                     put("url", url.trim('"'))
                     put("title", title.trim('"'))
+                }.toString()))
+            }
+        ),
+
+        // 8. browser_console_messages
+        Tool(
+            name = "browser_console_messages",
+            description = "Read recent browser console messages (JS logs, errors, warnings). Use to debug JavaScript issues on the page.",
+            needsApproval = false,
+            parameters = {
+                InputSchema.Obj(
+                    properties = buildJsonObject {
+                        put("count", buildJsonObject {
+                            put("type", "integer")
+                            put("description", "Number of recent messages to return (default 30)")
+                        })
+                    },
+                    required = emptyList(),
+                )
+            },
+            execute = { input ->
+                val count = input.jsonObject["count"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()?.coerceIn(1, 200) ?: 30
+                val msgs = consoleLogs.toList().takeLast(count)
+                listOf(UIMessagePart.Text(buildJsonObject {
+                    put("count", msgs.size)
+                    put("messages", JsonPrimitive(msgs.joinToString("\n")))
+                }.toString()))
+            }
+        ),
+
+        // 9. browser_network_requests
+        Tool(
+            name = "browser_network_requests",
+            description = "Read recent browser network requests (URLs loaded by the page). Use to see what the page is fetching.",
+            needsApproval = false,
+            parameters = {
+                InputSchema.Obj(
+                    properties = buildJsonObject {
+                        put("count", buildJsonObject {
+                            put("type", "integer")
+                            put("description", "Number of recent requests to return (default 30)")
+                        })
+                    },
+                    required = emptyList(),
+                )
+            },
+            execute = { input ->
+                val count = input.jsonObject["count"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()?.coerceIn(1, 200) ?: 30
+                val reqs = networkLogs.toList().takeLast(count)
+                listOf(UIMessagePart.Text(buildJsonObject {
+                    put("count", reqs.size)
+                    put("requests", JsonPrimitive(reqs.joinToString("\n")))
                 }.toString()))
             }
         ),
