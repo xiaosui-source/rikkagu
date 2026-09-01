@@ -18,7 +18,8 @@ import me.rerere.ai.core.Tool
 data class ToolInvocation(
     val tool: Tool,
     val rawText: String,
-    val responseLocation: IntRange = IntRange(0, 0),
+    val responseLocationStart: Int = 0
+    val responseLocationEnd: Int = 0,
 ) {
     val toolName get() = tool.name
 }

@@ -172,7 +172,7 @@ class AIToolHandler private constructor(private val context: Context) {
     /**
      * 通知所有钩子。
      */
-    private fun notifyHooks(eventName: String, action: (AIToolHook) -> Unit) {
+    private suspend fun notifyHooks(eventName: String, action: (AIToolHook) -> Unit) {
         toolHooks.forEach { hook ->
             try {
                 action(hook)
@@ -185,7 +185,7 @@ class AIToolHandler private constructor(private val context: Context) {
     /**
      * 检查工具拦截。
      */
-    private fun checkToolInterception(tool: Tool): AIToolHookDecision {
+    private suspend fun checkToolInterception(tool: Tool): AIToolHookDecision {
         return toolHooks.firstNotNullOfOrNull { hook ->
             hook.onToolCallRequested(tool)
         } ?: AIToolHookDecision.Allow
