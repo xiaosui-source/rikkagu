@@ -139,7 +139,7 @@ fun createBrowserTools(context: Context): List<Tool> {
             },
             execute = { input ->
                 val url = input.jsonObject["url"]?.jsonPrimitive?.contentOrNull
-                    ?: return@Tool listOf(UIMessagePart.Text("""{"error":"url required"}"""))
+                    ?: return@Tool listOf(UIMessagePart.Text("{\"error\":\"url required\"}"))
                 val latch = CountDownLatch(1)
                 mainHandler.post {
                     val wv = ensureWebView()
@@ -191,7 +191,7 @@ fun createBrowserTools(context: Context): List<Tool> {
             },
             execute = { input ->
                 val script = input.jsonObject["script"]?.jsonPrimitive?.contentOrNull
-                    ?: return@Tool listOf(UIMessagePart.Text("""{"error":"script required"}"""))
+                    ?: return@Tool listOf(UIMessagePart.Text("{\"error\":\"script required\"}"))
                 val wrapped = "(function(){ try { $script } catch(e) { return 'ERROR: '+e.message } })()"
                 val result = evaluateJs(wrapped)
                 listOf(UIMessagePart.Text(buildJsonObject {
@@ -244,7 +244,7 @@ fun createBrowserTools(context: Context): List<Tool> {
             },
             execute = { input ->
                 val selector = input.jsonObject["selector"]?.jsonPrimitive?.contentOrNull
-                    ?: return@Tool listOf(UIMessagePart.Text("""{"error":"selector required"}"""))
+                    ?: return@Tool listOf(UIMessagePart.Text("{\"error\":\"selector required\"}"))
                 val result = evaluateJs("""
                     (function(){
                         var el = document.querySelector('$selector');
@@ -282,9 +282,9 @@ fun createBrowserTools(context: Context): List<Tool> {
             },
             execute = { input ->
                 val selector = input.jsonObject["selector"]?.jsonPrimitive?.contentOrNull
-                    ?: return@Tool listOf(UIMessagePart.Text("""{"error":"selector required"}"""))
+                    ?: return@Tool listOf(UIMessagePart.Text("{\"error\":\"selector required\"}"))
                 val value = input.jsonObject["value"]?.jsonPrimitive?.contentOrNull
-                    ?: return@Tool listOf(UIMessagePart.Text("""{"error":"value required"}"""))
+                    ?: return@Tool listOf(UIMessagePart.Text("{\"error\":\"value required\"}"))
                 val escaped = value.replace("\\", "\\\\").replace("'", "\\'")
                 val result = evaluateJs("""
                     (function(){
@@ -433,7 +433,7 @@ fun createBrowserTools(context: Context): List<Tool> {
                 )
             },
             execute = { input ->
-                val action = input.jsonObject["action"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"action required"}"""))
+                val action = input.jsonObject["action"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("{\"error\":\"action required\"}"))
                 when (action) {
                     "list" -> {
                         listOf(UIMessagePart.Text(buildJsonObject {
@@ -493,7 +493,7 @@ fun createBrowserTools(context: Context): List<Tool> {
                 )
             },
             execute = { input ->
-                val selector = input.jsonObject["selector"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"selector required"}"""))
+                val selector = input.jsonObject["selector"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("{\"error\":\"selector required\"}"))
                 val js = "var e=document.querySelector('''$selector''' );if(e)e.dispatchEvent(new MouseEvent(''mouseenter''));"
                 val latch = java.util.concurrent.Semaphore(0)
                 mainHandler.post {
@@ -518,7 +518,7 @@ fun createBrowserTools(context: Context): List<Tool> {
                 )
             },
             execute = { input ->
-                val key = input.jsonObject["key"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"key required"}"""))
+                val key = input.jsonObject["key"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("{\"error\":\"key required\"}"))
                 val safeKey = key.replace("'", "\'").replace("\", "\\")
                 val js = "document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:'$safeKey'}));"
                 mainHandler.post { webViewRef.get()?.evaluateJavascript(js) {} }
@@ -533,7 +533,7 @@ fun createBrowserTools(context: Context): List<Tool> {
             needsApproval = false,
             parameters = { InputSchema.Obj(properties = buildJsonObject { }) },
             execute = {
-                val webView = webViewRef.get() ?: return@Tool listOf(UIMessagePart.Text("""{"error":"No active browser"}"""))
+                val webView = webViewRef.get() ?: return@Tool listOf(UIMessagePart.Text("{\"error\":\"No active browser\"}"))
                 mainHandler.post { webView.goBack() }
                 listOf(UIMessagePart.Text(buildJsonObject { put("navigated_back", true) }.toString()))
             }
@@ -554,8 +554,8 @@ fun createBrowserTools(context: Context): List<Tool> {
                 )
             },
             execute = { input ->
-                val width = input.jsonObject["width"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: return@Tool listOf(UIMessagePart.Text("""{"error":"width required"}"""))
-                val height = input.jsonObject["height"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: return@Tool listOf(UIMessagePart.Text("""{"error":"height required"}"""))
+                val width = input.jsonObject["width"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: return@Tool listOf(UIMessagePart.Text("{\"error\":\"width required\"}"))
+                val height = input.jsonObject["height"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: return@Tool listOf(UIMessagePart.Text("{\"error\":\"height required\"}"))
                 val js = "document.documentElement.style.width='${width}px';document.documentElement.style.height='${height}px';window.scrollTo(0,0);"
                 mainHandler.post { webViewRef.get()?.evaluateJavascript(js) {} }
                 listOf(UIMessagePart.Text(buildJsonObject { put("resized", true); put("width", width); put("height", height) }.toString()))
@@ -577,8 +577,8 @@ fun createBrowserTools(context: Context): List<Tool> {
                 )
             },
             execute = { input ->
-                val from = input.jsonObject["from_selector"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"from_selector required"}"""))
-                val to = input.jsonObject["to_selector"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"to_selector required"}"""))
+                val from = input.jsonObject["from_selector"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("{\"error\":\"from_selector required\"}"))
+                val to = input.jsonObject["to_selector"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("{\"error\":\"to_selector required\"}"))
                 val js = """
                     (function() {
                         var src=document.querySelector('$from'), tgt=document.querySelector('$to');
@@ -612,7 +612,7 @@ fun createBrowserTools(context: Context): List<Tool> {
                 )
             },
             execute = { input ->
-                val action = input.jsonObject["action"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"action required"}"""))
+                val action = input.jsonObject["action"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("{\"error\":\"action required\"}"))
                 mainHandler.post {
                     if (action == "dismiss") {
                         webViewRef.get()?.evaluateJavascript("try{window.__dismissDialog=true;}catch(e){}") {}
@@ -658,7 +658,7 @@ fun createBrowserTools(context: Context): List<Tool> {
                 )
             },
             execute = { input ->
-                val fieldsJson = input.jsonObject["fields"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"fields required"}"""))
+                val fieldsJson = input.jsonObject["fields"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("{\"error\":\"fields required\"}"))
                 val js = "((function() { " +
                     var results = emptyList<String>()
                     try {
@@ -669,7 +669,7 @@ fun createBrowserTools(context: Context): List<Tool> {
                             results += "document.querySelector('$selector')?.value='$value';"
                         }
                     } catch(e: Exception) {
-                        return@Tool listOf(UIMessagePart.Text("""{"error":"Invalid fields format"}"""))
+                        return@Tool listOf(UIMessagePart.Text("{\"error\":\"Invalid fields format\"}"))
                     }
                     results.joinToString(" ") + " return 'Filled'; })())"
                 mainHandler.post { webViewRef.get()?.evaluateJavascript(js) {} }
@@ -695,7 +695,7 @@ fun createBrowserTools(context: Context): List<Tool> {
                 )
             },
             execute = { input ->
-                val selector = input.jsonObject["selector"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"selector required"}"""))
+                val selector = input.jsonObject["selector"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("{\"error\":\"selector required\"}"))
                 val path = input.jsonObject["path"]?.jsonPrimitive?.contentOrNull ?: ""
                 val js = "var input=document.querySelector('$selector');if(input){input.setAttribute('webkitdirectory','');input.value='$path';var e=new Event('change',{bubbles:true});input.dispatchEvent(e);}"
                 mainHandler.post { webViewRef.get()?.evaluateJavascript(js) {} }
@@ -723,7 +723,7 @@ fun createBrowserTools(context: Context): List<Tool> {
             execute = { input ->
                 val filename = input.jsonObject["filename"]?.jsonPrimitive?.contentOrNull ?: "screenshot_${System.currentTimeMillis()}.png"
                 val fullPage = input.jsonObject["fullPage"]?.jsonPrimitive?.contentOrNull?.toBoolean() ?: false
-                val webView = webViewRef.get() ?: return@Tool listOf(UIMessagePart.Text("""{"error":"No active browser"}"""))
+                val webView = webViewRef.get() ?: return@Tool listOf(UIMessagePart.Text("{\"error\":\"No active browser\"}"))
                 val latch = java.util.concurrent.Semaphore(0)
                 var result: String? = null
                 mainHandler.post {
@@ -772,7 +772,7 @@ fun createBrowserTools(context: Context): List<Tool> {
                 )
             },
             execute = { input ->
-                val ref = input.jsonObject["ref"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("""{"error":"ref required"}"""))
+                val ref = input.jsonObject["ref"]?.jsonPrimitive?.contentOrNull ?: return@Tool listOf(UIMessagePart.Text("{\"error\":\"ref required\"}"))
                 val text = input.jsonObject["text"]?.jsonPrimitive?.contentOrNull ?: ""
                 val submit = input.jsonObject["submit"]?.jsonPrimitive?.contentOrNull?.toBoolean() ?: false
                 val slowly = input.jsonObject["slowly"]?.jsonPrimitive?.contentOrNull?.toBoolean() ?: false
