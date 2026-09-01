@@ -69,7 +69,7 @@ fun createMusicTool(context: Context): Tool = Tool(
             properties = buildJsonObject {
                 putJsonObject("action") {
                     put("type", JsonPrimitive("string"))
-                    put("description", JsonPrimitive("Action to perform: 'get_now_playing' (get current playing info), 'play', 'pause', 'next', 'previous', 'seek' (seek to position), 'play_search' (search and play music)"))
+                    put("description", JsonPrimitive("Action to perform: 'get_now_playing' (get current playing info), 'play', 'pause', 'next', 'previous', 'seek' (seek to position), 'stop', 'set_volume', 'play_search' (search and play music)"))
                     put("enum", buildJsonArray {
                         add(JsonPrimitive("get_now_playing"))
                         add(JsonPrimitive("play"))
@@ -77,12 +77,18 @@ fun createMusicTool(context: Context): Tool = Tool(
                         add(JsonPrimitive("next"))
                         add(JsonPrimitive("previous"))
                         add(JsonPrimitive("seek"))
+                        add(JsonPrimitive("stop"))
+                        add(JsonPrimitive("set_volume"))
                         add(JsonPrimitive("play_search"))
                     })
                 }
                 putJsonObject("position_ms") {
                     put("type", JsonPrimitive("integer"))
                     put("description", JsonPrimitive("Position in milliseconds to seek to. Required for 'seek' action."))
+                }
+                putJsonObject("volume") {
+                    put("type", JsonPrimitive("integer"))
+                    put("description", JsonPrimitive("Target media volume 0-100. Required for 'set_volume' action."))
                 }
                 putJsonObject("query") {
                     put("type", JsonPrimitive("string"))
@@ -162,7 +168,7 @@ fun createMusicTool(context: Context): Tool = Tool(
                     listOf(UIMessagePart.Text(result.toString()))
                 }
 
-                "play", "pause", "next", "previous", "seek" -> {
+                "play", "pause", "next", "previous", "seek", "stop" -> {
                     if (controllers.isNullOrEmpty()) {
                         return@Tool listOf(UIMessagePart.Text(
                             buildJsonObject {
@@ -203,6 +209,7 @@ fun createMusicTool(context: Context): Tool = Tool(
                             }
                             transportControls.seekTo(positionMs)
                         }
+                        "stop" -> transportControls.stop()
                     }
 
                     listOf(UIMessagePart.Text(
@@ -211,6 +218,30 @@ fun createMusicTool(context: Context): Tool = Tool(
                             put("action", JsonPrimitive(action))
                             put("app_name", JsonPrimitive(getAppName(context, controller.packageName)))
                             put("message", JsonPrimitive("Successfully sent $action command to ${getAppName(context, controller.packageName)}"))
+                        }.toString()
+                    ))
+                }
+
+                "set_volume" -> {
+                    val volume = params["volume"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()
+                    if (volume == null) {
+                        return@Tool listOf(UIMessagePart.Text(
+                            buildJsonObject {
+                                put("success", false)
+                                put("error", JsonPrimitive("Missing required parameter 'volume' (0-100) for set_volume action"))
+                            }.toString()
+                        ))
+                    }
+                    val am = context.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
+                    val max = am.getStreamMaxVolume(android.media.AudioManager.STREAM_MUSIC)
+                    val target = (volume.coerceIn(0, 100) * max / 100).coerceAtLeast(0)
+                    am.setStreamVolume(android.media.AudioManager.STREAM_MUSIC, target, 0)
+                    listOf(UIMessagePart.Text(
+                        buildJsonObject {
+                            put("success", true)
+                            put("action", JsonPrimitive("set_volume"))
+                            put("volume", JsonPrimitive(volume))
+                            put("message", JsonPrimitive("Set media volume to $volume (max $max)"))
                         }.toString()
                     ))
                 }
