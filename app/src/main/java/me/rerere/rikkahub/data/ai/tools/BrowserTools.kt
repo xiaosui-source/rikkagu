@@ -18,6 +18,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import me.rerere.ai.core.InputSchema
@@ -436,7 +437,7 @@ fun createBrowserTools(context: Context): List<Tool> {
                 when (action) {
                     "list" -> {
                         listOf(UIMessagePart.Text(buildJsonObject {
-                            put("tabs", com.google.gson.JsonArray().apply { add("current") })
+                            put("tabs", listOf("current"))
                             put("active_index", 0)
                         }.toString()))
                     }
@@ -534,7 +535,6 @@ fun createBrowserTools(context: Context): List<Tool> {
             execute = {
                 val webView = webViewRef.get() ?: return@Tool listOf(UIMessagePart.Text("""{"error":"No active browser"}"""))
                 mainHandler.post { webView.goBack() }
-                kotlinx.coroutines.delay(500)
                 listOf(UIMessagePart.Text(buildJsonObject { put("navigated_back", true) }.toString()))
             }
         ),
@@ -620,7 +620,6 @@ fun createBrowserTools(context: Context): List<Tool> {
                         webViewRef.get()?.evaluateJavascript("try{window.__acceptDialog=true;}catch(e){}") {}
                     }
                 }
-                kotlinx.coroutines.delay(200)
                 listOf(UIMessagePart.Text(buildJsonObject { put("handled", action); put("success", true) }.toString()))
             }
         ),
@@ -700,7 +699,6 @@ fun createBrowserTools(context: Context): List<Tool> {
                 val path = input.jsonObject["path"]?.jsonPrimitive?.contentOrNull ?: ""
                 val js = "var input=document.querySelector('$selector');if(input){input.setAttribute('webkitdirectory','');input.value='$path';var e=new Event('change',{bubbles:true});input.dispatchEvent(e);}"
                 mainHandler.post { webViewRef.get()?.evaluateJavascript(js) {} }
-                kotlinx.coroutines.delay(500)
                 listOf(UIMessagePart.Text(buildJsonObject {
                     put("triggered", true)
                     put("selector", selector)
@@ -782,8 +780,6 @@ fun createBrowserTools(context: Context): List<Tool> {
                 var js = "var el=document.querySelector('$ref');if(el){el.focus();el.value='$safeText';var e=new Event('input',{bubbles:true});el.dispatchEvent(e);}"
                 if (submit) js += "el.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));"
                 mainHandler.post { webViewRef.get()?.evaluateJavascript(js) {} }
-                if (slowly) kotlinx.coroutines.delay(500)
-                else kotlinx.coroutines.delay(100)
                 listOf(UIMessagePart.Text(buildJsonObject {
                     put("typed", true)
                     put("ref", ref)
