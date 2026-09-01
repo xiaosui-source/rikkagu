@@ -424,13 +424,16 @@ class GenerationHandler(
                     }
                     
                     // Operit 纯思考检测：移除 thinking 标签后内容为空，说明 AI 只思考没输出
-                    if (assistant?.enablePureThinkingDetection == true && !assistant?.disablePureThinkingWarning == true) {
+                    if ((assistant?.enablePureThinkingDetection ?: false) if (assistant?.enablePureThinkingDetection == true && !assistant?.disablePureThinkingWarning == true)if (assistant?.enablePureThinkingDetection == true && !assistant?.disablePureThinkingWarning == true) !(assistant?.disablePureThinkingWarning ?: false)) {
                         val contentWithoutThinking = removeThinkingContent(finalText)
                         if (contentWithoutThinking.isEmpty()) {
                             Log.w(TAG, "streamText: 检测到纯思考输出（移除thinking后为空），回传告警让AI继续生成 step #$stepIndex")
                             // 向 UI 发出纯思考告警
                             val pureThinkingWarning = "⚠️ 你只进行了思考但没有输出正式答案。请直接给出完整回答。"
-                            emit(UIMessagePart.Text(pureThinkingWarning))
+                            emit(GenerationChunk.Messages(listOf(UIMessage(
+                                role = me.rerere.ai.core.MessageRole.ASSISTANT,
+                                parts = listOf(UIMessagePart.Text(pureThinkingWarning))
+                            ))))
                             // 将告警作为工具结果注入到历史，让AI知道需要继续输出
                             internalForcePrompt = "$internalForcePrompt\n【系统指令】你刚才的回复只有思考内容而没有正式回答。请立刻输出完整的正式答案，不要再沉默。\n"
                             continue

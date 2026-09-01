@@ -28,6 +28,9 @@ import kotlinx.serialization.json.intOrNull
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import org.apache.sshd.client.SshClient
+import org.apache.sshd.client.session.ClientSession
+import org.apache.sshd.sftp.client.SftpClient
 import kotlinx.serialization.json.put
 import me.rerere.ai.core.InputSchema
 import me.rerere.ai.core.Tool
