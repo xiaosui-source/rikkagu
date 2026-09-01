@@ -202,6 +202,9 @@ class GenerationHandler(
                         onDelete = { id ->
                             memoryRepo.deleteMemory(id)
                         },
+                        onLink = { sourceId, targetId ->
+                            memoryRepo.linkMemories(sourceId, targetId)
+                        },
                         readOnly = assistant?.memoryReadOnly == true,
                     ).let(this::addAll)
                 }

@@ -87,6 +87,19 @@ class MemoryRepository(private val memoryDAO: MemoryDAO) {
     suspend fun insertEntity(entity: MemoryEntity): Int =
         memoryDAO.insertMemory(entity).toInt()
 
+    /** 关联记忆（参考 Operit memory link）：把 source 的 relatedIds 追加 targetId，双向关联 */
+    suspend fun linkMemories(sourceId: Int, targetId: Int): AssistantMemory? {
+        val source = memoryDAO.getMemoryById(sourceId) ?: return null
+        val target = memoryDAO.getMemoryById(targetId) ?: return null
+        val srcRelated = source.relatedIds.decodeCsv().toMutableList()
+        if (targetId.toString() !in srcRelated) srcRelated.add(targetId.toString())
+        val tgtRelated = target.relatedIds.decodeCsv().toMutableList()
+        if (sourceId.toString() !in tgtRelated) tgtRelated.add(sourceId.toString())
+        memoryDAO.updateMemory(source.copy(relatedIds = srcRelated.encodeCsv()))
+        memoryDAO.updateMemory(target.copy(relatedIds = tgtRelated.encodeCsv()))
+        return source.copy(relatedIds = srcRelated.encodeCsv()).toAssistantMemory()
+    }
+
     suspend fun addMemory(assistantId: String, content: String, title: String = "", sentiment: Double = 0.0, tags: List<String> = emptyList(), importance: Double = 0.3): AssistantMemory {
         val id = memoryDAO.insertMemory(
             MemoryEntity(

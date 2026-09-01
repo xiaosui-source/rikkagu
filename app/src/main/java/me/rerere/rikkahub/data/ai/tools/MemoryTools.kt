@@ -29,15 +29,18 @@ fun buildMemoryTools(
     onUpdate: suspend (Int, String) -> AssistantMemory,
     onDelete: suspend (Int) -> Unit,
     readOnly: Boolean = false,
+    /** 关联记忆（参考 Operit memory link）：把 source_id 关联到 target_id，返回更新后的记忆；null 表示不支持 */
+    onLink: suspend (Int, Int) -> AssistantMemory? = { _, _ -> null },
 ): List<Tool> = listOf(
     Tool(
         name = "memory_tool",
         description = """
             The memory tool stores long-term information across conversations.
-            Use `action` to control the operation: `create` (add), `edit` (update), `delete` (remove).
+            Use `action` to control the operation: `create` (add), `edit` (update), `delete` (remove), `link` (associate two memories).
             - No relevant record: `create` + `content`
             - Existing relevant record: `edit` + `id` + `content`
             - Outdated/irrelevant record: `delete` + `id`
+            - To associate: `link` + `source_id` + `target_id` (links source to target)
             Memories will automatically appear in the <memories> tag in later conversations.
             Do not store sensitive information (e.g., ethnicity, religion, sexual orientation, political views, sex life, criminal records).
             You may store: preferred name, preferences, plans, work-related notes, chat style preferences, first chat time, etc.
@@ -61,6 +64,7 @@ fun buildMemoryTools(
                                 add("create")
                                 add("edit")
                                 add("delete")
+                                add("link")
                             }
                         )
                         put("description", "Operation to perform: create, edit, or delete")
@@ -68,6 +72,14 @@ fun buildMemoryTools(
                     put("id", buildJsonObject {
                         put("type", "integer")
                         put("description", "The id of the memory record (required for edit/delete)")
+                    })
+                    put("source_id", buildJsonObject {
+                        put("type", "integer")
+                        put("description", "Source memory id (required for link)")
+                    })
+                    put("target_id", buildJsonObject {
+                        put("type", "integer")
+                        put("description", "Target memory id to link to (required for link)")
                     })
                     put("content", buildJsonObject {
                         put("type", "string")
@@ -107,6 +119,20 @@ fun buildMemoryTools(
                     buildJsonObject {
                         put("success", true)
                         put("id", id)
+                    }
+                }
+
+                "link" -> {
+                    val sourceId = params["source_id"]?.jsonPrimitive?.intOrNull ?: error("source_id is required")
+                    val targetId = params["target_id"]?.jsonPrimitive?.intOrNull ?: error("target_id is required")
+                    val linked = onLink(sourceId, targetId)
+                    if (linked == null) {
+                        buildJsonObject {
+                            put("success", false)
+                            put("error", "记忆关联暂不支持")
+                        }
+                    } else {
+                        json.encodeToJsonElement(AssistantMemory.serializer(), linked)
                     }
                 }
 

@@ -60,6 +60,7 @@ class ToolSurfaceBuilder(
                 onCreation = { content -> memoryRepository.addMemory(memoryAssistantId, content) },
                 onUpdate = { id, content -> memoryRepository.updateContent(id, content) },
                 onDelete = { id -> memoryRepository.deleteMemory(id) },
+                onLink = { sourceId, targetId -> memoryRepository.linkMemories(sourceId, targetId) },
             ))
         }
         if (settings.enableWebSearch) {
