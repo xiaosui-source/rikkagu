@@ -266,5 +266,64 @@ fun createBrowserTools(context: Context): List<Tool> {
                 }.toString()))
             }
         ),
+
+        // 6. browser_wait_for
+        Tool(
+            name = "browser_wait_for",
+            description = "Wait until a CSS selector element appears in the browser page (or a fixed delay). " +
+                "Use after navigate or click when the page is loading dynamically.",
+            needsApproval = false,
+            parameters = {
+                InputSchema.Obj(
+                    properties = buildJsonObject {
+                        put("selector", buildJsonObject {
+                            put("type", "string")
+                            put("description", "CSS selector to wait for (may be empty to just wait a delay)")
+                        })
+                        put("timeout_ms", buildJsonObject {
+                            put("type", "integer")
+                            put("description", "Max wait in milliseconds (default 8000)")
+                        })
+                    },
+                    required = emptyList(),
+                )
+            },
+            execute = { input ->
+                val selector = input.jsonObject["selector"]?.jsonPrimitive?.contentOrNull
+                val timeoutMs = input.jsonObject["timeout_ms"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: 8000
+                val start = System.currentTimeMillis()
+                var found = false
+                while (System.currentTimeMillis() - start < timeoutMs) {
+                    if (selector.isNullOrBlank()) break
+                    val check = evaluateJs("!!document.querySelector('$selector')")
+                    if (check.trim('"') == "true") { found = true; break }
+                    Thread.sleep(200)
+                }
+                if (selector.isNullOrBlank()) {
+                    Thread.sleep(timeoutMs.coerceAtMost(5000).toLong())
+                }
+                listOf(UIMessagePart.Text(buildJsonObject {
+                    put("selector", selector ?: "")
+                    put("found", found)
+                    put("waited_ms", System.currentTimeMillis() - start)
+                }.toString()))
+            }
+        ),
+
+        // 7. browser_current_url
+        Tool(
+            name = "browser_current_url",
+            description = "Get the current URL and title of the browser page. Identical to a lightweight snapshot.",
+            needsApproval = false,
+            parameters = { InputSchema.Obj(properties = buildJsonObject { }) },
+            execute = {
+                val url = evaluateJs("location.href")
+                val title = evaluateJs("document.title")
+                listOf(UIMessagePart.Text(buildJsonObject {
+                    put("url", url.trim('"'))
+                    put("title", title.trim('"'))
+                }.toString()))
+            }
+        ),
     )
 }
