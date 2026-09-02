@@ -1,49 +1,41 @@
-/*
- * 灵犀 Lingxi
- * 衍生自 Lingxi (https://github.com/xiaosui-source/rikkagu)，原作者 xiaosui-source
- * 参考 Operit PluginRegistry
- * 本项目基于 GNU AGPL v3 开源，详见根目录 LICENSE 文件
- */
+package com.ai.assistance.operit.plugins
 
-package me.rerere.rikkahub.plugins
-
+import com.ai.assistance.operit.plugins.toolbox.ToolboxPlugin
+import com.ai.assistance.operit.plugins.toolpkg.ToolPkgCommonBridgePlugin
+import com.ai.assistance.operit.plugins.workflow.WorkflowLifecyclePlugin
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.ConcurrentHashMap
 
-/**
- * 插件接口
- * 
- * 完全对齐 Operit AI Plugin接口
- */
-interface RikkaHubPlugin {
+interface OperitPlugin {
     val id: String
+
     fun register()
 }
 
-/**
- * 插件注册表
- * 
- * 完全对齐 Operit AI PluginRegistry
- */
 object PluginRegistry {
-    private val plugins = CopyOnWriteArrayList<RikkaHubPlugin>()
+    private val plugins = CopyOnWriteArrayList<OperitPlugin>()
     private val installedPluginIds = ConcurrentHashMap.newKeySet<String>()
-    
+
     @Volatile
     private var builtinsInitialized = false
-    
+
     @Synchronized
-    fun register(plugin: RikkaHubPlugin) {
+    fun register(plugin: OperitPlugin) {
         plugins.removeAll { it.id == plugin.id }
         plugins.add(plugin)
     }
-    
+
     @Synchronized
     fun initializeBuiltins() {
         if (builtinsInitialized) return
         builtinsInitialized = true
+
+        register(ToolboxPlugin)
+        register(ToolPkgCommonBridgePlugin)
+        register(WorkflowLifecyclePlugin)
+        installAll()
     }
-    
+
     @Synchronized
     fun installAll() {
         for (plugin in plugins) {
@@ -52,9 +44,4 @@ object PluginRegistry {
             }
         }
     }
-    
-    fun isInstalled(pluginId: String): Boolean = installedPluginIds.contains(pluginId)
-    
-    fun getInstalledPlugins(): List<RikkaHubPlugin> = 
-        plugins.filter { installedPluginIds.contains(it.id) }
 }

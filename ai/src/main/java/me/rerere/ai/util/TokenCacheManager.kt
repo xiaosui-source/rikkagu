@@ -1,23 +1,13 @@
-/*
- * 灵犀 Lingxi
- * 衍生自 Lingxi (https://github.com/xiaosui-source/rikkagu)，原作者 xiaosui-source
- * 参考 Operit TokenCacheManager
- * 本项目基于 GNU AGPL v3 开源，详见根目录 LICENSE 文件
- */
+package com.ai.assistance.operit.util
 
-package me.rerere.ai.util
-
-import android.util.Log
+import com.ai.assistance.operit.util.AppLogger
+import com.ai.assistance.operit.util.ChatUtils
 
 /**
  * Token缓存管理器，用于优化重复对话历史的token计算
  * 通过缓存之前计算过的对话历史token数量，避免重复计算相同的内容
- * 
- * 完全对齐 Operit AI TokenCacheManager
  */
 class TokenCacheManager {
-    private val TAG = "TokenCacheManager"
-    
     // 上一次的聊天历史
     private var previousChatHistory: List<Pair<String, String>> = emptyList()
     // 对应于previousChatHistory的token数量
@@ -106,14 +96,18 @@ class TokenCacheManager {
         updateState: Boolean = true
     ): Long {
         // 构建包含工具定义的历史记录列表
+        // 策略：将toolsJson拼接到System Prompt前面，或者作为第一条System消息
+        // 这样可以利用前缀匹配机制缓存工具定义
         val historyWithTools = if (!toolsJson.isNullOrEmpty()) {
             val mutableHistory = chatHistory.toMutableList()
             val systemIndex = mutableHistory.indexOfFirst { it.first == "system" }
             
             if (systemIndex != -1) {
+                // 找到System消息，拼接在前面
                 val originalSystem = mutableHistory[systemIndex]
                 mutableHistory[systemIndex] = originalSystem.copy(second = toolsJson + "\n" + originalSystem.second)
             } else {
+                // 没有System消息，在头部插入
                 mutableHistory.add(0, "system" to toolsJson)
             }
             mutableHistory.toList()
@@ -122,24 +116,30 @@ class TokenCacheManager {
         }
 
         // 找到与之前历史的公共前缀长度
+        // 注意：previousChatHistory现在存储的是包含工具定义的版本
         val commonPrefixLength = findCommonPrefixLength(historyWithTools, previousChatHistory)
         
-        Log.d(TAG, "聊天历史比较: 当前=${historyWithTools.size}, 之前=${previousChatHistory.size}, 公共前缀=${commonPrefixLength}")
+        AppLogger.d("TokenCacheManager", "聊天历史比较: 当前=${historyWithTools.size}, 之前=${previousChatHistory.size}, 公共前缀=${commonPrefixLength}")
         
         val cachedTokens: Long
         val newTokens: Long
 
         if (commonPrefixLength > 0) {
+            // 有公共前缀，可以使用缓存
             cachedTokens = if (commonPrefixLength == previousChatHistory.size) {
+                // 完全匹配之前的历史，直接使用缓存
                 previousHistoryTokenCount
             } else {
+                // 部分匹配，重新计算公共前缀的token数量
                 val commonPrefix = historyWithTools.take(commonPrefixLength)
                 calculateTokensForHistory(commonPrefix)
             }
             
+            // 计算新增部分的token数量 (history剩下的部分 + 当前消息)
             val newPart = historyWithTools.drop(commonPrefixLength)
             newTokens = calculateTokensForHistory(newPart)
         } else {
+            // 没有公共前缀，重新计算所有token
             val historyTokens = calculateTokensForHistory(historyWithTools)
             cachedTokens = 0L
             newTokens = historyTokens
@@ -148,22 +148,25 @@ class TokenCacheManager {
         if (updateState) {
             _cachedInputTokenCount = cachedTokens
             _currentInputTokenCount = newTokens
+
+            // 更新缓存的历史记录 token 数量
             previousHistoryTokenCount = cachedTokens + newTokens
 
+            // 更新缓存的历史记录列表（包含工具定义）
             if (chatHistory.isNotEmpty()) {
                 previousChatHistory = historyWithTools
             }
 
             if (cachedTokens > 0) {
-                Log.d(TAG, "使用token缓存: 缓存=${_cachedInputTokenCount}, 新增=${_currentInputTokenCount}")
+                AppLogger.d("TokenCacheManager", "使用token缓存: 缓存=${_cachedInputTokenCount}, 新增=${_currentInputTokenCount}")
             } else {
-                Log.d(TAG, "重新计算所有tokens: ${_currentInputTokenCount}")
+                AppLogger.d("TokenCacheManager", "重新计算所有tokens: ${_currentInputTokenCount}")
             }
         } else {
             if (cachedTokens > 0) {
-                Log.d(TAG, "只读预估token缓存: 缓存=$cachedTokens, 新增=$newTokens")
+                AppLogger.d("TokenCacheManager", "只读预估token缓存: 缓存=$cachedTokens, 新增=$newTokens")
             } else {
-                Log.d(TAG, "只读预估所有tokens: $newTokens")
+                AppLogger.d("TokenCacheManager", "只读预估所有tokens: $newTokens")
             }
         }
 
@@ -195,8 +198,9 @@ class TokenCacheManager {
      * 计算聊天历史的token数量
      */
     private fun calculateTokensForHistory(history: List<Pair<String, String>>): Long {
-        return history.fold(0L) { acc, (_, content) ->
+        val total = history.fold(0L) { acc, (_, content) ->
             acc + ChatUtils.estimateTokenCount(content)
         }
+        return total
     }
 }
