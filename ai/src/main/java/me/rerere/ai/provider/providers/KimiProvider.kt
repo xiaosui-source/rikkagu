@@ -7,6 +7,8 @@
 
 package me.rerere.ai.provider.providers
 
+import android.util.Log
+
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.buildJsonObject
@@ -158,4 +160,30 @@ class KimiProvider : Provider<ProviderSetting.OpenAI> {
             throw RuntimeException("Request failed: ${e.message}", e)
         }
     }
+
+    // 实现接口要求的抽象方法
+    override suspend fun generateImage(
+        providerSetting: ProviderSetting,
+        params: me.rerere.ai.provider.ImageGenerationParams
+    ): me.rerere.ai.ui.ImageGenerationResult {
+        return me.rerere.ai.ui.ImageGenerationResult(emptyList())
+    }
+    
+    override suspend fun generateEmbedding(
+        providerSetting: ProviderSetting,
+        params: me.rerere.ai.provider.EmbeddingGenerationParams
+    ): me.rerere.ai.provider.EmbeddingGenerationResult {
+        return me.rerere.ai.provider.EmbeddingGenerationResult(
+            model = params.model.id.toString(),
+            embeddings = emptyList()
+        )
+    }
+    
+    override suspend fun editImage(
+        providerSetting: ProviderSetting,
+        params: me.rerere.ai.provider.ImageEditParams
+    ): me.rerere.ai.ui.ImageGenerationResult {
+        return me.rerere.ai.ui.ImageGenerationResult(emptyList())
+    }
+
 }

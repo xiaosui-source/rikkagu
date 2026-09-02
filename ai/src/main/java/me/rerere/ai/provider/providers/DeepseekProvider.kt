@@ -7,6 +7,8 @@
 
 package me.rerere.ai.provider.providers
 
+import android.util.Log
+
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import me.rerere.ai.provider.Provider
@@ -59,7 +61,6 @@ class DeepseekProvider : Provider<ProviderSetting.OpenAI> {
             ))
         }
     }
-}
 
     // 实现接口要求的抽象方法
     override suspend fun generateImage(
@@ -85,3 +86,5 @@ class DeepseekProvider : Provider<ProviderSetting.OpenAI> {
     ): me.rerere.ai.ui.ImageGenerationResult {
         return me.rerere.ai.ui.ImageGenerationResult(emptyList())
     }
+
+}

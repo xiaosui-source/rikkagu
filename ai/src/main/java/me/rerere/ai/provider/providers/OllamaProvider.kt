@@ -7,6 +7,8 @@
 
 package me.rerere.ai.provider.providers
 
+import android.util.Log
+
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import me.rerere.ai.provider.Provider
@@ -58,7 +60,6 @@ class OllamaProvider : Provider<ProviderSetting.LocalLLM> {
             ))
         }
     }
-}
 
     // 实现接口要求的抽象方法
     override suspend fun generateImage(
@@ -84,3 +85,5 @@ class OllamaProvider : Provider<ProviderSetting.LocalLLM> {
     ): me.rerere.ai.ui.ImageGenerationResult {
         return me.rerere.ai.ui.ImageGenerationResult(emptyList())
     }
+
+}

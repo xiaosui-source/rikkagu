@@ -3,8 +3,8 @@ package me.rerere.ai.provider.providers
 import android.content.Context
 import android.os.Environment
 import android.util.Base64
-import android.R
-import me.rerere.rikkahub.util.AppLogger
+import com.ai.assistance.operit.R
+import android.util.Log
 import com.ai.assistance.operit.core.chat.hooks.PromptTurn
 import com.ai.assistance.operit.core.chat.hooks.PromptTurnKind
 import com.ai.assistance.operit.util.FFmpegUtil
@@ -98,13 +98,13 @@ class MNNProvider(
         // 调用底层 native 取消方法，立即中断推理
         llmSession?.cancel()
         
-        AppLogger.d(TAG, "已取消MNN推理（已通知底层中断）")
+        Log.d(TAG, "已取消MNN推理（已通知底层中断）")
     }
 
     private fun logLargeString(prefix: String, message: String) {
         val maxLogSize = 3000
         if (message.length <= maxLogSize) {
-            AppLogger.d(TAG, "$prefix$message")
+            Log.d(TAG, "$prefix$message")
             return
         }
 
@@ -113,14 +113,14 @@ class MNNProvider(
             val start = index * maxLogSize
             val end = minOf((index + 1) * maxLogSize, message.length)
             val chunk = message.substring(start, end)
-            AppLogger.d(TAG, "$prefix Part ${index + 1}/$chunkCount: $chunk")
+            Log.d(TAG, "$prefix Part ${index + 1}/$chunkCount: $chunk")
         }
     }
 
     private fun logFinalOutput(content: CharSequence, prefix: String = "Final MNN output: ") {
         val finalOutput = content.toString()
         if (finalOutput.isBlank()) {
-            AppLogger.d(TAG, "${prefix.trimEnd()}[empty]")
+            Log.d(TAG, "${prefix.trimEnd()}[empty]")
             return
         }
         logLargeString(prefix, finalOutput)
@@ -132,11 +132,11 @@ class MNNProvider(
     private suspend fun initModel(): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             if (llmSession == null) {
-                AppLogger.d(TAG, "初始化MNN LLM模型: $modelName")
+                Log.d(TAG, "初始化MNN LLM模型: $modelName")
                 
                 // 获取模型目录
                 val modelDir = getModelDir(context, modelName)
-                AppLogger.d(TAG, "模型目录: $modelDir")
+                Log.d(TAG, "模型目录: $modelDir")
                 
                 // 检查目录是否存在
                 val modelDirFile = File(modelDir)
@@ -162,12 +162,12 @@ class MNNProvider(
                     6 -> "opengl"
                     7 -> "vulkan"
                     else -> {
-                        AppLogger.w(TAG, "未知的 forwardType: $forwardType，使用默认 CPU")
+                        Log.w(TAG, "未知的 forwardType: $forwardType，使用默认 CPU")
                         "cpu"
                     }
                 }
                 
-                AppLogger.d(TAG, "创建MNN LLM会话，后端: $backendType, 线程数: $threadCount")
+                Log.d(TAG, "创建MNN LLM会话，后端: $backendType, 线程数: $threadCount")
                 
                 // Vulkan/OpenCL 后端需要 normal 内存模式以避免 Clone error
                 // CPU 后端可以使用 low 内存模式
@@ -177,16 +177,16 @@ class MNNProvider(
                     "low"
                 }
                 
-                AppLogger.d(TAG, "内存模式: $memoryMode (后端: $backendType)")
+                Log.d(TAG, "内存模式: $memoryMode (后端: $backendType)")
                 
                 // 创建缓存目录（用于存放 mnn_cachefile.bin 等临时文件）
                 val cacheDir = File(context.cacheDir, "mnn_cache")
                 if (!cacheDir.exists()) {
                     val created = cacheDir.mkdirs()
-                    AppLogger.d(TAG, "创建MNN缓存目录: $created")
+                    Log.d(TAG, "创建MNN缓存目录: $created")
                 }
-                AppLogger.d(TAG, "MNN缓存目录: ${cacheDir.absolutePath}")
-                AppLogger.d(TAG, "缓存目录存在: ${cacheDir.exists()}, 可写: ${cacheDir.canWrite()}")
+                Log.d(TAG, "MNN缓存目录: ${cacheDir.absolutePath}")
+                Log.d(TAG, "缓存目录存在: ${cacheDir.exists()}, 可写: ${cacheDir.canWrite()}")
                 
                 // 创建 LLM Session（配置必须在创建时传入！）
                 llmSession = MNNLlmSession.create(
@@ -208,7 +208,7 @@ class MNNProvider(
             }
             Result.success(Unit)
         } catch (e: Exception) {
-            AppLogger.e(TAG, "初始化MNN LLM模型失败", e)
+            Log.e(TAG, "初始化MNN LLM模型失败", e)
             Result.failure(e)
         }
     }
@@ -221,7 +221,7 @@ class MNNProvider(
             val session = llmSession ?: return@withContext estimateTokens(text)
             session.countTokens(text)
         } catch (e: Exception) {
-            AppLogger.w(TAG, "Token计数失败，使用估算", e)
+            Log.w(TAG, "Token计数失败，使用估算", e)
             estimateTokens(text)
         }
     }
@@ -313,7 +313,7 @@ class MNNProvider(
             FileOutputStream(out).use { it.write(bytes) }
             out
         } catch (e: Exception) {
-            AppLogger.e(TAG, "写入多模态临时文件失败: mimeType=$mimeType", e)
+            Log.e(TAG, "写入多模态临时文件失败: mimeType=$mimeType", e)
             runCatching { out.delete() }
             null
         }
@@ -558,7 +558,7 @@ class MNNProvider(
             throw IllegalStateException("Failed to apply MNN jinja context")
         }
 
-        AppLogger.d(
+        Log.d(
             TAG,
             "Applied MNN jinja context: thinking=$enableThinking, tools=${toolsArray.length()}"
         )
@@ -627,7 +627,7 @@ class MNNProvider(
             applyModelParameters(session, modelParameters)
 
             if (chatHistory.isEmpty()) {
-                AppLogger.d(TAG, "消息为空，跳过处理")
+                Log.d(TAG, "消息为空，跳过处理")
                 return@stream
             }
 
@@ -669,7 +669,7 @@ class MNNProvider(
                     }
             onTokensUpdated(_inputTokenCount, 0L, 0L)
 
-            AppLogger.d(
+            Log.d(
                 TAG,
                 "开始MNN LLM推理，历史消息数: ${conversationHistory.size}, thinking模式: $enableThinking, toolCall=$useInternalToolCall"
             )
@@ -738,7 +738,7 @@ class MNNProvider(
             // 取消原样传播，不 emit 错误文本
             throw e
         } catch (e: Exception) {
-            AppLogger.e(TAG, "发送消息时出错", e)
+            Log.e(TAG, "发送消息时出错", e)
             throw e
         } finally {
             requestTempFiles.forEach { file ->
@@ -791,7 +791,7 @@ class MNNProvider(
 
             Result.success(context.getString(R.string.mnn_connection_success, modelName, modelDir, formatFileSize(totalSize), fileStatus))
         } catch (e: Exception) {
-            AppLogger.e(TAG, "测试连接失败", e)
+            Log.e(TAG, "测试连接失败", e)
             Result.failure(e)
         }
     }
@@ -900,7 +900,7 @@ class MNNProvider(
                                             else -> null
                                         }
                                     } catch (e: Exception) {
-                                        AppLogger.w(TAG, "自定义OBJECT参数解析失败: ${param.apiName}", e)
+                                        Log.w(TAG, "自定义OBJECT参数解析失败: ${param.apiName}", e)
                                         null
                                     }
                                     if (parsed != null) {
@@ -935,16 +935,16 @@ class MNNProvider(
                     append("}")
                 }
                 
-                AppLogger.d(TAG, "应用模型参数: $configJson")
+                Log.d(TAG, "应用模型参数: $configJson")
                 val success = session.setConfig(configJson)
                 if (!success) {
-                    AppLogger.w(TAG, "部分模型参数设置失败")
+                    Log.w(TAG, "部分模型参数设置失败")
                 }
             } else {
-                AppLogger.d(TAG, "没有启用的模型参数需要应用")
+                Log.d(TAG, "没有启用的模型参数需要应用")
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "应用模型参数时出错", e)
+            Log.e(TAG, "应用模型参数时出错", e)
         }
     }
     
@@ -1010,32 +1010,10 @@ class MNNProvider(
         try {
             llmSession?.release()
             llmSession = null
-            AppLogger.d(TAG, "MNN LLM资源已释放")
+            Log.d(TAG, "MNN LLM资源已释放")
         } catch (e: Exception) {
-            AppLogger.e(TAG, "释放资源时出错", e)
+            Log.e(TAG, "释放资源时出错", e)
         }
     }
 }
 
-
-    // 实现接口要求的抽象方法
-    override suspend fun generateImage(
-        providerSetting: ProviderSetting,
-        params: me.rerere.ai.provider.ImageGenerationParams
-    ): me.rerere.ai.ui.ImageGenerationResult {
-        throw NotImplementedError("图像生成不支持")
-    }
-    
-    override suspend fun generateEmbedding(
-        providerSetting: ProviderSetting,
-        params: me.rerere.ai.provider.EmbeddingGenerationParams
-    ): me.rerere.ai.provider.EmbeddingGenerationResult {
-        throw NotImplementedError("向量生成不支持")
-    }
-    
-    override suspend fun editImage(
-        providerSetting: ProviderSetting,
-        params: me.rerere.ai.provider.ImageEditParams
-    ): me.rerere.ai.ui.ImageGenerationResult {
-        throw NotImplementedError("图像编辑不支持")
-    }

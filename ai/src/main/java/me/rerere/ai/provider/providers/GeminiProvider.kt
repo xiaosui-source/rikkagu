@@ -1,6 +1,6 @@
 package me.rerere.ai.provider.providers
 
-import me.rerere.rikkahub.util.AppLogger
+import android.util.Log
 import com.ai.assistance.operit.core.chat.hooks.PromptTurn
 import com.ai.assistance.operit.core.chat.hooks.PromptTurnKind
 import com.ai.assistance.operit.core.chat.hooks.toPromptTurns
@@ -14,7 +14,7 @@ import me.rerere.ai.util.ChatUtils
 import com.ai.assistance.operit.util.ChatMarkupRegex
 import com.ai.assistance.operit.util.HttpLogSanitizer
 import com.ai.assistance.operit.util.StreamingJsonXmlConverter
-import com.ai.assistance.operit.util.TokenCacheManager
+import me.rerere.ai.util.TokenCacheManager
 import com.ai.assistance.operit.util.exceptions.UserCancellationException
 import com.ai.assistance.operit.util.stream.MutableSharedStream
 import com.ai.assistance.operit.util.stream.Stream
@@ -27,7 +27,7 @@ import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import android.util.Base64
-import android.R
+import com.ai.assistance.operit.R
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -173,9 +173,9 @@ open class GeminiProvider(
         activeResponse?.let {
             try {
                 it.close()
-                AppLogger.d(TAG, "已强制关闭Response流")
+                Log.d(TAG, "已强制关闭Response流")
             } catch (e: Exception) {
-                AppLogger.w(TAG, "关闭Response时出错: ${e.message}")
+                Log.w(TAG, "关闭Response时出错: ${e.message}")
             }
         }
         activeResponse = null
@@ -184,12 +184,12 @@ open class GeminiProvider(
         activeCall?.let {
             if (!it.isCanceled()) {
                 it.cancel()
-                AppLogger.d(TAG, "已取消当前流式传输，Call已中断")
+                Log.d(TAG, "已取消当前流式传输，Call已中断")
             }
         }
         activeCall = null
 
-        AppLogger.d(TAG, "取消标志已设置，流读取将立即被中断")
+        Log.d(TAG, "取消标志已设置，流读取将立即被中断")
     }
 
     // 重置Token计数
@@ -396,7 +396,7 @@ open class GeminiProvider(
                     args.put(paramName, paramValue)
                 }
 
-                AppLogger.d(TAG, "XML→GeminiFunctionCall: $toolName")
+                Log.d(TAG, "XML→GeminiFunctionCall: $toolName")
                 JSONObject().apply {
                     put("name", toolName)
                     put("args", args)
@@ -450,7 +450,7 @@ open class GeminiProvider(
             }
             
             functionResponses.add(functionResponse)
-            AppLogger.d(TAG, "解析Gemini functionResponse: $toolName, content length=${resultContent.length}")
+            Log.d(TAG, "解析Gemini functionResponse: $toolName, content length=${resultContent.length}")
             
             textContent = textContent.replace(match.value, "").trim()
         }
@@ -906,18 +906,18 @@ open class GeminiProvider(
                 val chunkMessage = message.substring(start, end)
 
                 // 打印带有编号的日志
-                AppLogger.d(tag, "$prefix Part ${i+1}/$chunkCount: $chunkMessage")
+                Log.d(tag, "$prefix Part ${i+1}/$chunkCount: $chunkMessage")
             }
         } else {
             // 消息长度在限制之内，直接打印
-            AppLogger.d(tag, "$prefix$message")
+            Log.d(tag, "$prefix$message")
         }
     }
 
     private fun logFinalOutput(content: CharSequence, prefix: String = "Gemini final output: ") {
         val finalOutput = content.toString()
         if (finalOutput.isBlank()) {
-            AppLogger.d(TAG, "${prefix.trimEnd()}[empty]")
+            Log.d(TAG, "${prefix.trimEnd()}[empty]")
             return
         }
         logLargeString(TAG, finalOutput, prefix)
@@ -1003,15 +1003,15 @@ open class GeminiProvider(
     // 日志辅助方法
     private fun logDebug(message: String) {
         if (DEBUG) {
-            AppLogger.d(TAG, message)
+            Log.d(TAG, message)
         }
     }
 
     private fun logError(message: String, throwable: Throwable? = null) {
         if (throwable != null) {
-            AppLogger.e(TAG, message, throwable)
+            Log.e(TAG, message, throwable)
         } else {
-            AppLogger.e(TAG, message)
+            Log.e(TAG, message)
         }
     }
 
@@ -1097,7 +1097,7 @@ open class GeminiProvider(
         // A terminal failure must retain its streamed text; only a replacement request discards it.
         onRetryAccepted()
         val retryDelayMs = LlmRetryPolicy.nextDelayMs(newRetryCount)
-        AppLogger.w(TAG, "$errorText，将在 ${retryDelayMs}ms 后进行第 $newRetryCount 次重试...", exception)
+        Log.w(TAG, "$errorText，将在 ${retryDelayMs}ms 后进行第 $newRetryCount 次重试...", exception)
         if (!shouldSuppressKeyPoolRateLimitNotice(apiKeyProvider, exception, TAG)) {
             onNonFatalError(buildRetryMessage(errorText, newRetryCount))
         }
@@ -1135,7 +1135,7 @@ open class GeminiProvider(
                 tokenCacheManager.outputTokenCount
         )
 
-        AppLogger.d(TAG, "发送消息到Gemini API, 模型: $modelName")
+        Log.d(TAG, "发送消息到Gemini API, 模型: $modelName")
 
         val maxRetries = LlmRetryPolicy.MAX_RETRY_ATTEMPTS
         var retryCount = 0
@@ -1177,7 +1177,7 @@ open class GeminiProvider(
             
             try {
                 if (retryCount > 0) {
-                    AppLogger.d(
+                    Log.d(
                         TAG,
                         "【Gemini 重试】原子回滚后重新请求，本轮已撤回内容长度: ${receivedContent.length}"
                     )
@@ -1202,7 +1202,7 @@ open class GeminiProvider(
                     activeResponse = response
                     try {
                         val duration = System.currentTimeMillis() - startTime
-                        AppLogger.d(TAG, "收到初始响应, 耗时: ${duration}ms, 状态码: ${response.code}")
+                        Log.d(TAG, "收到初始响应, 耗时: ${duration}ms, 状态码: ${response.code}")
 
                         emitConnectionStatus(context.getString(R.string.gemini_connected_success))
 
@@ -1230,7 +1230,7 @@ open class GeminiProvider(
                         }
                     } finally {
                         response.close()
-                        AppLogger.d(TAG, "关闭响应连接")
+                        Log.d(TAG, "关闭响应连接")
                     }
                 }
 
@@ -1413,7 +1413,7 @@ open class GeminiProvider(
         val method = if (isStreaming) "streamGenerateContent" else "generateContent"
         val requestUrl = "$baseUrl/v1beta/models/$modelName:$method"
 
-        AppLogger.d(TAG, "请求URL: $requestUrl")
+        Log.d(TAG, "请求URL: $requestUrl")
 
         // 创建Request Builder
         val builder = Request.Builder()
@@ -1464,7 +1464,7 @@ open class GeminiProvider(
             onUsageReported: (suspend (com.ai.assistance.operit.data.stats.ProviderUsageSnapshot, attempt: Int) -> Unit)? = null,
             attemptNumber: Int = 1
     ) {
-        AppLogger.d(TAG, "开始处理响应流")
+        Log.d(TAG, "开始处理响应流")
         val responseBody = response.body ?: throw IOException(context.getString(R.string.gemini_response_empty))
         val reader = responseBody.charStream().buffered()
 
@@ -1650,13 +1650,13 @@ open class GeminiProvider(
                 }
             }
 
-            AppLogger.d(TAG, "响应处理完成: 共${lineCount}行, ${jsonCount}个JSON块, 提取${contentCount}个内容块")
+            Log.d(TAG, "响应处理完成: 共${lineCount}行, ${jsonCount}个JSON块, 提取${contentCount}个内容块")
 
             // 检查是否还有未解析完的JSON
             if (isCollectingJson && completeJsonBuilder.isNotEmpty()) {
                 try {
                     val finalJson = completeJsonBuilder.toString()
-                    AppLogger.d(TAG, "处理最终收集的JSON，长度: ${finalJson.length}")
+                    Log.d(TAG, "处理最终收集的JSON，长度: ${finalJson.length}")
 
                     val jsonContent =
                             if (jsonStartSymbol == '[') {
@@ -1746,7 +1746,7 @@ open class GeminiProvider(
             onUsageReported: (suspend (com.ai.assistance.operit.data.stats.ProviderUsageSnapshot, attempt: Int) -> Unit)? = null,
             attemptNumber: Int = 1
     ) {
-        AppLogger.d(TAG, "开始处理非流式响应")
+        Log.d(TAG, "开始处理非流式响应")
         val responseBody = response.body ?: throw IOException(context.getString(R.string.gemini_response_empty))
 
         suspend fun reportUsage(usage: com.ai.assistance.operit.data.stats.ProviderUsageSnapshot?) {
@@ -2138,25 +2138,3 @@ open class GeminiProvider(
         }
     }
 }
-
-    // 实现接口要求的抽象方法
-    override suspend fun generateImage(
-        providerSetting: ProviderSetting,
-        params: me.rerere.ai.provider.ImageGenerationParams
-    ): me.rerere.ai.ui.ImageGenerationResult {
-        throw NotImplementedError("图像生成不支持")
-    }
-    
-    override suspend fun generateEmbedding(
-        providerSetting: ProviderSetting,
-        params: me.rerere.ai.provider.EmbeddingGenerationParams
-    ): me.rerere.ai.provider.EmbeddingGenerationResult {
-        throw NotImplementedError("向量生成不支持")
-    }
-    
-    override suspend fun editImage(
-        providerSetting: ProviderSetting,
-        params: me.rerere.ai.provider.ImageEditParams
-    ): me.rerere.ai.ui.ImageGenerationResult {
-        throw NotImplementedError("图像编辑不支持")
-    }

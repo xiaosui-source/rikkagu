@@ -119,7 +119,7 @@ class TokenCacheManager {
         // 注意：previousChatHistory现在存储的是包含工具定义的版本
         val commonPrefixLength = findCommonPrefixLength(historyWithTools, previousChatHistory)
         
-        AppLogger.d("TokenCacheManager", "聊天历史比较: 当前=${historyWithTools.size}, 之前=${previousChatHistory.size}, 公共前缀=${commonPrefixLength}")
+        Log.d("TokenCacheManager", "聊天历史比较: 当前=${historyWithTools.size}, 之前=${previousChatHistory.size}, 公共前缀=${commonPrefixLength}")
         
         val cachedTokens: Long
         val newTokens: Long
@@ -158,15 +158,15 @@ class TokenCacheManager {
             }
 
             if (cachedTokens > 0) {
-                AppLogger.d("TokenCacheManager", "使用token缓存: 缓存=${_cachedInputTokenCount}, 新增=${_currentInputTokenCount}")
+                Log.d("TokenCacheManager", "使用token缓存: 缓存=${_cachedInputTokenCount}, 新增=${_currentInputTokenCount}")
             } else {
-                AppLogger.d("TokenCacheManager", "重新计算所有tokens: ${_currentInputTokenCount}")
+                Log.d("TokenCacheManager", "重新计算所有tokens: ${_currentInputTokenCount}")
             }
         } else {
             if (cachedTokens > 0) {
-                AppLogger.d("TokenCacheManager", "只读预估token缓存: 缓存=$cachedTokens, 新增=$newTokens")
+                Log.d("TokenCacheManager", "只读预估token缓存: 缓存=$cachedTokens, 新增=$newTokens")
             } else {
-                AppLogger.d("TokenCacheManager", "只读预估所有tokens: $newTokens")
+                Log.d("TokenCacheManager", "只读预估所有tokens: $newTokens")
             }
         }
 
