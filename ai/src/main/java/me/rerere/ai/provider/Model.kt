@@ -23,6 +23,7 @@ data class Model(
     val abilities: List<ModelAbility> = emptyList(),
     val tools: Set<BuiltInTools> = emptySet(),
     val providerOverwrite: ProviderSetting? = null,
+    val contextLength: Int? = null,
 )
 
 @Serializable
