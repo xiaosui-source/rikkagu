@@ -1,6 +1,6 @@
 package me.rerere.ai.util
 
-import me.rerere.rikkahub.util.AppLogger
+import android.util.Log
 import me.rerere.ai.util.ChatUtils
 
 /**
