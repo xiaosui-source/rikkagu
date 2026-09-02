@@ -424,7 +424,7 @@ class GenerationHandler(
                     }
                     
                     // Operit 纯思考检测：移除 thinking 标签后内容为空，说明 AI 只思考没输出
-                    if ((assistant?.enablePureThinkingDetection ?: false) if (assistant?.enablePureThinkingDetection == true && !assistant?.disablePureThinkingWarning == true)if (assistant?.enablePureThinkingDetection == true && !assistant?.disablePureThinkingWarning == true) !(assistant?.disablePureThinkingWarning ?: false)) {
+                    if ((assistant?.enablePureThinkingDetection ?: false) && !(assistant?.disablePureThinkingWarning ?: false)) {
                         val contentWithoutThinking = removeThinkingContent(finalText)
                         if (contentWithoutThinking.isEmpty()) {
                             Log.w(TAG, "streamText: 检测到纯思考输出（移除thinking后为空），回传告警让AI继续生成 step #$stepIndex")
@@ -884,7 +884,15 @@ class GenerationHandler(
  
             }
             if (system.isNotBlank()) add(UIMessage.system(prompt = system))
-            addAll(messages.limitContext(assistant.contextMessageSize))
+            // 使用token限制替代消息数量限制（对齐Operit AI机制）
+            val maxContextTokens = assistant.maxContextTokens ?: (model.contextLength ?: 128000) * 9 // 保留10%余量
+            val originalTokenCount = calculateMessageTokens(messages)
+            val trimmedMessages = messages.trimByTokenLimit(maxContextTokens)
+            val trimmedTokenCount = calculateMessageTokens(trimmedMessages)
+            if (originalTokenCount > maxContextTokens) {
+                Log.w(TAG, "streamText: Token limit exceeded ($originalTokenCount > $maxContextTokens), trimming ${originalTokenCount - trimmedTokenCount} tokens")
+            }
+            addAll(trimmedMessages)
         }.transforms(
             transformers = transformers,
             context = context,

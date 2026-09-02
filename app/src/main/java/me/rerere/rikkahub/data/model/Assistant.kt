@@ -28,6 +28,7 @@ data class Assistant(
     val temperature: Float? = null,
     val topP: Float? = null,
     val contextMessageSize: Int = 0,
+    val maxContextTokens: Int? = null,
     val streamOutput: Boolean = true,
     val enableMemory: Boolean = false,
     val memoryReadOnly: Boolean = false,
