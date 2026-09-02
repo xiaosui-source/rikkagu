@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.util
+package me.rerere.rikkahub.util
 
 import com.ai.assistance.operit.util.AppLogger
 import com.ai.assistance.operit.util.ChatUtils

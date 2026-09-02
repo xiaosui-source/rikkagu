@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.plugins.toolbox
+package me.rerere.rikkahub.plugins.toolbox
 
 import com.ai.assistance.operit.core.application.OperitApplication
 import com.ai.assistance.operit.core.tools.AIToolHandler

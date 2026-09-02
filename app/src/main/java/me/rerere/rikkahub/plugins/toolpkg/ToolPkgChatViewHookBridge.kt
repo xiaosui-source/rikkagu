@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.plugins.toolpkg
+package me.rerere.rikkahub.plugins.toolpkg
 
 import com.ai.assistance.operit.core.tools.packTool.PackageManager
 import com.ai.assistance.operit.core.tools.packTool.TOOLPKG_EVENT_CHAT_VIEW

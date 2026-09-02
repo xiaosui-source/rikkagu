@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.plugins.toolpkg
+package me.rerere.rikkahub.plugins.toolpkg
 
 import com.ai.assistance.operit.core.chat.plugins.MessageProcessingController
 import com.ai.assistance.operit.util.AppLogger

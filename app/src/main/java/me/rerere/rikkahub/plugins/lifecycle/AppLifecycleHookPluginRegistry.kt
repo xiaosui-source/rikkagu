@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.plugins.lifecycle
+package me.rerere.rikkahub.plugins.lifecycle
 
 import android.content.Context
 import java.util.concurrent.CopyOnWriteArrayList

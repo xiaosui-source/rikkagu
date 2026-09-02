@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.core.workflow
+package me.rerere.rikkahub.workflow
 
 import android.content.Context
 import com.ai.assistance.operit.util.AppLogger

@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.data.mcp.plugins
+package me.rerere.rikkahub.data.ai.mcp.plugins
 
 import android.util.Log
 import com.ai.assistance.operit.core.tools.mcp.McpRuntimeCallResult

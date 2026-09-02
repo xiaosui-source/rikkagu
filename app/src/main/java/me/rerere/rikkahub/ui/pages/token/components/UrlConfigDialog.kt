@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.ui.features.token.components
+package me.rerere.rikkahub.ui.pages.token.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

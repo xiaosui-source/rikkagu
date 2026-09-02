@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.plugins.workflow
+package me.rerere.rikkahub.plugins.workflow
 
 import com.ai.assistance.operit.data.repository.WorkflowRepository
 import com.ai.assistance.operit.plugins.OperitPlugin

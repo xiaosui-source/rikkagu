@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.core.tools.defaultTool.standard
+package me.rerere.rikkahub.data.ai.tools
 
 import com.ai.assistance.operit.core.tools.CalculationResultData
 import com.ai.assistance.operit.core.tools.DateResultData

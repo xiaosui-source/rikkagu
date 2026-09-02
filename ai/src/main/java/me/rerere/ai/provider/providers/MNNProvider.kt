@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.api.chat.llmprovider
+package me.rerere.ai.provider.providers
 
 import android.content.Context
 import android.os.Environment

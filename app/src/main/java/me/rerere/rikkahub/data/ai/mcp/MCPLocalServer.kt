@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.data.mcp
+package me.rerere.rikkahub.data.ai.mcp
 
 import android.content.Context
 import android.content.SharedPreferences

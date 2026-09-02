@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.ui.features.token.preferences
+package me.rerere.rikkahub.ui.pages.token.preferences
 
 import android.content.Context
 import androidx.datastore.core.DataStore

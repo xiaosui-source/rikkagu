@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.data.mcp.plugins
+package me.rerere.rikkahub.data.ai.mcp.plugins
 
 import com.ai.assistance.operit.util.AppLogger
 import java.io.File

@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.data.dao
+package me.rerere.rikkahub.data.db.dao
 
 import androidx.room.Dao
 import androidx.room.Embedded

@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.api.chat.library
+package me.rerere.rikkahub.data.ai.memory.library
 
 import android.content.Context
 import com.ai.assistance.operit.api.chat.EnhancedAIService

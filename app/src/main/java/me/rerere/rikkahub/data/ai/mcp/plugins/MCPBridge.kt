@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.data.mcp.plugins
+package me.rerere.rikkahub.data.ai.mcp.plugins
 
 import android.content.Context
 import com.ai.assistance.operit.R

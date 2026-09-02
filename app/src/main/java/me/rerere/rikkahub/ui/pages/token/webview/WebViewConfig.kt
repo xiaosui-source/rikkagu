@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.ui.features.token.webview
+package me.rerere.rikkahub.ui.pages.token.webview
 
 import android.annotation.SuppressLint
 import android.content.Context

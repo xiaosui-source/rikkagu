@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.api.chat.llmprovider
+package me.rerere.ai.provider.providers
 
 import com.ai.assistance.operit.util.AppLogger
 import com.ai.assistance.operit.core.chat.hooks.PromptTurn

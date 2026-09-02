@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.core.tools.defaultTool.standard
+package me.rerere.rikkahub.data.ai.tools
 
 import android.content.Context
 import android.net.Uri

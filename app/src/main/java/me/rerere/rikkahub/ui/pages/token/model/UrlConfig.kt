@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.ui.features.token.model
+package me.rerere.rikkahub.ui.pages.token.model
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CreditCard

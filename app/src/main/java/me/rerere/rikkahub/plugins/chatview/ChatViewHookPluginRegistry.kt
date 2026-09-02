@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.plugins.chatview
+package me.rerere.rikkahub.plugins.chatview
 
 import android.content.Context
 import com.ai.assistance.operit.util.AppLogger

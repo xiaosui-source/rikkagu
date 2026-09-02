@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.plugins
+package me.rerere.rikkahub.plugins
 
 import com.ai.assistance.operit.plugins.toolbox.ToolboxPlugin
 import com.ai.assistance.operit.plugins.toolpkg.ToolPkgCommonBridgePlugin

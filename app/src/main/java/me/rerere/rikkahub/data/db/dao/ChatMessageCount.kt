@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.data.dao
+package me.rerere.rikkahub.data.db.dao
 
 data class ChatMessageCount(
         val chatId: String,

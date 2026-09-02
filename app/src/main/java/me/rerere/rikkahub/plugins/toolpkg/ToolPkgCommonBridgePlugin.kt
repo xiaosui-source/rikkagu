@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.plugins.toolpkg
+package me.rerere.rikkahub.plugins.toolpkg
 
 import android.content.Context
 import androidx.compose.ui.graphics.Color

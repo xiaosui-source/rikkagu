@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.ui.features.token.network
+package me.rerere.rikkahub.ui.pages.token.network
 
 /** Deepseek平台API的相关常量 */
 object DeepseekApiConstants {

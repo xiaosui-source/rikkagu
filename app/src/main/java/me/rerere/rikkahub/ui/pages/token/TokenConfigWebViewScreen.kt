@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.ui.features.token
+package me.rerere.rikkahub.ui.pages.token
 
 import com.ai.assistance.operit.util.AppLogger
 import android.webkit.WebResourceRequest
