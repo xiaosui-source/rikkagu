@@ -1,69 +1,36 @@
 package me.rerere.ai.provider.providers
 
-import android.util.Log
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import me.rerere.ai.provider.*
-import me.rerere.ai.ui.MessageChunk
-import me.rerere.ai.ui.UIMessage
+import me.rerere.rikkahub.data.model.modelApiProviderType
+import okhttp3.OkHttpClient
 
-class OllamaProvider : Provider<ProviderSetting.LocalLLM> {
-    companion object {
-        private const val TAG = "OllamaProvider"
-    }
-
-    override suspend fun listModels(providerSetting: ProviderSetting.LocalLLM): List<Model> {
-        return emptyList()
-    }
-
-    override suspend fun generateText(
-        providerSetting: ProviderSetting.LocalLLM,
-        messages: List<UIMessage>,
-        params: TextGenerationParams
-    ): MessageChunk {
-        Log.d(TAG, "generateText called")
-        return MessageChunk(
-            id = java.util.UUID.randomUUID().toString(),
-            model = params.model.id.toString(),
-            choices = emptyList()
-        )
-    }
-
-    override suspend fun streamText(
-        providerSetting: ProviderSetting.LocalLLM,
-        messages: List<UIMessage>,
-        params: TextGenerationParams
-    ): Flow<MessageChunk> {
-        return flow {
-            emit(MessageChunk(
-                id = java.util.UUID.randomUUID().toString(),
-                model = params.model.id.toString(),
-                choices = emptyList()
-            ))
-        }
-    }
-
-    override suspend fun generateEmbedding(
-        providerSetting: ProviderSetting.LocalLLM,
-        params: EmbeddingGenerationParams
-    ): EmbeddingGenerationResult {
-        return EmbeddingGenerationResult(
-            model = params.model.modelId,
-            embeddings = emptyList()
-        )
-    }
-
-    override suspend fun generateImage(
-        providerSetting: ProviderSetting,
-        params: ImageGenerationParams
-    ): ImageGenerationResult {
-        return ImageGenerationResult(emptyList())
-    }
-
-    override suspend fun editImage(
-        providerSetting: ProviderSetting,
-        params: ImageEditParams
-    ): ImageGenerationResult {
-        return ImageGenerationResult(emptyList())
-    }
-}
+/**
+ * Ollama provider.
+ * Uses OpenAI-compatible API surface exposed by Ollama (e.g. /v1/chat/completions).
+ */
+class OllamaProvider(
+    apiEndpoint: String,
+    apiKeyProvider: ApiKeyProvider,
+    modelName: String,
+    client: OkHttpClient,
+    customHeaders: Map<String, String> = emptyMap(),
+    providerType: ApiProviderType = ApiProviderType.OLLAMA,
+    supportsVision: Boolean = false,
+    supportsAudio: Boolean = false,
+    supportsVideo: Boolean = false,
+    enableToolCall: Boolean = false,
+    thinkingConfigurations: String = "",
+    thinkingOptionId: String = ""
+) : OpenAIProvider(
+    apiEndpoint = apiEndpoint,
+    apiKeyProvider = apiKeyProvider,
+    modelName = modelName,
+    client = client,
+    customHeaders = customHeaders,
+    providerType = providerType,
+    supportsVision = supportsVision,
+    supportsAudio = supportsAudio,
+    supportsVideo = supportsVideo,
+    enableToolCall = enableToolCall,
+    thinkingConfigurations = thinkingConfigurations,
+        thinkingOptionId = thinkingOptionId
+)
