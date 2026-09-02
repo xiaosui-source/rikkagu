@@ -1,4 +1,4 @@
-package me.rerere.rikkahub.util
+package me.rerere.ai.util
 
 import me.rerere.rikkahub.util.AppLogger
 import me.rerere.ai.util.ChatUtils
