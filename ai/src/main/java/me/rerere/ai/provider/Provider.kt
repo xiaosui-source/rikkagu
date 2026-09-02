@@ -145,7 +145,7 @@ fun calculateMessageTokens(messages: List<UIMessage>): Long {
                 is me.rerere.ai.ui.UIMessagePart.Text -> estimateTokenCount(part.text)
                 is me.rerere.ai.ui.UIMessagePart.Tool -> {
                     estimateTokenCount(part.tool.toolName) +
-                    estimateTokenCount(part.tool.description) +
+                    estimateTokenCount(part.tool.toolName) +
                     (part.tool.input?.toString()?.let { estimateTokenCount(it) } ?: 0L)
                 }
                 is me.rerere.ai.ui.UIMessagePart.ToolResult -> {
