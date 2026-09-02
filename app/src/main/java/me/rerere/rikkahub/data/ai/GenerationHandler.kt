@@ -40,6 +40,9 @@ import me.rerere.ai.provider.Provider
 import me.rerere.ai.provider.EmbeddingGenerationParams
 import me.rerere.ai.provider.ProviderManager
 import me.rerere.ai.provider.ProviderSetting
+import me.rerere.ai.provider.estimateTokenCount
+import me.rerere.ai.provider.calculateMessageTokens
+import me.rerere.ai.provider.trimByTokenLimit
 import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.registry.ModelRegistry
 import me.rerere.ai.ui.UIMessage
