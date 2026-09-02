@@ -3,8 +3,8 @@ package me.rerere.ai.provider.providers
 import android.content.Context
 import android.os.Environment
 import android.util.Base64
-import com.ai.assistance.operit.R
-import com.ai.assistance.operit.util.AppLogger
+import android.R
+import me.rerere.rikkahub.util.AppLogger
 import com.ai.assistance.operit.core.chat.hooks.PromptTurn
 import com.ai.assistance.operit.core.chat.hooks.PromptTurnKind
 import com.ai.assistance.operit.util.FFmpegUtil
@@ -1017,3 +1017,25 @@ class MNNProvider(
     }
 }
 
+
+    // 实现接口要求的抽象方法
+    override suspend fun generateImage(
+        providerSetting: ProviderSetting,
+        params: me.rerere.ai.provider.ImageGenerationParams
+    ): me.rerere.ai.ui.ImageGenerationResult {
+        throw NotImplementedError("图像生成不支持")
+    }
+    
+    override suspend fun generateEmbedding(
+        providerSetting: ProviderSetting,
+        params: me.rerere.ai.provider.EmbeddingGenerationParams
+    ): me.rerere.ai.provider.EmbeddingGenerationResult {
+        throw NotImplementedError("向量生成不支持")
+    }
+    
+    override suspend fun editImage(
+        providerSetting: ProviderSetting,
+        params: me.rerere.ai.provider.ImageEditParams
+    ): me.rerere.ai.ui.ImageGenerationResult {
+        throw NotImplementedError("图像编辑不支持")
+    }

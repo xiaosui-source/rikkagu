@@ -1,7 +1,7 @@
 package me.rerere.rikkahub.util
 
-import com.ai.assistance.operit.util.AppLogger
-import com.ai.assistance.operit.util.ChatUtils
+import me.rerere.rikkahub.util.AppLogger
+import me.rerere.ai.util.ChatUtils
 
 /**
  * Token缓存管理器，用于优化重复对话历史的token计算

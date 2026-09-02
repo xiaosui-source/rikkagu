@@ -1,14 +1,14 @@
 package com.ai.assistance.operit.api.chat.llmprovider
 
 import android.content.Context
-import com.ai.assistance.operit.core.chat.hooks.PromptTurn
-import com.ai.assistance.operit.data.model.ModelOption
-import com.ai.assistance.operit.data.model.ModelParameter
-import com.ai.assistance.operit.data.model.TokenUsageRecordEntity
-import com.ai.assistance.operit.data.model.ToolPrompt
-import com.ai.assistance.operit.data.stats.ProviderUsageSnapshot
-import com.ai.assistance.operit.data.stats.TokenUsageRepository
-import com.ai.assistance.operit.util.AppLogger
+import me.rerere.ai.core.chat.hooks.PromptTurn
+import me.rerere.rikkahub.data.model.ModelOption
+import me.rerere.rikkahub.data.model.ModelParameter
+import me.rerere.rikkahub.data.model.TokenUsageRecordEntity
+import me.rerere.rikkahub.data.model.ToolPrompt
+import me.rerere.rikkahub.data.stats.ProviderUsageSnapshot
+import me.rerere.rikkahub.data.stats.TokenUsageRepository
+import me.rerere.rikkahub.util.AppLogger
 import com.ai.assistance.operit.util.stream.RevisableTextStream
 import com.ai.assistance.operit.util.stream.SharedStream
 import com.ai.assistance.operit.util.stream.Stream
