@@ -1,8 +1,8 @@
 package me.rerere.rikkahub.data.ai.mcp.plugins
 
 import android.content.Context
-import com.ai.assistance.operit.util.AppLogger
-import com.ai.assistance.operit.core.tools.system.Terminal
+android.util.Log
+me.rerere.rikkahub.tools.system.Terminal
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -39,7 +39,7 @@ object MCPSharedSession {
             val terminal = Terminal.getInstance(context)
             if (!terminal.isConnected()) {
                 if (!terminal.initialize()) {
-                    AppLogger.e(TAG, "Failed to initialize Terminal")
+                    Log.e(TAG, "Failed to initialize Terminal")
                     return@withLock null
                 }
             }
@@ -47,9 +47,9 @@ object MCPSharedSession {
             // 创建共享会话
             val sessionId = terminal.createSession(SESSION_NAME)
             if (sessionId == null) {
-                AppLogger.e(TAG, "Failed to create shared session or session initialization timeout")
+                Log.e(TAG, "Failed to create shared session or session initialization timeout")
             } else {
-                AppLogger.d(TAG, "Created shared MCP session: $sessionId")
+                Log.d(TAG, "Created shared MCP session: $sessionId")
                 sharedSessionId = sessionId
             }
             
@@ -68,7 +68,7 @@ object MCPSharedSession {
      */
     suspend fun clearSession() {
         mutex.withLock {
-            AppLogger.d(TAG, "Clearing shared session reference: $sharedSessionId")
+            Log.d(TAG, "Clearing shared session reference: $sharedSessionId")
             sharedSessionId = null
         }
     }

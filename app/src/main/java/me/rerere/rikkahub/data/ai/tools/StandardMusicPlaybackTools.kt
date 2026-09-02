@@ -2,11 +2,11 @@ package me.rerere.rikkahub.data.ai.tools
 
 import android.content.Context
 import android.net.Uri
-import com.ai.assistance.operit.core.tools.MusicPlaybackResultData
-import com.ai.assistance.operit.core.tools.StringResultData
-import com.ai.assistance.operit.data.model.AITool
-import com.ai.assistance.operit.data.model.ToolResult
-import com.ai.assistance.operit.util.AppLogger
+me.rerere.rikkahub.tools.MusicPlaybackResultData
+me.rerere.rikkahub.tools.StringResultData
+me.rerere.rikkahub.data.model.AITool
+me.rerere.rikkahub.data.model.ToolResult
+android.util.Log
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
@@ -71,7 +71,7 @@ class StandardMusicPlaybackTools(private val context: Context) {
                 error = e.message
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Music play failed", e)
+            Log.e(TAG, "Music play failed", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -122,7 +122,7 @@ class StandardMusicPlaybackTools(private val context: Context) {
                 error = e.message
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Music queue play failed", e)
+            Log.e(TAG, "Music queue play failed", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -177,7 +177,7 @@ class StandardMusicPlaybackTools(private val context: Context) {
                 error = e.message
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Music operation failed", e)
+            Log.e(TAG, "Music operation failed", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -289,7 +289,7 @@ class StandardMusicPlaybackTools(private val context: Context) {
             }
             ParsedQueueItems(items, null)
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to parse music queue items", e)
+            Log.e(TAG, "Failed to parse music queue items", e)
             ParsedQueueItems(emptyList(), "items must be a JSON array")
         }
     }

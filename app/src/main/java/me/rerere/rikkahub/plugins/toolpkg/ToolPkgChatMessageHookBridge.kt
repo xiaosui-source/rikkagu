@@ -1,10 +1,10 @@
 package me.rerere.rikkahub.plugins.toolpkg
 
-import com.ai.assistance.operit.core.tools.packTool.PackageManager
-import com.ai.assistance.operit.core.tools.packTool.TOOLPKG_EVENT_CHAT_MESSAGE
-import com.ai.assistance.operit.core.tools.packTool.ToolPkgContainerRuntime
-import com.ai.assistance.operit.data.model.ChatMessage
-import com.ai.assistance.operit.util.AppLogger
+me.rerere.rikkahub.tools.packTool.PackageManager
+me.rerere.rikkahub.tools.packTool.TOOLPKG_EVENT_CHAT_MESSAGE
+me.rerere.rikkahub.tools.packTool.ToolPkgContainerRuntime
+me.rerere.rikkahub.data.model.ChatMessage
+android.util.Log
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -55,7 +55,7 @@ internal object ToolPkgChatMessageHookBridge {
                         eventPayload = eventPayload
                     )
                 result.onFailure { error ->
-                    AppLogger.e(
+                    Log.e(
                         TAG,
                         "ToolPkg chat message hook failed: ${hook.containerPackageName}:${hook.hookId}",
                         error

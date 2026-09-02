@@ -1,6 +1,6 @@
 package me.rerere.rikkahub.data.ai.memory.library
 
-import com.ai.assistance.operit.data.model.ChatMessage
+me.rerere.rikkahub.data.model.ChatMessage
 
 internal object ChatMemoryWindowPlanner {
 

@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.core.tools.defaultTool.standard
+package me.rerere.core.tools.defaultTool.standard
 
 import android.content.Context
 import android.database.Cursor
@@ -6,23 +6,23 @@ import android.net.Uri
 import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 import android.util.Base64
-import com.ai.assistance.operit.core.tools.BinaryFileContentData
-import com.ai.assistance.operit.core.tools.DirectoryListingData
-import com.ai.assistance.operit.core.tools.FileContentData
-import com.ai.assistance.operit.core.tools.FileExistsData
-import com.ai.assistance.operit.core.tools.FileInfoData
-import com.ai.assistance.operit.core.tools.FileOperationData
-import com.ai.assistance.operit.core.tools.FilePartContentData
-import com.ai.assistance.operit.core.tools.FindFilesResultData
-import com.ai.assistance.operit.core.tools.GrepResultData
-import com.ai.assistance.operit.core.tools.StringResultData
-import com.ai.assistance.operit.core.tools.ToolExecutionLimits
-import com.ai.assistance.operit.core.tools.ToolProgressBus
-import com.ai.assistance.operit.data.model.AITool
-import com.ai.assistance.operit.data.model.ToolResult
-import com.ai.assistance.operit.data.preferences.ApiPreferences
-import com.ai.assistance.operit.util.AppLogger
-import com.ai.assistance.operit.util.FileUtils
+me.rerere.rikkahub.tools.BinaryFileContentData
+me.rerere.rikkahub.tools.DirectoryListingData
+me.rerere.rikkahub.tools.FileContentData
+me.rerere.rikkahub.tools.FileExistsData
+me.rerere.rikkahub.tools.FileInfoData
+me.rerere.rikkahub.tools.FileOperationData
+me.rerere.rikkahub.tools.FilePartContentData
+me.rerere.rikkahub.tools.FindFilesResultData
+me.rerere.rikkahub.tools.GrepResultData
+me.rerere.rikkahub.tools.StringResultData
+me.rerere.rikkahub.tools.ToolExecutionLimits
+me.rerere.rikkahub.tools.ToolProgressBus
+me.rerere.rikkahub.data.model.AITool
+me.rerere.rikkahub.data.model.ToolResult
+me.rerere.rikkahub.data.preferences.ApiPreferences
+android.util.Log
+me.rerere.FileUtils
 import java.io.BufferedReader
 import java.io.BufferedInputStream
 import java.io.InputStreamReader
@@ -1193,7 +1193,7 @@ class SafFileSystemTools(
                     error = ""
                 )
             } catch (e: Exception) {
-                AppLogger.e("SafFileSystemTools", "Error listing files: $path", e)
+                Log.e("SafFileSystemTools", "Error listing files: $path", e)
                 ToolResult(toolName = tool.name, success = false, result = StringResultData(""), error = "Error listing directory: ${e.message}")
             }
         }
@@ -1553,7 +1553,7 @@ class SafFileSystemTools(
                 val content = bytes.toString(Charsets.UTF_8)
                 ToolResult(toolName = tool.name, success = true, result = FileContentData(path = path, content = content, size = querySize(uri) ?: bytes.size.toLong(), env = envLabel), error = "")
             } catch (e: Exception) {
-                AppLogger.e("SafFileSystemTools", "Error reading repository file full: $path", e)
+                Log.e("SafFileSystemTools", "Error reading repository file full: $path", e)
                 ToolResult(toolName = tool.name, success = false, result = StringResultData(""), error = "Error reading file: ${e.message}")
             }
         }
@@ -1580,7 +1580,7 @@ class SafFileSystemTools(
                 }
                 ToolResult(toolName = tool.name, success = true, result = FileContentData(path = path, content = contentWithLineNumbers, size = contentWithLineNumbers.length.toLong(), env = envLabel), error = "")
             } catch (e: Exception) {
-                AppLogger.e("SafFileSystemTools", "Error reading repository file: $path", e)
+                Log.e("SafFileSystemTools", "Error reading repository file: $path", e)
                 ToolResult(toolName = tool.name, success = false, result = StringResultData(""), error = "Error reading file: ${e.message}")
             }
         }
@@ -1645,7 +1645,7 @@ class SafFileSystemTools(
                     error = ""
                 )
             } catch (e: Exception) {
-                AppLogger.e("SafFileSystemTools", "Error reading repository file part: $path", e)
+                Log.e("SafFileSystemTools", "Error reading repository file part: $path", e)
                 ToolResult(toolName = tool.name, success = false, result = StringResultData(""), error = "Error reading file part: ${e.message}")
             }
         }
@@ -1671,7 +1671,7 @@ class SafFileSystemTools(
                     error = ""
                 )
             } catch (e: Exception) {
-                AppLogger.e("SafFileSystemTools", "Error reading repository binary file: $path", e)
+                Log.e("SafFileSystemTools", "Error reading repository binary file: $path", e)
                 ToolResult(toolName = tool.name, success = false, result = StringResultData(""), error = "Error reading binary file: ${e.message}")
             }
         }

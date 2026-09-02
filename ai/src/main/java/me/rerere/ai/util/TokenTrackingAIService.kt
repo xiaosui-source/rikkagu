@@ -1,20 +1,20 @@
 package me.rerere.ai.util
 
 import android.content.Context
-import com.ai.assistance.operit.core.chat.hooks.PromptTurn
-import com.ai.assistance.operit.data.model.ModelOption
-import com.ai.assistance.operit.data.model.ModelParameter
-import com.ai.assistance.operit.data.model.TokenUsageRecordEntity
-import com.ai.assistance.operit.data.model.ToolPrompt
-import com.ai.assistance.operit.data.stats.ProviderUsageSnapshot
-import com.ai.assistance.operit.data.stats.TokenUsageRepository
+me.rerere.rikkahub.chat.hooks.PromptTurn
+me.rerere.rikkahub.data.model.ModelOption
+me.rerere.rikkahub.data.model.ModelParameter
+me.rerere.rikkahub.data.model.TokenUsageRecordEntity
+me.rerere.rikkahub.data.model.ToolPrompt
+me.rerere.rikkahub.data.stats.ProviderUsageSnapshot
+me.rerere.rikkahub.data.stats.TokenUsageRepository
 import android.util.Log
-import com.ai.assistance.operit.util.stream.RevisableTextStream
-import com.ai.assistance.operit.util.stream.SharedStream
-import com.ai.assistance.operit.util.stream.Stream
-import com.ai.assistance.operit.util.stream.StreamCollector
-import com.ai.assistance.operit.util.stream.TextStreamEvent
-import com.ai.assistance.operit.util.stream.TextStreamEventCarrier
+me.rerere.stream.RevisableTextStream
+me.rerere.stream.SharedStream
+me.rerere.stream.Stream
+me.rerere.stream.StreamCollector
+me.rerere.stream.TextStreamEvent
+me.rerere.stream.TextStreamEventCarrier
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CancellationException

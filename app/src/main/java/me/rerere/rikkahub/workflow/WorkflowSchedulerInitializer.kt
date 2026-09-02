@@ -1,8 +1,8 @@
 package me.rerere.rikkahub.workflow
 
 import android.content.Context
-import com.ai.assistance.operit.util.AppLogger
-import com.ai.assistance.operit.data.repository.WorkflowRepository
+android.util.Log
+me.rerere.rikkahub.data.repository.WorkflowRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -23,7 +23,7 @@ object WorkflowSchedulerInitializer {
      * Should be called from Application.onCreate()
      */
     fun initialize(context: Context) {
-        AppLogger.d(TAG, "Initializing workflow scheduler...")
+        Log.d(TAG, "Initializing workflow scheduler...")
         
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -38,17 +38,17 @@ object WorkflowSchedulerInitializer {
                             val success = repository.scheduleWorkflow(workflow.id)
                             if (success) {
                                 scheduledCount++
-                                AppLogger.d(TAG, "Scheduled workflow: ${workflow.name} (${workflow.id})")
+                                Log.d(TAG, "Scheduled workflow: ${workflow.name} (${workflow.id})")
                             }
                         }
                     }
                     
-                    AppLogger.d(TAG, "Workflow scheduler initialized. Scheduled $scheduledCount workflows.")
+                    Log.d(TAG, "Workflow scheduler initialized. Scheduled $scheduledCount workflows.")
                 } ?: run {
-                    AppLogger.w(TAG, "Failed to get workflows during initialization")
+                    Log.w(TAG, "Failed to get workflows during initialization")
                 }
             } catch (e: Exception) {
-                AppLogger.e(TAG, "Error initializing workflow scheduler", e)
+                Log.e(TAG, "Error initializing workflow scheduler", e)
             }
         }
     }

@@ -37,17 +37,17 @@ import android.webkit.SslErrorHandler
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
-import com.ai.assistance.operit.R
-import com.ai.assistance.operit.core.application.ActivityLifecycleManager
-import com.ai.assistance.operit.core.tools.StringResultData
-import com.ai.assistance.operit.core.tools.ToolExecutor
-import com.ai.assistance.operit.core.tools.defaultTool.websession.browser.*
-import com.ai.assistance.operit.core.tools.defaultTool.websession.userscript.UserscriptInstallSourceType
-import com.ai.assistance.operit.core.tools.defaultTool.websession.userscript.runtime.WebSessionUserscriptManager
-import com.ai.assistance.operit.core.tools.defaultTool.websession.userscript.storage.UserscriptRepository
-import com.ai.assistance.operit.data.model.AITool
-import com.ai.assistance.operit.data.model.ToolResult
-import com.ai.assistance.operit.util.AppLogger
+import me.rerere.R
+me.rerere.rikkahub.application.ActivityLifecycleManager
+me.rerere.rikkahub.tools.StringResultData
+me.rerere.rikkahub.tools.ToolExecutor
+me.rerere.rikkahub.tools.defaultTool.websession.browser.*
+me.rerere.rikkahub.tools.defaultTool.websession.userscript.UserscriptInstallSourceType
+me.rerere.rikkahub.tools.defaultTool.websession.userscript.runtime.WebSessionUserscriptManager
+me.rerere.rikkahub.tools.defaultTool.websession.userscript.storage.UserscriptRepository
+me.rerere.rikkahub.data.model.AITool
+me.rerere.rikkahub.data.model.ToolResult
+android.util.Log
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -229,7 +229,7 @@ class StandardBrowserSessionTools(internal val context: Context) : ToolExecutor 
                 else -> error(tool.name, "Unsupported browser session tool: ${tool.name}")
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Tool execution failed: ${tool.name}", e)
+            Log.e(TAG, "Tool execution failed: ${tool.name}", e)
             error(tool.name, e.message ?: "Unknown error")
         }
     }

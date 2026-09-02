@@ -1,17 +1,17 @@
 package me.rerere.rikkahub.plugins.toolbox
 
-import com.ai.assistance.operit.core.application.OperitApplication
-import com.ai.assistance.operit.core.tools.AIToolHandler
-import com.ai.assistance.operit.core.tools.packTool.PackageManager
-import com.ai.assistance.operit.core.tools.packTool.ToolPkgContainerRuntime
-import com.ai.assistance.operit.plugins.OperitPlugin
-import com.ai.assistance.operit.plugins.lifecycle.AppLifecycleEvent
-import com.ai.assistance.operit.plugins.lifecycle.AppLifecycleHookParams
-import com.ai.assistance.operit.plugins.lifecycle.AppLifecycleHookPlugin
-import com.ai.assistance.operit.plugins.lifecycle.AppLifecycleHookPluginRegistry
-import com.ai.assistance.operit.plugins.lifecycle.AppLifecycleReplayEvent
-import com.ai.assistance.operit.plugins.toolpkg.ToolPkgAppLifecycleHookRegistration
-import com.ai.assistance.operit.util.AppLogger
+me.rerere.rikkahub.application.OperitApplication
+me.rerere.rikkahub.tools.AIToolHandler
+me.rerere.rikkahub.tools.packTool.PackageManager
+me.rerere.rikkahub.tools.packTool.ToolPkgContainerRuntime
+me.rerere.OperitPlugin
+me.rerere.lifecycle.AppLifecycleEvent
+me.rerere.lifecycle.AppLifecycleHookParams
+me.rerere.lifecycle.AppLifecycleHookPlugin
+me.rerere.lifecycle.AppLifecycleHookPluginRegistry
+me.rerere.lifecycle.AppLifecycleReplayEvent
+me.rerere.toolpkg.ToolPkgAppLifecycleHookRegistration
+android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.Dispatchers
@@ -123,7 +123,7 @@ private object ToolPkgAppLifecycleHookPlugin : AppLifecycleHookPlugin {
                     )
                 }
             result.onFailure { error ->
-                AppLogger.e(
+                Log.e(
                     TAG,
                     "ToolPkg app lifecycle hook failed: ${hook.containerPackageName}:${hook.hookId}",
                     error

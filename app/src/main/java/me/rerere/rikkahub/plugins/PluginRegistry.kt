@@ -1,8 +1,8 @@
 package me.rerere.rikkahub.plugins
 
-import com.ai.assistance.operit.plugins.toolbox.ToolboxPlugin
-import com.ai.assistance.operit.plugins.toolpkg.ToolPkgCommonBridgePlugin
-import com.ai.assistance.operit.plugins.workflow.WorkflowLifecyclePlugin
+me.rerere.toolbox.ToolboxPlugin
+me.rerere.toolpkg.ToolPkgCommonBridgePlugin
+me.rerere.workflow.WorkflowLifecyclePlugin
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.ConcurrentHashMap
 

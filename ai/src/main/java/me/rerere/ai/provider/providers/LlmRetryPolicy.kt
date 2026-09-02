@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.api.chat.llmprovider
+package me.rerere.api.chat.llmprovider
 
 internal object LlmRetryPolicy {
     const val MAX_RETRY_ATTEMPTS = 5

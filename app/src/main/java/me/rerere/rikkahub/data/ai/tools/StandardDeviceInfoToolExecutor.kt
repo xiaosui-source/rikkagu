@@ -8,11 +8,11 @@ import android.os.Build
 import android.os.Environment
 import android.os.StatFs
 import android.provider.Settings
-import com.ai.assistance.operit.core.tools.DeviceInfoResultData
-import com.ai.assistance.operit.core.tools.StringResultData
-import com.ai.assistance.operit.core.tools.ToolExecutor
-import com.ai.assistance.operit.data.model.AITool
-import com.ai.assistance.operit.data.model.ToolResult
+me.rerere.rikkahub.tools.DeviceInfoResultData
+me.rerere.rikkahub.tools.StringResultData
+me.rerere.rikkahub.tools.ToolExecutor
+me.rerere.rikkahub.data.model.AITool
+me.rerere.rikkahub.data.model.ToolResult
 
 /**
  * Device information tool that collects comprehensive system details Provides information about

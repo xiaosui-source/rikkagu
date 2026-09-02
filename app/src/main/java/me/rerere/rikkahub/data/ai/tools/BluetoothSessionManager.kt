@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.core.tools.defaultTool.standard
+package me.rerere.core.tools.defaultTool.standard
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
@@ -19,16 +19,16 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.util.Base64
-import com.ai.assistance.operit.core.tools.BluetoothBleCharacteristicData
-import com.ai.assistance.operit.core.tools.BluetoothBleNotificationData
-import com.ai.assistance.operit.core.tools.BluetoothBleNotificationEntry
-import com.ai.assistance.operit.core.tools.BluetoothBleServiceData
-import com.ai.assistance.operit.core.tools.BluetoothBleServicesData
-import com.ai.assistance.operit.core.tools.BluetoothReadData
-import com.ai.assistance.operit.core.tools.BluetoothScanResultData
-import com.ai.assistance.operit.core.tools.BluetoothScannedDeviceData
-import com.ai.assistance.operit.core.tools.BluetoothSessionData
-import com.ai.assistance.operit.core.tools.BluetoothTransferData
+me.rerere.rikkahub.tools.BluetoothBleCharacteristicData
+me.rerere.rikkahub.tools.BluetoothBleNotificationData
+me.rerere.rikkahub.tools.BluetoothBleNotificationEntry
+me.rerere.rikkahub.tools.BluetoothBleServiceData
+me.rerere.rikkahub.tools.BluetoothBleServicesData
+me.rerere.rikkahub.tools.BluetoothReadData
+me.rerere.rikkahub.tools.BluetoothScanResultData
+me.rerere.rikkahub.tools.BluetoothScannedDeviceData
+me.rerere.rikkahub.tools.BluetoothSessionData
+me.rerere.rikkahub.tools.BluetoothTransferData
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.UUID

@@ -4,12 +4,12 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import com.ai.assistance.operit.util.AppLogger
-import com.ai.assistance.operit.core.tools.IntentResultData
-import com.ai.assistance.operit.core.tools.StringResultData
-import com.ai.assistance.operit.data.model.AITool
-import com.ai.assistance.operit.data.model.ToolResult
-import com.ai.assistance.operit.data.model.ToolValidationResult
+android.util.Log
+me.rerere.rikkahub.tools.IntentResultData
+me.rerere.rikkahub.tools.StringResultData
+me.rerere.rikkahub.data.model.AITool
+me.rerere.rikkahub.data.model.ToolResult
+me.rerere.rikkahub.data.model.ToolValidationResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -104,12 +104,12 @@ class StandardIntentToolExecutor(private val context: Context) {
                     }
                     intent.flags = combinedFlags
                 } catch (e: Exception) {
-                    AppLogger.e(TAG, "Error parsing flags", e)
+                    Log.e(TAG, "Error parsing flags", e)
                     // Try to parse as a single integer value
                     try {
                         intent.flags = flags.toInt()
                     } catch (e2: Exception) {
-                        AppLogger.e(TAG, "Error parsing flags as integer", e2)
+                        Log.e(TAG, "Error parsing flags as integer", e2)
                     }
                 }
             }
@@ -165,7 +165,7 @@ class StandardIntentToolExecutor(private val context: Context) {
                         }
                     }
                 } catch (e: Exception) {
-                    AppLogger.e(TAG, "Error parsing extras", e)
+                    Log.e(TAG, "Error parsing extras", e)
                 }
             }
 
@@ -246,7 +246,7 @@ class StandardIntentToolExecutor(private val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error executing Intent", e)
+            Log.e(TAG, "Error executing Intent", e)
             ToolResult(
                     toolName = tool.name,
                     success = false,

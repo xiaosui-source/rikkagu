@@ -1,10 +1,10 @@
 package me.rerere.rikkahub.plugins.toolpkg
 
-import com.ai.assistance.operit.core.application.OperitApplication
-import com.ai.assistance.operit.core.tools.AIToolHandler
-import com.ai.assistance.operit.core.tools.javascript.JsJavaBridgeDelegates
-import com.ai.assistance.operit.core.tools.javascript.extractJsExecutionErrorMessage
-import com.ai.assistance.operit.core.tools.packTool.PackageManager
+me.rerere.rikkahub.application.OperitApplication
+me.rerere.rikkahub.tools.AIToolHandler
+me.rerere.rikkahub.tools.javascript.JsJavaBridgeDelegates
+me.rerere.rikkahub.tools.javascript.extractJsExecutionErrorMessage
+me.rerere.rikkahub.tools.packTool.PackageManager
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener

@@ -1,21 +1,21 @@
 package me.rerere.rikkahub.data.ai.memory.library
 
 import android.content.Context
-import com.ai.assistance.operit.util.AppLogger
-import com.ai.assistance.operit.util.ChatMarkupRegex
-import com.ai.assistance.operit.R
-import com.ai.assistance.operit.api.chat.llmprovider.AIService
-import com.ai.assistance.operit.core.tools.AIToolHandler
-import com.ai.assistance.operit.data.model.Memory
-import com.ai.assistance.operit.data.preferences.ApiPreferences
-import com.ai.assistance.operit.data.preferences.MemorySearchSettingsPreferences
-import com.ai.assistance.operit.data.preferences.MemorySpaceProfileDocumentRepository
-import com.ai.assistance.operit.data.preferences.preferencesManager
-import com.ai.assistance.operit.data.repository.MemoryRepository
-import com.ai.assistance.operit.util.ChatUtils
-import com.ai.assistance.operit.core.chat.hooks.toPromptTurns
-import com.ai.assistance.operit.core.config.FunctionalPrompts
-import com.ai.assistance.operit.util.LocaleUtils
+android.util.Log
+me.rerere.ChatMarkupRegex
+import me.rerere.R
+me.rerere.chat.llmprovider.AIService
+me.rerere.rikkahub.tools.AIToolHandler
+me.rerere.rikkahub.data.model.Memory
+me.rerere.rikkahub.data.preferences.ApiPreferences
+me.rerere.rikkahub.data.preferences.MemorySearchSettingsPreferences
+me.rerere.rikkahub.data.preferences.MemorySpaceProfileDocumentRepository
+me.rerere.rikkahub.data.preferences.preferencesManager
+me.rerere.rikkahub.data.repository.MemoryRepository
+me.rerere.ai.util.ChatUtils
+me.rerere.rikkahub.chat.hooks.toPromptTurns
+me.rerere.rikkahub.config.FunctionalPrompts
+me.rerere.LocaleUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -87,10 +87,10 @@ object MemoryLibrary {
     fun initialize(context: Context) {
         synchronized(MemoryLibrary::class.java) {
             if (isInitialized) return
-            AppLogger.d(TAG, "正在初始化 MemoryLibrary")
+            Log.d(TAG, "正在初始化 MemoryLibrary")
             apiPreferences = ApiPreferences.getInstance(context.applicationContext)
             isInitialized = true
-            AppLogger.d(TAG, "MemoryLibrary 初始化完成")
+            Log.d(TAG, "MemoryLibrary 初始化完成")
         }
     }
 
@@ -105,7 +105,7 @@ object MemoryLibrary {
             try {
                 autoCategorizeMemories(context, aiService)
             } catch (e: Exception) {
-                AppLogger.e(TAG, "自动分类记忆失败", e)
+                Log.e(TAG, "自动分类记忆失败", e)
             }
         }
     }
@@ -136,7 +136,7 @@ object MemoryLibrary {
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                AppLogger.e(TAG, "保存记忆失败", e)
+                Log.e(TAG, "保存记忆失败", e)
                 onError?.invoke(e)
             }
         }
@@ -206,11 +206,11 @@ object MemoryLibrary {
             }
             
             if (uncategorizedMemories.isEmpty()) {
-                AppLogger.d(TAG, "没有未分类的记忆，跳过自动分类")
+                Log.d(TAG, "没有未分类的记忆，跳过自动分类")
                 return@withLock
             }
             
-            AppLogger.d(TAG, "找到 ${uncategorizedMemories.size} 条未分类记忆，开始批量分类...")
+            Log.d(TAG, "找到 ${uncategorizedMemories.size} 条未分类记忆，开始批量分类...")
             
             // 获取现有文件夹列表
             val existingFolders = memoryRepository.getAllFolderPaths()
@@ -219,14 +219,14 @@ object MemoryLibrary {
             val batches = uncategorizedMemories.chunked(10)
             batches.forEachIndexed { batchIndex: Int, batch: List<Memory> ->
                 try {
-                    AppLogger.d(TAG, "处理第 ${batchIndex + 1} 批记忆（共 ${batch.size} 条）...")
+                    Log.d(TAG, "处理第 ${batchIndex + 1} 批记忆（共 ${batch.size} 条）...")
                     categorizeBatch(context, batch, existingFolders, memoryRepository, aiService)
                 } catch (e: Exception) {
-                    AppLogger.e(TAG, "处理第 ${batchIndex + 1} 批记忆失败", e)
+                    Log.e(TAG, "处理第 ${batchIndex + 1} 批记忆失败", e)
                 }
             }
             
-            AppLogger.d(TAG, "自动分类完成")
+            Log.d(TAG, "自动分类完成")
         }
     }
 
@@ -291,7 +291,7 @@ object MemoryLibrary {
             memories.forEach { memory ->
                 val newFolder = titleToFolderMap[memory.title]
                 if (newFolder != null) {
-                    AppLogger.d(TAG, "更新记忆 '${memory.title}' 的分类为: $newFolder")
+                    Log.d(TAG, "更新记忆 '${memory.title}' 的分类为: $newFolder")
                     
                     // 直接调用 updateMemory，它会自动重新生成 embedding
                     repository.updateMemory(
@@ -303,7 +303,7 @@ object MemoryLibrary {
                 }
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "解析分类结果失败: $jsonString", e)
+            Log.e(TAG, "解析分类结果失败: $jsonString", e)
         }
     }
 
@@ -350,13 +350,13 @@ object MemoryLibrary {
                 }
 
             if (processedHistory.isEmpty()) {
-                AppLogger.w(TAG, "处理后的会話历史为空，跳过保存记忆")
+                Log.w(TAG, "处理后的会話历史为空，跳过保存记忆")
                 return@withLock
             }
 
             val query = processedHistory.lastOrNull { it.first == "user" }?.second ?: ""
             if (query.isEmpty()) {
-                AppLogger.w(TAG, "未找到用户查询消息，跳过保存")
+                Log.w(TAG, "未找到用户查询消息，跳过保存")
                 return@withLock
             }
 
@@ -377,11 +377,11 @@ object MemoryLibrary {
                 try {
                     val saved = MemorySpaceProfileDocumentRepository.getInstance(context)
                         .saveAutomatic(profileId, markdown)
-                    if (saved) AppLogger.d(TAG, "记忆空间资料已自动更新: profileId=$profileId")
+                    if (saved) Log.d(TAG, "记忆空间资料已自动更新: profileId=$profileId")
                 } catch (error: CancellationException) {
                     throw error
                 } catch (error: Exception) {
-                    AppLogger.e(TAG, "自动更新记忆空间资料失败: profileId=$profileId", error)
+                    Log.e(TAG, "自动更新记忆空间资料失败: profileId=$profileId", error)
                 }
             }
 
@@ -391,7 +391,7 @@ object MemoryLibrary {
                 analysis.links.isEmpty() &&
                 analysis.profileMarkdown == null
             ) {
-                AppLogger.d(TAG, "分析结果为空，判断为无需记忆的对话，跳过保存。")
+                Log.d(TAG, "分析结果为空，判断为无需记忆的对话，跳过保存。")
                 return@withLock
             }
 
@@ -400,9 +400,9 @@ object MemoryLibrary {
 
             // First, apply any merges to existing memories
             if (analysis.mergedEntities.isNotEmpty()) {
-                AppLogger.d(TAG, "开始合并 ${analysis.mergedEntities.size} 组记忆...")
+                Log.d(TAG, "开始合并 ${analysis.mergedEntities.size} 组记忆...")
                 analysis.mergedEntities.forEach { merge ->
-                    AppLogger.d(TAG, "正在合并: ${merge.sourceTitles.joinToString(", ")} -> '${merge.newTitle}'. 原因: ${merge.reason}")
+                    Log.d(TAG, "正在合并: ${merge.sourceTitles.joinToString(", ")} -> '${merge.newTitle}'. 原因: ${merge.reason}")
                     val mergedMemory = memoryRepository.mergeMemories(
                         sourceTitles = merge.sourceTitles,
                         newTitle = merge.newTitle,
@@ -418,11 +418,11 @@ object MemoryLibrary {
 
             // Second, apply any updates to existing memories
             if (analysis.updatedEntities.isNotEmpty()) {
-                AppLogger.d(TAG, "开始更新 ${analysis.updatedEntities.size} 个现有记忆...")
+                Log.d(TAG, "开始更新 ${analysis.updatedEntities.size} 个现有记忆...")
                 analysis.updatedEntities.forEach { update ->
                     val memoryToUpdate = memoryRepository.findMemoryByTitle(update.titleToUpdate)
                     if (memoryToUpdate != null) {
-                        AppLogger.d(TAG, "正在更新记忆: '${update.titleToUpdate}'. 原因: ${update.reason}")
+                        Log.d(TAG, "正在更新记忆: '${update.titleToUpdate}'. 原因: ${update.reason}")
                         val updatedMemory = memoryRepository.updateMemory(
                                 memory = memoryToUpdate,
                                 newTitle = memoryToUpdate.title, // For now, let's not change the title
@@ -434,13 +434,13 @@ object MemoryLibrary {
                             createdMemories[updatedMemory.title] = updatedMemory
                         }
                     } else {
-                        AppLogger.w(TAG, "想要更新的记忆未找到: '${update.titleToUpdate}'")
+                        Log.w(TAG, "想要更新的记忆未找到: '${update.titleToUpdate}'")
                     }
                 }
             }
 
-            AppLogger.d(TAG, "开始构建记忆图谱...")
-            AppLogger.d(
+            Log.d(TAG, "开始构建记忆图谱...")
+            Log.d(
                 TAG,
                 "AI分析结果 - 主要事件: '${analysis.mainProblem?.title ?: "无"}', " +
                     "实体: ${analysis.extractedEntities.size}, 链接: ${analysis.links.size}"
@@ -452,12 +452,12 @@ object MemoryLibrary {
                 val mainProblemMemory = analysis.mainProblem?.let { mainProblem ->
                     val existingMemory = memoryRepository.findMemoryByTitle(mainProblem.title)
                     if (existingMemory != null) {
-                        AppLogger.d(TAG, "1. 发现同名核心记忆，更新内容: '${mainProblem.title}'")
+                        Log.d(TAG, "1. 发现同名核心记忆，更新内容: '${mainProblem.title}'")
                         existingMemory.content = mainProblem.content
                         memoryRepository.saveMemory(existingMemory)
                         existingMemory
                     } else {
-                        AppLogger.d(TAG, "1. 创建主要问题记忆节点: '${mainProblem.title}'")
+                        Log.d(TAG, "1. 创建主要问题记忆节点: '${mainProblem.title}'")
                         val memory = Memory(
                             title = mainProblem.title,
                             content = mainProblem.content,
@@ -478,27 +478,27 @@ object MemoryLibrary {
 
                 // 2. Process entities with new LLM-driven deduplication logic
                 analysis.extractedEntities.forEach { entity ->
-                    AppLogger.d(TAG, "2. 处理实体: '${entity.title}'")
+                    Log.d(TAG, "2. 处理实体: '${entity.title}'")
                     var memory: Memory? = null
 
                     if (!entity.aliasFor.isNullOrBlank()) {
                         // This entity is an alias for an existing one, as determined by the LLM.
-                        AppLogger.d(TAG, "   -> LLM 识别此实体为 '${entity.aliasFor}' 的别名。")
+                        Log.d(TAG, "   -> LLM 识别此实体为 '${entity.aliasFor}' 的别名。")
                         // Try to find the canonical memory, first in the ones we just created, then in the DB.
                         memory = createdMemories[entity.aliasFor] ?: memoryRepository.findMemoryByTitle(entity.aliasFor)
 
                         if (memory != null) {
-                            AppLogger.d(TAG, "   -> 复用已存在的记忆节点 (ID: ${memory.id}).")
+                            Log.d(TAG, "   -> 复用已存在的记忆节点 (ID: ${memory.id}).")
                         } else {
                             // This is an edge case: LLM said it's an alias, but we can't find the original.
                             // We will treat it as a new entity.
-                            AppLogger.w(TAG, "   -> 无法找到别名 '${entity.aliasFor}' 的原始记忆。将其作为新实体处理。")
+                            Log.w(TAG, "   -> 无法找到别名 '${entity.aliasFor}' 的原始记忆。将其作为新实体处理。")
                         }
                     }
 
                     // If it's not an alias, or if the original for the alias wasn't found, create a new memory.
                     if (memory == null) {
-                        AppLogger.d(TAG, "   -> 创建新的记忆节点。")
+                        Log.d(TAG, "   -> 创建新的记忆节点。")
                         memory = Memory(
                             title = entity.title,
                             content = entity.content,
@@ -517,7 +517,7 @@ object MemoryLibrary {
                 }
 
                 // 3. Create links between the memories
-                AppLogger.d(TAG, "3. 开始创建记忆链接...")
+                Log.d(TAG, "3. 开始创建记忆链接...")
                 analysis.links.forEach { link ->
                     // Try to find source: first in newly created/updated memories, then in existing DB
                     val source = createdMemories[link.sourceTitle] 
@@ -528,21 +528,21 @@ object MemoryLibrary {
                         ?: memoryRepository.findMemoryByTitle(link.targetTitle)
                     
                     if (source != null && target != null) {
-                        AppLogger.d(TAG, "   -> 正在链接: '${link.sourceTitle}' --(${link.type}, weight=${link.weight})--> '${link.targetTitle}'")
+                        Log.d(TAG, "   -> 正在链接: '${link.sourceTitle}' --(${link.type}, weight=${link.weight})--> '${link.targetTitle}'")
                         memoryRepository.linkMemories(source, target, link.type, weight = link.weight, description = link.description)
                     } else {
-                        AppLogger.w(TAG, "   -> 无法创建链接，源或目标实体未找到: ${link.sourceTitle} -> ${link.targetTitle}")
-                        if (source == null) AppLogger.w(TAG, "      源节点 '${link.sourceTitle}' 未找到")
-                        if (target == null) AppLogger.w(TAG, "      目标节点 '${link.targetTitle}' 未找到")
+                        Log.w(TAG, "   -> 无法创建链接，源或目标实体未找到: ${link.sourceTitle} -> ${link.targetTitle}")
+                        if (source == null) Log.w(TAG, "      源节点 '${link.sourceTitle}' 未找到")
+                        if (target == null) Log.w(TAG, "      目标节点 '${link.targetTitle}' 未找到")
                     }
                 }
 
-                AppLogger.d(TAG, "成功从对话中提取并保存了记忆图谱")
+                Log.d(TAG, "成功从对话中提取并保存了记忆图谱")
 
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                AppLogger.e(TAG, "保存记忆图谱失败", e)
+                Log.e(TAG, "保存记忆图谱失败", e)
                 if (propagateAnalysisFailure) {
                     throw e
                 }
@@ -590,16 +590,16 @@ object MemoryLibrary {
                 edgeWeight = searchConfig.edgeWeight
             ).take(15)
 
-            AppLogger.d(
+            Log.d(
                 TAG,
                 "候选记忆检索完成: count=${candidateMemories.size}, " +
                     "mode=${searchConfig.scoreMode}, " +
                     "keywordWeight=${searchConfig.keywordWeight}, tagWeight=${searchConfig.tagWeight}, vectorWeight=${searchConfig.vectorWeight}, edgeWeight=${searchConfig.edgeWeight}, " +
                     "searchQueryLen=${contextQuery.length}"
             )
-            AppLogger.d(TAG, "候选检索查询（截断）: ${contextQuery.take(220)}")
+            Log.d(TAG, "候选检索查询（截断）: ${contextQuery.take(220)}")
             if (candidateMemories.isEmpty()) {
-                AppLogger.d(TAG, "候选记忆列表为空（通过阈值过滤后无结果）。")
+                Log.d(TAG, "候选记忆列表为空（通过阈值过滤后无结果）。")
             } else {
                 candidateMemories.forEachIndexed { index, memory ->
                     val preview = memory.content
@@ -608,7 +608,7 @@ object MemoryLibrary {
                         .replace(Regex("\\s+"), " ")
                         .trim()
                         .take(120)
-                    AppLogger.d(
+                    Log.d(
                         TAG,
                         "候选记忆[$index] id=${memory.id}, title='${memory.title}', " +
                             "folder='${memory.folderPath ?: ""}', importance=${String.format("%.2f", memory.importance)}, " +
@@ -668,7 +668,7 @@ object MemoryLibrary {
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            AppLogger.e(TAG, "生成分析失败", e)
+            Log.e(TAG, "生成分析失败", e)
             if (propagateFailure) {
                 throw e
             }
@@ -818,7 +818,7 @@ object MemoryLibrary {
         if (cleanJson == "{}") return ParsedAnalysis(null)
 
         val json = JSONObject(cleanJson)
-        AppLogger.d(TAG, "AI 返回的完整 JSON 指令:\n${json.toString(2)}")
+        Log.d(TAG, "AI 返回的完整 JSON 指令:\n${json.toString(2)}")
 
         return ParsedAnalysis(
             mainProblem = json.requiredNullableObject("main")?.toParsedEntity("main", aliasAllowed = false),

@@ -1,7 +1,7 @@
 package me.rerere.rikkahub.plugins.toolpkg
 
-import com.ai.assistance.operit.core.chat.plugins.MessageProcessingController
-import com.ai.assistance.operit.util.AppLogger
+me.rerere.rikkahub.chat.plugins.MessageProcessingController
+android.util.Log
 import java.util.concurrent.ConcurrentHashMap
 
 object ToolPkgMessageProcessingCancellationRegistry {
@@ -23,7 +23,7 @@ object ToolPkgMessageProcessingCancellationRegistry {
             runCatching {
                 controller.cancel()
             }.onFailure { error ->
-                AppLogger.e(TAG, "Failed to cancel pending execution on register: $key", error)
+                Log.e(TAG, "Failed to cancel pending execution on register: $key", error)
             }
             return false
         }
@@ -57,7 +57,7 @@ object ToolPkgMessageProcessingCancellationRegistry {
         runCatching {
             controller.cancel()
         }.onFailure { error ->
-            AppLogger.e(TAG, "Failed to cancel registered execution: $key", error)
+            Log.e(TAG, "Failed to cancel registered execution: $key", error)
         }
         return true
     }

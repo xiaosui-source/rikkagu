@@ -5,7 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import com.ai.assistance.operit.data.model.MessageVariantEntity
+me.rerere.rikkahub.data.model.MessageVariantEntity
 
 @Dao
 interface MessageVariantDao {

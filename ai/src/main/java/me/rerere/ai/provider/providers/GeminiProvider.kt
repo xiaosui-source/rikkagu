@@ -1,33 +1,33 @@
 package me.rerere.ai.provider.providers
 
 import android.util.Log
-import com.ai.assistance.operit.core.chat.hooks.PromptTurn
-import com.ai.assistance.operit.core.chat.hooks.PromptTurnKind
-import com.ai.assistance.operit.core.chat.hooks.toPromptTurns
-import com.ai.assistance.operit.data.model.ApiProviderType
-import com.ai.assistance.operit.data.model.ModelOption
-import com.ai.assistance.operit.data.model.ModelParameter
-import com.ai.assistance.operit.data.model.ToolPrompt
-import com.ai.assistance.operit.data.model.ParameterCategory
-import com.ai.assistance.operit.data.stats.ProviderUsageNormalizer
+me.rerere.rikkahub.chat.hooks.PromptTurn
+me.rerere.rikkahub.chat.hooks.PromptTurnKind
+me.rerere.rikkahub.chat.hooks.toPromptTurns
+me.rerere.rikkahub.data.model.ApiProviderType
+me.rerere.rikkahub.data.model.ModelOption
+me.rerere.rikkahub.data.model.ModelParameter
+me.rerere.rikkahub.data.model.ToolPrompt
+me.rerere.rikkahub.data.model.ParameterCategory
+me.rerere.rikkahub.data.stats.ProviderUsageNormalizer
 import me.rerere.ai.util.ChatUtils
-import com.ai.assistance.operit.util.ChatMarkupRegex
-import com.ai.assistance.operit.util.HttpLogSanitizer
-import com.ai.assistance.operit.util.StreamingJsonXmlConverter
+me.rerere.ChatMarkupRegex
+me.rerere.HttpLogSanitizer
+me.rerere.StreamingJsonXmlConverter
 import me.rerere.ai.util.TokenCacheManager
-import com.ai.assistance.operit.util.exceptions.UserCancellationException
-import com.ai.assistance.operit.util.stream.MutableSharedStream
-import com.ai.assistance.operit.util.stream.Stream
-import com.ai.assistance.operit.util.stream.StreamCollector
-import com.ai.assistance.operit.util.stream.TextStreamEvent
-import com.ai.assistance.operit.util.stream.TextStreamEventType
-import com.ai.assistance.operit.util.stream.withEventChannel
-import com.ai.assistance.operit.util.stream.stream
+me.rerere.exceptions.UserCancellationException
+me.rerere.stream.MutableSharedStream
+me.rerere.stream.Stream
+me.rerere.stream.StreamCollector
+me.rerere.stream.TextStreamEvent
+me.rerere.stream.TextStreamEventType
+me.rerere.stream.withEventChannel
+me.rerere.stream.stream
 import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import android.util.Base64
-import com.ai.assistance.operit.R
+import me.rerere.R
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -43,7 +43,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
-import com.ai.assistance.operit.api.chat.llmprovider.MediaLinkParser
+me.rerere.chat.llmprovider.MediaLinkParser
 
 /** Keeps Gemini thinking mapping testable without invoking Android's JVM JSON stubs. */
 internal data class GeminiThinkingConfig(
@@ -305,7 +305,7 @@ open class GeminiProvider(
 
     private data class GeminiContentExtractionResult(
         val content: String,
-        val usage: com.ai.assistance.operit.data.stats.ProviderUsageSnapshot?,
+        val usage: me.rerere.data.stats.ProviderUsageSnapshot?,
         val completionConfirmed: Boolean = false,
     )
 
@@ -487,7 +487,7 @@ open class GeminiProvider(
     /**
      * 从结构化参数构建JSON Schema（Gemini格式）
      */
-    private fun buildSchemaFromStructured(params: List<com.ai.assistance.operit.data.model.ToolParameterSchema>): JSONObject {
+    private fun buildSchemaFromStructured(params: List<me.rerere.data.model.ToolParameterSchema>): JSONObject {
         val schema = JSONObject().apply {
             put("type", "object")
         }
@@ -1115,7 +1115,7 @@ open class GeminiProvider(
             availableTools: List<ToolPrompt>?,
             preserveThinkInHistory: Boolean,
             onTokensUpdated: suspend (input: Long, cachedInput: Long, output: Long) -> Unit,
-            onUsageReported: (suspend (com.ai.assistance.operit.data.stats.ProviderUsageSnapshot, attempt: Int) -> Unit)?,
+            onUsageReported: (suspend (me.rerere.data.stats.ProviderUsageSnapshot, attempt: Int) -> Unit)?,
              onNonFatalError: suspend (error: String) -> Unit,
               enableRetry: Boolean,
               recordTokenUsage: Boolean,
@@ -1343,7 +1343,7 @@ open class GeminiProvider(
                             )
                     else -> {
                         when (param.valueType) {
-                            com.ai.assistance.operit.data.model.ParameterValueType.OBJECT -> {
+                            me.rerere.data.model.ParameterValueType.OBJECT -> {
                                 val raw = param.currentValue.toString().trim()
                                 val parsed: Any? = try {
                                     when {
@@ -1461,7 +1461,7 @@ open class GeminiProvider(
             requestId: String,
             onTokensUpdated: suspend (input: Long, cachedInput: Long, output: Long) -> Unit,
             receivedContent: StringBuilder,
-            onUsageReported: (suspend (com.ai.assistance.operit.data.stats.ProviderUsageSnapshot, attempt: Int) -> Unit)? = null,
+            onUsageReported: (suspend (me.rerere.data.stats.ProviderUsageSnapshot, attempt: Int) -> Unit)? = null,
             attemptNumber: Int = 1
     ) {
         Log.d(TAG, "开始处理响应流")
@@ -1475,7 +1475,7 @@ open class GeminiProvider(
         var contentCount = 0
         var streamCompletionConfirmed = false
 
-        suspend fun reportUsage(usage: com.ai.assistance.operit.data.stats.ProviderUsageSnapshot?) {
+        suspend fun reportUsage(usage: me.rerere.data.stats.ProviderUsageSnapshot?) {
             usage?.let { onUsageReported?.invoke(it, attemptNumber) }
         }
 
@@ -1743,13 +1743,13 @@ open class GeminiProvider(
             requestId: String,
             onTokensUpdated: suspend (input: Long, cachedInput: Long, output: Long) -> Unit,
             receivedContent: StringBuilder,
-            onUsageReported: (suspend (com.ai.assistance.operit.data.stats.ProviderUsageSnapshot, attempt: Int) -> Unit)? = null,
+            onUsageReported: (suspend (me.rerere.data.stats.ProviderUsageSnapshot, attempt: Int) -> Unit)? = null,
             attemptNumber: Int = 1
     ) {
         Log.d(TAG, "开始处理非流式响应")
         val responseBody = response.body ?: throw IOException(context.getString(R.string.gemini_response_empty))
 
-        suspend fun reportUsage(usage: com.ai.assistance.operit.data.stats.ProviderUsageSnapshot?) {
+        suspend fun reportUsage(usage: me.rerere.data.stats.ProviderUsageSnapshot?) {
             usage?.let { onUsageReported?.invoke(it, attemptNumber) }
         }
         
@@ -1803,7 +1803,7 @@ open class GeminiProvider(
         val contentBuilder = StringBuilder()
         val searchSourcesBuilder = StringBuilder()
         val pendingThoughtSignatures = mutableListOf<String>()
-        var usage: com.ai.assistance.operit.data.stats.ProviderUsageSnapshot? = null
+        var usage: me.rerere.data.stats.ProviderUsageSnapshot? = null
 
         try {
             throwIfGeminiErrorPayload(context, json)

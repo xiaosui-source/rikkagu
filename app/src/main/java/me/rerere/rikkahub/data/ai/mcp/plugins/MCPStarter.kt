@@ -1,13 +1,13 @@
 package me.rerere.rikkahub.data.ai.mcp.plugins
 
 import android.content.Context
-import com.ai.assistance.operit.util.AppLogger
-import com.ai.assistance.operit.R
-import com.ai.assistance.operit.core.tools.mcp.MCPManager
-import com.ai.assistance.operit.core.tools.mcp.McpRuntimeDescriptor
-import com.ai.assistance.operit.data.mcp.MCPLocalServer
-import com.ai.assistance.operit.data.mcp.MCPRepository
-import com.ai.assistance.operit.core.tools.system.Terminal
+android.util.Log
+import me.rerere.R
+me.rerere.rikkahub.tools.mcp.MCPManager
+me.rerere.rikkahub.tools.mcp.McpRuntimeDescriptor
+me.rerere.rikkahub.data.mcp.MCPLocalServer
+me.rerere.rikkahub.data.mcp.MCPRepository
+me.rerere.rikkahub.tools.system.Terminal
 import com.google.gson.Gson
 import com.google.gson.JsonParser
 import kotlinx.coroutines.CoroutineScope
@@ -83,7 +83,7 @@ class MCPStarter(private val context: Context) {
             pnpmInstalled = installed
             return installed
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error checking pnpm installation: ${e.message}")
+            Log.e(TAG, "Error checking pnpm installation: ${e.message}")
             pnpmInstalled = false
             return false
         }
@@ -101,35 +101,35 @@ class MCPStarter(private val context: Context) {
         val bridge = MCPBridge.getInstance(context)
         val listResult = bridge.listMcpServices()
         if (listResult != null && listResult.optBoolean("success", false)) {
-            AppLogger.d(TAG, "Bridge is already running.")
+            Log.d(TAG, "Bridge is already running.")
             return true
         }
 
         // Bridge 未运行，需要启动
-        AppLogger.d(TAG, "Bridge is not running, starting fresh...")
+        Log.d(TAG, "Bridge is not running, starting fresh...")
 
         // Check if terminal service is available
         if (!isTerminalServiceConnected()) {
-            AppLogger.e(TAG, "Terminal service is not connected. Please start it first.")
+            Log.e(TAG, "Terminal service is not connected. Please start it first.")
             return false
         }
 
         // Check if pnpm is installed
         if (!isPnpmInstalled()) {
-            AppLogger.e(TAG, "pnpm is not installed in terminal. Please install pnpm first.")
+            Log.e(TAG, "pnpm is not installed in terminal. Please install pnpm first.")
             return false
         }
 
         // Get shared session for deployment and starting
         val sessionId = getOrCreateSharedSession()
         if (sessionId == null) {
-            AppLogger.e(TAG, "Failed to get shared session for bridge initialization")
+            Log.e(TAG, "Failed to get shared session for bridge initialization")
             return false
         }
 
         // Deploy bridge to terminal
         if (!MCPBridge.deployBridge(context, sessionId)) {
-            AppLogger.e(TAG, "Failed to deploy bridge")
+            Log.e(TAG, "Failed to deploy bridge")
             return false
         }
 
@@ -139,7 +139,7 @@ class MCPStarter(private val context: Context) {
                 sessionId = null // Use a dedicated session for the bridge server
             )
         ) {
-            AppLogger.e(TAG, "Failed to start bridge")
+            Log.e(TAG, "Failed to start bridge")
             return false
         }
 
@@ -168,7 +168,7 @@ class MCPStarter(private val context: Context) {
         try {
             val mcpLocalServer = MCPLocalServer.getInstance(context)
             val mcpRepository = MCPRepository(context)
-            AppLogger.d(TAG, "Refreshing MCP config before starting plugin: $pluginId")
+            Log.d(TAG, "Refreshing MCP config before starting plugin: $pluginId")
             mcpRepository.refreshPluginList()
 
             val pluginInfo = mcpRepository.getInstalledPluginInfo(pluginId)
@@ -186,7 +186,7 @@ class MCPStarter(private val context: Context) {
                 if (!isRuntimeReady) {
                     // 自动准备运行目录
                     statusCallback(StartStatus.InProgress(context.getString(R.string.plugin_deploying, pluginId)))
-                    AppLogger.d(TAG, "插件 $pluginId 运行目录未就绪，开始自动部署")
+                    Log.d(TAG, "插件 $pluginId 运行目录未就绪，开始自动部署")
 
                     val pluginPath = mcpRepository.getInstalledPluginPath(pluginId)
 
@@ -295,7 +295,7 @@ class MCPStarter(private val context: Context) {
                 return false
             }
 
-            AppLogger.d(
+            Log.d(
                 TAG,
                 "Local plugin $pluginId loaded env keys: ${summarizeEnvKeys(serverConfig.env)}"
             )
@@ -360,7 +360,7 @@ class MCPStarter(private val context: Context) {
             statusCallback(StartStatus.Error("Service $pluginId started but is not active"))
             return false
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error starting plugin", e)
+            Log.e(TAG, "Error starting plugin", e)
             statusCallback(StartStatus.Error("Start error: ${e.message}"))
             return false
         }
@@ -375,7 +375,7 @@ class MCPStarter(private val context: Context) {
                 val mcpRepository = MCPRepository(context)
                 val mcpLocalServer = MCPLocalServer.getInstance(context)
                 val bridge = MCPBridge.getInstance(context)
-                AppLogger.d(TAG, "Refreshing MCP config before batch startup")
+                Log.d(TAG, "Refreshing MCP config before batch startup")
                 mcpRepository.refreshPluginList()
 
                 // Get all installed plugins and partition into enabled and disabled
@@ -396,7 +396,7 @@ class MCPStarter(private val context: Context) {
                                 .ifEmpty { pluginId.split("/").last().lowercase() }
                         bridge.unregisterMcpService(serviceName)
                     } catch (e: Exception) {
-                        AppLogger.e(TAG, "Failed to unregister disabled local plugin '$pluginId'", e)
+                        Log.e(TAG, "Failed to unregister disabled local plugin '$pluginId'", e)
                     }
                 }
 
@@ -409,7 +409,7 @@ class MCPStarter(private val context: Context) {
                     mcpRepository.getInstalledPluginInfo(pluginId)?.type == "local"
                 }
                 if (hasLocalPlugin && !initBridge()) {
-                    AppLogger.e(TAG, "Local MCP plugins cannot start because the bridge is unavailable")
+                    Log.e(TAG, "Local MCP plugins cannot start because the bridge is unavailable")
                 }
 
                 // 将注册与处理串联到同一个插件任务中，避免“全部先转 loading，再同时完成”的体验
@@ -495,7 +495,7 @@ class MCPStarter(private val context: Context) {
                 )
 
             } catch (e: Exception) {
-                AppLogger.e(TAG, "Error starting plugins", e)
+                Log.e(TAG, "Error starting plugins", e)
                 progressListener.onAllPluginsStarted(0, 0, PluginInitStatus.OTHER_ERROR)
             }
         }
@@ -616,7 +616,7 @@ class MCPStarter(private val context: Context) {
                     val termuxPluginDir = mcpLocalServer.getPluginRuntimeDirectory(pluginId)
                     val envKeysSummary = summarizeEnvKeys(serverConfig.env)
 
-                    AppLogger.d(
+                    Log.d(
                         TAG,
                         "Registering local plugin $pluginId with env keys: $envKeysSummary"
                     )
@@ -642,7 +642,7 @@ class MCPStarter(private val context: Context) {
                 else -> return null
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to register plugin $pluginId", e)
+            Log.e(TAG, "Failed to register plugin $pluginId", e)
             return null
         }
     }
@@ -662,7 +662,7 @@ class MCPStarter(private val context: Context) {
 
                 progressListener.onAllPluginsVerified(results)
             } catch (e: Exception) {
-                AppLogger.e(TAG, "Error verifying plugins", e)
+                Log.e(TAG, "Error verifying plugins", e)
                 progressListener.onAllPluginsVerified(emptyList())
             }
         }
@@ -675,11 +675,11 @@ class MCPStarter(private val context: Context) {
         try {
             val mcpLocalServer = MCPLocalServer.getInstance(context)
             if (mcpLocalServer.hasValidToolCache(pluginId)) {
-                AppLogger.d(TAG, "插件 $pluginId 已有工具缓存，跳过")
+                Log.d(TAG, "插件 $pluginId 已有工具缓存，跳过")
                 return
             }
 
-            AppLogger.d(TAG, "开始为插件 $pluginId 缓存工具列表")
+            Log.d(TAG, "开始为插件 $pluginId 缓存工具列表")
             val session = MCPManager.getInstance(context).getOrCreateSession(pluginId)
                 ?: return
             val tools = session.listTools()
@@ -696,10 +696,10 @@ class MCPStarter(private val context: Context) {
                 mcpLocalServer.cacheServerTools(pluginId, cachedTools)
                 AppLogger.i(TAG, "成功缓存插件 $pluginId 的 ${cachedTools.size} 个工具")
             } else {
-                AppLogger.w(TAG, "插件 $pluginId 没有返回任何工具")
+                Log.w(TAG, "插件 $pluginId 没有返回任何工具")
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "缓存插件 $pluginId 的工具列表时出错", e)
+            Log.e(TAG, "缓存插件 $pluginId 的工具列表时出错", e)
         }
     }
 
@@ -715,17 +715,17 @@ class MCPStarter(private val context: Context) {
                 .map { it.pluginId }
 
             if (successfulPluginIds.isNotEmpty()) {
-                AppLogger.d(
+                Log.d(
                     TAG,
                     "开始为 ${successfulPluginIds.size} 个验证成功的插件注册工具: $successfulPluginIds"
                 )
                 mcpRepository.registerToolsForLoadedPlugins(successfulPluginIds)
-                AppLogger.d(TAG, "工具注册流程已完成")
+                Log.d(TAG, "工具注册流程已完成")
             } else {
-                AppLogger.d(TAG, "没有验证成功的插件，跳过工具注册")
+                Log.d(TAG, "没有验证成功的插件，跳过工具注册")
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "注册验证成功插件的工具时出错", e)
+            Log.e(TAG, "注册验证成功插件的工具时出错", e)
         }
     }
 
@@ -747,7 +747,7 @@ class MCPStarter(private val context: Context) {
 
                     // 检查描述是否为空
                     if (pluginInfo != null && pluginInfo.description.isBlank()) {
-                        AppLogger.d(TAG, "为插件 ${result.pluginId} 生成描述，当前描述为空")
+                        Log.d(TAG, "为插件 ${result.pluginId} 生成描述，当前描述为空")
 
                         val session = MCPManager.getInstance(context)
                             .getOrCreateSession(result.pluginId)
@@ -757,7 +757,7 @@ class MCPStarter(private val context: Context) {
                         if (toolDescriptions.isNotEmpty()) {
                             // 调用EnhancedAIService生成描述
                             val generatedDescription =
-                                com.ai.assistance.operit.api.chat.EnhancedAIService.generatePackageDescription(
+                                me.rerere.api.chat.EnhancedAIService.generatePackageDescription(
                                     context = context,
                                     pluginName = pluginInfo.name,
                                     toolDescriptions = toolDescriptions
@@ -773,18 +773,18 @@ class MCPStarter(private val context: Context) {
                                     "已为插件 ${result.pluginId} 生成描述: $generatedDescription"
                                 )
                             } else {
-                                AppLogger.w(TAG, "插件 ${result.pluginId} 的描述生成失败，保持原有空描述")
+                                Log.w(TAG, "插件 ${result.pluginId} 的描述生成失败，保持原有空描述")
                             }
                         } else {
-                            AppLogger.w(TAG, "插件 ${result.pluginId} 没有可用的工具描述")
+                            Log.w(TAG, "插件 ${result.pluginId} 没有可用的工具描述")
                         }
                     }
                 } catch (e: Exception) {
-                    AppLogger.e(TAG, "为插件 ${result.pluginId} 生成描述时出错: ${e.message}", e)
+                    Log.e(TAG, "为插件 ${result.pluginId} 生成描述时出错: ${e.message}", e)
                 }
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "生成缺失描述时出错", e)
+            Log.e(TAG, "生成缺失描述时出错", e)
         }
     }
 
@@ -830,7 +830,7 @@ class MCPStarter(private val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error verifying plugins", e)
+            Log.e(TAG, "Error verifying plugins", e)
         }
 
         return results
@@ -845,7 +845,7 @@ class MCPStarter(private val context: Context) {
             val mcpServers = jsonObject.getAsJsonObject("mcpServers")
             return mcpServers?.keySet()?.firstOrNull()
         } catch (e: Exception) {
-            AppLogger.e(TAG, "解析配置JSON失败", e)
+            Log.e(TAG, "解析配置JSON失败", e)
             return null
         }
     }
@@ -857,7 +857,7 @@ class MCPStarter(private val context: Context) {
         try {
             return Gson().fromJson(configJson, MCPLocalServer.MCPConfig::class.java)
         } catch (e: Exception) {
-            AppLogger.e(TAG, "解析配置JSON失败", e)
+            Log.e(TAG, "解析配置JSON失败", e)
             return null
         }
     }

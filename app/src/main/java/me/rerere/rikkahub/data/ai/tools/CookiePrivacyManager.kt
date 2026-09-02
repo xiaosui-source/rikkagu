@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.core.tools.defaultTool.standard
+package me.rerere.core.tools.defaultTool.standard
 
 import android.webkit.CookieManager
 import kotlin.coroutines.resume

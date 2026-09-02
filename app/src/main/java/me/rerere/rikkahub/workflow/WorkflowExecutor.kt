@@ -1,31 +1,31 @@
 package me.rerere.rikkahub.workflow
 
 import android.content.Context
-import com.ai.assistance.operit.R
-import com.ai.assistance.operit.core.config.SystemToolPrompts
-import com.ai.assistance.operit.util.AppLogger
-import com.ai.assistance.operit.core.tools.AIToolHandler
-import com.ai.assistance.operit.data.model.AITool
-import com.ai.assistance.operit.data.model.ConditionNode
-import com.ai.assistance.operit.data.model.ConditionOperator
-import com.ai.assistance.operit.data.model.ExecuteNode
-import com.ai.assistance.operit.data.model.ExtractMode
-import com.ai.assistance.operit.data.model.ExtractNode
-import com.ai.assistance.operit.data.model.LogicNode
-import com.ai.assistance.operit.data.model.LogicOperator
-import com.ai.assistance.operit.data.model.ParameterValue
-import com.ai.assistance.operit.data.model.ToolParameter
-import com.ai.assistance.operit.data.model.ToolParameterSchema
-import com.ai.assistance.operit.data.model.TriggerNode
-import com.ai.assistance.operit.data.model.Workflow
-import com.ai.assistance.operit.data.model.WorkflowExecutionFailureStage
-import com.ai.assistance.operit.data.model.WorkflowExecutionLogEntry
-import com.ai.assistance.operit.data.model.WorkflowExecutionRecord
-import com.ai.assistance.operit.data.model.WorkflowLogLevel
-import com.ai.assistance.operit.data.model.WorkflowNode
-import com.ai.assistance.operit.data.model.WorkflowNodeConnection
-import com.ai.assistance.operit.core.tools.MessageSendResultData
-import com.ai.assistance.operit.data.preferences.initAndroidPermissionPreferences
+import me.rerere.R
+me.rerere.rikkahub.config.SystemToolPrompts
+android.util.Log
+me.rerere.rikkahub.tools.AIToolHandler
+me.rerere.rikkahub.data.model.AITool
+me.rerere.rikkahub.data.model.ConditionNode
+me.rerere.rikkahub.data.model.ConditionOperator
+me.rerere.rikkahub.data.model.ExecuteNode
+me.rerere.rikkahub.data.model.ExtractMode
+me.rerere.rikkahub.data.model.ExtractNode
+me.rerere.rikkahub.data.model.LogicNode
+me.rerere.rikkahub.data.model.LogicOperator
+me.rerere.rikkahub.data.model.ParameterValue
+me.rerere.rikkahub.data.model.ToolParameter
+me.rerere.rikkahub.data.model.ToolParameterSchema
+me.rerere.rikkahub.data.model.TriggerNode
+me.rerere.rikkahub.data.model.Workflow
+me.rerere.rikkahub.data.model.WorkflowExecutionFailureStage
+me.rerere.rikkahub.data.model.WorkflowExecutionLogEntry
+me.rerere.rikkahub.data.model.WorkflowExecutionRecord
+me.rerere.rikkahub.data.model.WorkflowLogLevel
+me.rerere.rikkahub.data.model.WorkflowNode
+me.rerere.rikkahub.data.model.WorkflowNodeConnection
+me.rerere.rikkahub.tools.MessageSendResultData
+me.rerere.rikkahub.data.preferences.initAndroidPermissionPreferences
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
@@ -107,12 +107,12 @@ class WorkflowExecutor(private val context: Context) {
 
         fun d(message: String, nodeId: String? = null, nodeName: String? = null) {
             append(WorkflowLogLevel.DEBUG, message, nodeId, nodeName)
-            AppLogger.d(tag, message)
+            Log.d(tag, message)
         }
 
         fun w(message: String, nodeId: String? = null, nodeName: String? = null) {
             append(WorkflowLogLevel.WARN, message, nodeId, nodeName)
-            AppLogger.w(tag, message)
+            Log.w(tag, message)
         }
 
         fun e(
@@ -123,9 +123,9 @@ class WorkflowExecutor(private val context: Context) {
         ) {
             append(WorkflowLogLevel.ERROR, message, nodeId, nodeName)
             if (throwable != null) {
-                AppLogger.e(tag, message, throwable)
+                Log.e(tag, message, throwable)
             } else {
-                AppLogger.e(tag, message)
+                Log.e(tag, message)
             }
         }
 

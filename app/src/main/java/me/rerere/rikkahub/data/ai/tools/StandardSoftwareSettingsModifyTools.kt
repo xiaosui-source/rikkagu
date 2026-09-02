@@ -1,70 +1,70 @@
 package me.rerere.rikkahub.data.ai.tools
 
 import android.content.Context
-import com.ai.assistance.operit.api.chat.EnhancedAIService
-import com.ai.assistance.operit.api.chat.llmprovider.ModelConfigConnectionTester
-import com.ai.assistance.operit.api.speech.SpeechServiceFactory
-import com.ai.assistance.operit.api.voice.HttpTtsResponsePipelineStep
-import com.ai.assistance.operit.api.voice.TtsException
-import com.ai.assistance.operit.api.voice.VoiceServiceFactory
-import com.ai.assistance.operit.core.tools.FunctionModelBindingResultData
-import com.ai.assistance.operit.core.tools.FunctionModelConfigResultData
-import com.ai.assistance.operit.core.tools.FunctionModelConfigsResultData
-import com.ai.assistance.operit.core.tools.FunctionModelMappingResultItem
-import com.ai.assistance.operit.core.tools.CharacterCardActivationResultData
-import com.ai.assistance.operit.core.tools.CharacterCardCreateResultData
-import com.ai.assistance.operit.core.tools.CharacterCardDeleteResultData
-import com.ai.assistance.operit.core.tools.CharacterCardExportResultData
-import com.ai.assistance.operit.core.tools.CharacterCardImportResultData
-import com.ai.assistance.operit.core.tools.CharacterCardResultData
-import com.ai.assistance.operit.core.tools.CharacterCardResultItem
-import com.ai.assistance.operit.core.tools.CharacterCardToolAccessConfigResultItem
-import com.ai.assistance.operit.core.tools.CharacterCardUpdateResultData
-import com.ai.assistance.operit.core.tools.CharacterCardsResultData
-import com.ai.assistance.operit.core.tools.EnvironmentVariableReadResultData
-import com.ai.assistance.operit.core.tools.EnvironmentVariableWriteResultData
-import com.ai.assistance.operit.core.tools.McpRestartLogPluginResultItem
-import com.ai.assistance.operit.core.tools.McpRestartWithLogsResultData
-import com.ai.assistance.operit.core.tools.ModelConfigConnectionTestItemResultData
-import com.ai.assistance.operit.core.tools.ModelConfigConnectionTestResultData
-import com.ai.assistance.operit.core.tools.ModelConfigCreateResultData
-import com.ai.assistance.operit.core.tools.ModelConfigDeleteResultData
-import com.ai.assistance.operit.core.tools.ModelConfigResultItem
-import com.ai.assistance.operit.core.tools.ModelConfigUpdateResultData
-import com.ai.assistance.operit.core.tools.ModelConfigsResultData
-import com.ai.assistance.operit.core.tools.SandboxPackageResultItem
-import com.ai.assistance.operit.core.tools.SandboxPackageUpdateResultData
-import com.ai.assistance.operit.core.tools.SandboxPackagesResultData
-import com.ai.assistance.operit.core.tools.SandboxScriptExecutionResultData
-import com.ai.assistance.operit.core.tools.SpeechServicesConfigResultData
-import com.ai.assistance.operit.core.tools.SpeechServicesTtsPlaybackTestResultData
-import com.ai.assistance.operit.core.tools.SpeechServicesUpdateResultData
-import com.ai.assistance.operit.core.tools.SpeechSttHttpConfigResultItem
-import com.ai.assistance.operit.core.tools.SpeechTtsHttpConfigResultItem
-import com.ai.assistance.operit.core.tools.SpeechTtsVitsPackageConfigResultItem
-import com.ai.assistance.operit.core.tools.StringResultData
-import com.ai.assistance.operit.core.tools.javascript.JsEngine
-import com.ai.assistance.operit.core.tools.javascript.JsExecutionTraceRecorder
-import com.ai.assistance.operit.core.tools.packTool.PackageManager
-import com.ai.assistance.operit.data.model.AITool
-import com.ai.assistance.operit.data.model.ApiProviderType
-import com.ai.assistance.operit.data.model.CharacterCard
-import com.ai.assistance.operit.data.model.CharacterCardChatModelBindingMode
-import com.ai.assistance.operit.data.model.CharacterCardMemoryProfileBindingMode
-import com.ai.assistance.operit.data.model.FunctionType
-import com.ai.assistance.operit.data.model.ModelConfigData
-import com.ai.assistance.operit.data.preferences.CharacterCardManager
-import com.ai.assistance.operit.data.preferences.EnvPreferences
-import com.ai.assistance.operit.data.model.ToolResult
-import com.ai.assistance.operit.data.model.getModelByIndex
-import com.ai.assistance.operit.data.model.getModelList
-import com.ai.assistance.operit.data.model.getValidModelIndex
-import com.ai.assistance.operit.data.preferences.FunctionalConfigManager
-import com.ai.assistance.operit.data.preferences.FunctionConfigMapping
-import com.ai.assistance.operit.data.preferences.ModelConfigManager
-import com.ai.assistance.operit.data.preferences.SpeechServiceProfilesPreferences
-import com.ai.assistance.operit.ui.features.startup.screens.PluginLoadingStateRegistry
-import com.ai.assistance.operit.ui.features.startup.screens.PluginStatus
+me.rerere.chat.EnhancedAIService
+me.rerere.chat.llmprovider.ModelConfigConnectionTester
+me.rerere.speech.SpeechServiceFactory
+me.rerere.voice.HttpTtsResponsePipelineStep
+me.rerere.voice.TtsException
+me.rerere.voice.VoiceServiceFactory
+me.rerere.rikkahub.tools.FunctionModelBindingResultData
+me.rerere.rikkahub.tools.FunctionModelConfigResultData
+me.rerere.rikkahub.tools.FunctionModelConfigsResultData
+me.rerere.rikkahub.tools.FunctionModelMappingResultItem
+me.rerere.rikkahub.tools.CharacterCardActivationResultData
+me.rerere.rikkahub.tools.CharacterCardCreateResultData
+me.rerere.rikkahub.tools.CharacterCardDeleteResultData
+me.rerere.rikkahub.tools.CharacterCardExportResultData
+me.rerere.rikkahub.tools.CharacterCardImportResultData
+me.rerere.rikkahub.tools.CharacterCardResultData
+me.rerere.rikkahub.tools.CharacterCardResultItem
+me.rerere.rikkahub.tools.CharacterCardToolAccessConfigResultItem
+me.rerere.rikkahub.tools.CharacterCardUpdateResultData
+me.rerere.rikkahub.tools.CharacterCardsResultData
+me.rerere.rikkahub.tools.EnvironmentVariableReadResultData
+me.rerere.rikkahub.tools.EnvironmentVariableWriteResultData
+me.rerere.rikkahub.tools.McpRestartLogPluginResultItem
+me.rerere.rikkahub.tools.McpRestartWithLogsResultData
+me.rerere.rikkahub.tools.ModelConfigConnectionTestItemResultData
+me.rerere.rikkahub.tools.ModelConfigConnectionTestResultData
+me.rerere.rikkahub.tools.ModelConfigCreateResultData
+me.rerere.rikkahub.tools.ModelConfigDeleteResultData
+me.rerere.rikkahub.tools.ModelConfigResultItem
+me.rerere.rikkahub.tools.ModelConfigUpdateResultData
+me.rerere.rikkahub.tools.ModelConfigsResultData
+me.rerere.rikkahub.tools.SandboxPackageResultItem
+me.rerere.rikkahub.tools.SandboxPackageUpdateResultData
+me.rerere.rikkahub.tools.SandboxPackagesResultData
+me.rerere.rikkahub.tools.SandboxScriptExecutionResultData
+me.rerere.rikkahub.tools.SpeechServicesConfigResultData
+me.rerere.rikkahub.tools.SpeechServicesTtsPlaybackTestResultData
+me.rerere.rikkahub.tools.SpeechServicesUpdateResultData
+me.rerere.rikkahub.tools.SpeechSttHttpConfigResultItem
+me.rerere.rikkahub.tools.SpeechTtsHttpConfigResultItem
+me.rerere.rikkahub.tools.SpeechTtsVitsPackageConfigResultItem
+me.rerere.rikkahub.tools.StringResultData
+me.rerere.rikkahub.tools.javascript.JsEngine
+me.rerere.rikkahub.tools.javascript.JsExecutionTraceRecorder
+me.rerere.rikkahub.tools.packTool.PackageManager
+me.rerere.rikkahub.data.model.AITool
+me.rerere.rikkahub.data.model.ApiProviderType
+me.rerere.rikkahub.data.model.CharacterCard
+me.rerere.rikkahub.data.model.CharacterCardChatModelBindingMode
+me.rerere.rikkahub.data.model.CharacterCardMemoryProfileBindingMode
+me.rerere.rikkahub.data.model.FunctionType
+me.rerere.rikkahub.data.model.ModelConfigData
+me.rerere.rikkahub.data.preferences.CharacterCardManager
+me.rerere.rikkahub.data.preferences.EnvPreferences
+me.rerere.rikkahub.data.model.ToolResult
+me.rerere.rikkahub.data.model.getModelByIndex
+me.rerere.rikkahub.data.model.getModelList
+me.rerere.rikkahub.data.model.getValidModelIndex
+me.rerere.rikkahub.data.preferences.FunctionalConfigManager
+me.rerere.rikkahub.data.preferences.FunctionConfigMapping
+me.rerere.rikkahub.data.preferences.ModelConfigManager
+me.rerere.rikkahub.data.preferences.SpeechServiceProfilesPreferences
+me.rerere.features.startup.screens.PluginLoadingStateRegistry
+me.rerere.features.startup.screens.PluginStatus
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.Json

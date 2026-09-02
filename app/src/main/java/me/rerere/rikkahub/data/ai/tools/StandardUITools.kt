@@ -5,34 +5,34 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.content.pm.PackageManager
 import android.media.projection.MediaProjection
-import com.ai.assistance.operit.api.chat.EnhancedAIService
-import com.ai.assistance.operit.core.config.FunctionalPrompts
-import com.ai.assistance.operit.core.tools.AutomationExecutionResult
-import com.ai.assistance.operit.core.tools.SimplifiedUINode
-import com.ai.assistance.operit.core.tools.StringResultData
-import com.ai.assistance.operit.core.tools.UIPageResultData
-import com.ai.assistance.operit.core.tools.AppListData
-import com.ai.assistance.operit.core.tools.defaultTool.ToolGetter
-import com.ai.assistance.operit.core.tools.system.MediaProjectionCaptureManager
-import com.ai.assistance.operit.core.tools.system.MediaProjectionHolder
-import com.ai.assistance.operit.core.tools.system.ScreenCaptureActivity
+me.rerere.chat.EnhancedAIService
+me.rerere.rikkahub.config.FunctionalPrompts
+me.rerere.rikkahub.tools.AutomationExecutionResult
+me.rerere.rikkahub.tools.SimplifiedUINode
+me.rerere.rikkahub.tools.StringResultData
+me.rerere.rikkahub.tools.UIPageResultData
+me.rerere.rikkahub.tools.AppListData
+me.rerere.rikkahub.tools.defaultTool.ToolGetter
+me.rerere.rikkahub.tools.system.MediaProjectionCaptureManager
+me.rerere.rikkahub.tools.system.MediaProjectionHolder
+me.rerere.rikkahub.tools.system.ScreenCaptureActivity
 import kotlinx.coroutines.delay
-import com.ai.assistance.operit.data.model.AITool
-import com.ai.assistance.operit.data.model.FunctionType
-import com.ai.assistance.operit.data.model.ToolParameter
-import com.ai.assistance.operit.data.model.ToolResult
-import com.ai.assistance.operit.services.FloatingChatService
-import com.ai.assistance.operit.ui.common.displays.UIOperationOverlay
-import com.ai.assistance.operit.ui.common.displays.UIAutomationProgressOverlay
-import com.ai.assistance.operit.ui.common.displays.VirtualDisplayOverlay
-import com.ai.assistance.operit.util.AppLogger
-import com.ai.assistance.operit.util.LocaleUtils
-import com.ai.assistance.operit.util.OperitPaths
-import com.ai.assistance.operit.core.tools.agent.ActionHandler
-import com.ai.assistance.operit.core.tools.agent.AgentConfig
-import com.ai.assistance.operit.core.tools.agent.PhoneAgent
-import com.ai.assistance.operit.core.tools.agent.ShowerController
-import com.ai.assistance.operit.core.tools.agent.ToolImplementations
+me.rerere.rikkahub.data.model.AITool
+me.rerere.rikkahub.data.model.FunctionType
+me.rerere.rikkahub.data.model.ToolParameter
+me.rerere.rikkahub.data.model.ToolResult
+me.rerere.FloatingChatService
+me.rerere.common.displays.UIOperationOverlay
+me.rerere.common.displays.UIAutomationProgressOverlay
+me.rerere.common.displays.VirtualDisplayOverlay
+android.util.Log
+me.rerere.LocaleUtils
+me.rerere.OperitPaths
+me.rerere.rikkahub.tools.agent.ActionHandler
+me.rerere.rikkahub.tools.agent.AgentConfig
+me.rerere.rikkahub.tools.agent.PhoneAgent
+me.rerere.rikkahub.tools.agent.ShowerController
+me.rerere.rikkahub.tools.agent.ToolImplementations
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
@@ -260,7 +260,7 @@ open class StandardUITools(protected val context: Context) : ToolImplementations
             if (appsScanned) return
             synchronized(this) {
                 if (appsScanned) return
-                AppLogger.d(TAG, "Scanning for installed applications to supplement APP_PACKAGES...")
+                Log.d(TAG, "Scanning for installed applications to supplement APP_PACKAGES...")
                 val pm = context.packageManager
                 try {
                     val apps = pm.getInstalledApplications(PackageManager.GET_META_DATA)
@@ -270,7 +270,7 @@ open class StandardUITools(protected val context: Context) : ToolImplementations
                                 try {
                                     pm.getApplicationLabel(app).toString()
                                 } catch (e: Exception) {
-                                    AppLogger.w(
+                                    Log.w(
                                             TAG,
                                             "Failed to load application label for ${app.packageName}",
                                             e
@@ -286,9 +286,9 @@ open class StandardUITools(protected val context: Context) : ToolImplementations
                     if (newPackages.isNotEmpty()) {
                         addAppPackages(newPackages)
                     }
-                    AppLogger.d(TAG, "Found and added ${newPackages.size} new application packages.")
+                    Log.d(TAG, "Found and added ${newPackages.size} new application packages.")
                 } catch (e: Exception) {
-                    AppLogger.e(TAG, "Failed to scan installed applications", e)
+                    Log.e(TAG, "Failed to scan installed applications", e)
                 } finally {
                     appsScanned = true
                 }
@@ -508,7 +508,7 @@ open class StandardUITools(protected val context: Context) : ToolImplementations
 
             ToolResult(toolName = tool.name, success = true, result = resultData, error = "")
         } catch (e: CancellationException) {
-            AppLogger.e(TAG, "UI subagent cancelled", e)
+            Log.e(TAG, "UI subagent cancelled", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -516,7 +516,7 @@ open class StandardUITools(protected val context: Context) : ToolImplementations
                 error = "Error running UI subagent: ${e.message}"
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error running UI subagent", e)
+            Log.e(TAG, "Error running UI subagent", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -561,7 +561,7 @@ open class StandardUITools(protected val context: Context) : ToolImplementations
 
     private suspend fun ensureMediaProjectionCaptureManager(): MediaProjectionCaptureManager? {
         if (MediaProjectionHolder.mediaProjection == null) {
-            AppLogger.d(TAG, "captureScreenshot: Requesting MediaProjection permission...")
+            Log.d(TAG, "captureScreenshot: Requesting MediaProjection permission...")
             withContext(Dispatchers.Main) {
                 ScreenCaptureActivity.cleanStart(context)
             }
@@ -573,7 +573,7 @@ open class StandardUITools(protected val context: Context) : ToolImplementations
             }
 
             if (MediaProjectionHolder.mediaProjection == null) {
-                AppLogger.w(TAG, "captureScreenshot: MediaProjection permission not granted or timed out")
+                Log.w(TAG, "captureScreenshot: MediaProjection permission not granted or timed out")
                 return null
             }
         }
@@ -598,7 +598,7 @@ open class StandardUITools(protected val context: Context) : ToolImplementations
             delay(200)
             manager
         } catch (e: Exception) {
-            AppLogger.e(TAG, "captureScreenshot: Error preparing MediaProjectionCaptureManager", e)
+            Log.e(TAG, "captureScreenshot: Error preparing MediaProjectionCaptureManager", e)
             try {
                 cachedMediaProjectionCaptureManager?.release()
             } catch (_: Exception) {
@@ -629,7 +629,7 @@ open class StandardUITools(protected val context: Context) : ToolImplementations
             }
 
             if (success) {
-                AppLogger.d(TAG, "captureScreenshotToFile: captured via MediaProjectionCaptureManager")
+                Log.d(TAG, "captureScreenshotToFile: captured via MediaProjectionCaptureManager")
                 val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
                 BitmapFactory.decodeFile(file.absolutePath, options)
                 val dimensions =
@@ -640,11 +640,11 @@ open class StandardUITools(protected val context: Context) : ToolImplementations
                     }
                 Pair(file.absolutePath, dimensions)
             } else {
-                AppLogger.w(TAG, "captureScreenshotToFile: MediaProjectionCaptureManager capture failed")
+                Log.w(TAG, "captureScreenshotToFile: MediaProjectionCaptureManager capture failed")
                 Pair(null, null)
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "captureScreenshotToFile failed", e)
+            Log.e(TAG, "captureScreenshotToFile failed", e)
             Pair(null, null)
         }
     }
@@ -669,10 +669,10 @@ open class StandardUITools(protected val context: Context) : ToolImplementations
                 attempt++
             }
 
-            AppLogger.w(TAG, "captureScreenshotToFile: MediaProjectionCaptureManager capture failed")
+            Log.w(TAG, "captureScreenshotToFile: MediaProjectionCaptureManager capture failed")
             Pair(null, null)
         } catch (e: Exception) {
-            AppLogger.e(TAG, "captureScreenshotBitmap failed", e)
+            Log.e(TAG, "captureScreenshotBitmap failed", e)
             Pair(null, null)
         }
     }

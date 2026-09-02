@@ -1,7 +1,7 @@
 package me.rerere.rikkahub.plugins.toolpkg
 
-import com.ai.assistance.operit.core.tools.packTool.PackageManager
-import com.ai.assistance.operit.core.tools.packTool.ToolPkgContainerRuntime
+me.rerere.rikkahub.tools.packTool.PackageManager
+me.rerere.rikkahub.tools.packTool.ToolPkgContainerRuntime
 import java.util.concurrent.atomic.AtomicBoolean
 
 internal object ToolPkgAiProviderRegistry {

@@ -1,15 +1,15 @@
 package me.rerere.rikkahub.data.ai.tools
 
 import android.content.Context
-import com.ai.assistance.operit.util.AppLogger
-import com.ai.assistance.operit.core.tools.StringResultData
-import com.ai.assistance.operit.core.tools.WorkflowDetailResultData
-import com.ai.assistance.operit.core.tools.WorkflowListResultData
-import com.ai.assistance.operit.core.tools.WorkflowResultData
-import com.ai.assistance.operit.data.model.*
-import com.ai.assistance.operit.data.model.AITool
-import com.ai.assistance.operit.data.model.ToolResult
-import com.ai.assistance.operit.data.repository.WorkflowRepository
+android.util.Log
+me.rerere.rikkahub.tools.StringResultData
+me.rerere.rikkahub.tools.WorkflowDetailResultData
+me.rerere.rikkahub.tools.WorkflowListResultData
+me.rerere.rikkahub.tools.WorkflowResultData
+me.rerere.rikkahub.data.model.*
+me.rerere.rikkahub.data.model.AITool
+me.rerere.rikkahub.data.model.ToolResult
+me.rerere.rikkahub.data.repository.WorkflowRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.currentCoroutineContext
@@ -102,7 +102,7 @@ class StandardWorkflowTools(private val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to get all workflows", e)
+            Log.e(TAG, "Failed to get all workflows", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -187,7 +187,7 @@ class StandardWorkflowTools(private val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to create workflow", e)
+            Log.e(TAG, "Failed to create workflow", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -253,7 +253,7 @@ class StandardWorkflowTools(private val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to get workflow", e)
+            Log.e(TAG, "Failed to get workflow", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -365,7 +365,7 @@ class StandardWorkflowTools(private val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to update workflow", e)
+            Log.e(TAG, "Failed to update workflow", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -425,7 +425,7 @@ class StandardWorkflowTools(private val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to $action workflow", e)
+            Log.e(TAG, "Failed to $action workflow", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -816,7 +816,7 @@ class StandardWorkflowTools(private val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to patch workflow", e)
+            Log.e(TAG, "Failed to patch workflow", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -868,7 +868,7 @@ class StandardWorkflowTools(private val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to delete workflow", e)
+            Log.e(TAG, "Failed to delete workflow", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -917,7 +917,7 @@ class StandardWorkflowTools(private val context: Context) {
             }
             throw e
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to trigger workflow", e)
+            Log.e(TAG, "Failed to trigger workflow", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -949,7 +949,7 @@ class StandardWorkflowTools(private val context: Context) {
 
             nodes
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to parse nodes JSON", e)
+            Log.e(TAG, "Failed to parse nodes JSON", e)
             throw IllegalArgumentException("Invalid node JSON format: ${e.message}")
         }
     }
@@ -1102,12 +1102,12 @@ class StandardWorkflowTools(private val context: Context) {
                     )
                 }
                 else -> {
-                    AppLogger.w(TAG, "Unknown node type: $type")
+                    Log.w(TAG, "Unknown node type: $type")
                     null
                 }
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to parse node", e)
+            Log.e(TAG, "Failed to parse node", e)
             null
         }
     }
@@ -1159,7 +1159,7 @@ class StandardWorkflowTools(private val context: Context) {
 
             connections
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to parse connections JSON", e)
+            Log.e(TAG, "Failed to parse connections JSON", e)
             throw IllegalArgumentException("Invalid connection JSON format: ${e.message}")
         }
     }
@@ -1180,12 +1180,12 @@ class StandardWorkflowTools(private val context: Context) {
             val condition = connObj.optString("condition", null)
 
             if (sourceNodeId.isBlank() || targetNodeId.isBlank()) {
-                AppLogger.w(TAG, "Connection missing source or target node ID")
+                Log.w(TAG, "Connection missing source or target node ID")
                 return null
             }
 
             if (!nodeIdSet.contains(sourceNodeId) || !nodeIdSet.contains(targetNodeId)) {
-                AppLogger.w(TAG, "Connection references unknown node: $sourceNodeId -> $targetNodeId")
+                Log.w(TAG, "Connection references unknown node: $sourceNodeId -> $targetNodeId")
                 return null
             }
 
@@ -1196,7 +1196,7 @@ class StandardWorkflowTools(private val context: Context) {
                 condition = condition
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to parse connection", e)
+            Log.e(TAG, "Failed to parse connection", e)
             null
         }
     }

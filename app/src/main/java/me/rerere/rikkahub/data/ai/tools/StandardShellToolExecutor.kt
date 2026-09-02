@@ -1,14 +1,14 @@
 package me.rerere.rikkahub.data.ai.tools
 
 import android.content.Context
-import com.ai.assistance.operit.util.AppLogger
-import com.ai.assistance.operit.core.tools.ADBResultData
-import com.ai.assistance.operit.core.tools.StringResultData
-import com.ai.assistance.operit.core.tools.system.AndroidShellExecutor
-import com.ai.assistance.operit.core.tools.system.ShizukuAuthorizer
-import com.ai.assistance.operit.data.model.AITool
-import com.ai.assistance.operit.data.model.ToolResult
-import com.ai.assistance.operit.data.model.ToolValidationResult
+android.util.Log
+me.rerere.rikkahub.tools.ADBResultData
+me.rerere.rikkahub.tools.StringResultData
+me.rerere.rikkahub.tools.system.AndroidShellExecutor
+me.rerere.rikkahub.tools.system.ShizukuAuthorizer
+me.rerere.rikkahub.data.model.AITool
+me.rerere.rikkahub.data.model.ToolResult
+me.rerere.rikkahub.data.model.ToolValidationResult
 import kotlinx.coroutines.runBlocking
 
 /**
@@ -70,7 +70,7 @@ open class StandardShellToolExecutor(private val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error executing ADB command", e)
+            Log.e(TAG, "Error executing ADB command", e)
             ToolResult(
                     toolName = tool.name,
                     success = false,

@@ -1,15 +1,15 @@
 package me.rerere.rikkahub.data.ai.memory.library
 
 import android.content.Context
-import com.ai.assistance.operit.api.chat.EnhancedAIService
-import com.ai.assistance.operit.core.tools.AIToolHandler
-import com.ai.assistance.operit.data.model.ChatHistory
-import com.ai.assistance.operit.data.model.CharacterCardMemoryProfileBindingMode
-import com.ai.assistance.operit.data.model.FunctionType
-import com.ai.assistance.operit.data.preferences.CharacterCardManager
-import com.ai.assistance.operit.data.preferences.preferencesManager
-import com.ai.assistance.operit.data.repository.ChatHistoryManager
-import com.ai.assistance.operit.util.AppLogger
+me.rerere.chat.EnhancedAIService
+me.rerere.rikkahub.tools.AIToolHandler
+me.rerere.rikkahub.data.model.ChatHistory
+me.rerere.rikkahub.data.model.CharacterCardMemoryProfileBindingMode
+me.rerere.rikkahub.data.model.FunctionType
+me.rerere.rikkahub.data.preferences.CharacterCardManager
+me.rerere.rikkahub.data.preferences.preferencesManager
+me.rerere.rikkahub.data.repository.ChatHistoryManager
+android.util.Log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -166,7 +166,7 @@ class ChatMemoryRebuildManager private constructor(private val context: Context)
                     } catch (error: Exception) {
                         if (error is CancellationException) throw error
                         failedWindows++
-                        AppLogger.e(
+                        Log.e(
                             TAG,
                             "窗口记忆重建失败: chatId=${plannedChat.history.id}, title=${plannedChat.history.title}",
                             error
@@ -191,7 +191,7 @@ class ChatMemoryRebuildManager private constructor(private val context: Context)
             _progress.value = _progress.value.copy(status = Status.CANCELLED)
             AppLogger.i(TAG, "聊天记忆重建已取消")
         } catch (error: Exception) {
-            AppLogger.e(TAG, "聊天记忆重建失败", error)
+            Log.e(TAG, "聊天记忆重建失败", error)
             _progress.value = _progress.value.copy(
                 status = Status.FAILED,
                 errorMessage = error.localizedMessage ?: error.javaClass.simpleName

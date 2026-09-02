@@ -1,10 +1,10 @@
 package me.rerere.rikkahub.data.ai.mcp.plugins
 
 import android.util.Log
-import com.ai.assistance.operit.core.tools.mcp.McpRuntimeCallResult
-import com.ai.assistance.operit.core.tools.mcp.McpRuntimeDescriptor
-import com.ai.assistance.operit.core.tools.mcp.McpRuntimeSession
-import com.ai.assistance.operit.core.tools.mcp.McpRuntimeTool
+me.rerere.rikkahub.tools.mcp.McpRuntimeCallResult
+me.rerere.rikkahub.tools.mcp.McpRuntimeDescriptor
+me.rerere.rikkahub.tools.mcp.McpRuntimeSession
+me.rerere.rikkahub.tools.mcp.McpRuntimeTool
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout

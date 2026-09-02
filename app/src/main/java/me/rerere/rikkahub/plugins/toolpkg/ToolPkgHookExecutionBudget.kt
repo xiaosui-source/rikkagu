@@ -1,9 +1,9 @@
 package me.rerere.rikkahub.plugins.toolpkg
 
-import com.ai.assistance.operit.core.application.OperitApplication
-import com.ai.assistance.operit.core.tools.javascript.extractJsExecutionErrorMessage
-import com.ai.assistance.operit.data.preferences.DisplayPreferencesManager
-import com.ai.assistance.operit.util.AppLogger
+me.rerere.rikkahub.application.OperitApplication
+me.rerere.rikkahub.tools.javascript.extractJsExecutionErrorMessage
+me.rerere.rikkahub.data.preferences.DisplayPreferencesManager
+android.util.Log
 import java.util.concurrent.TimeUnit
 
 /**
@@ -47,7 +47,7 @@ internal class ToolPkgHookExecutionBudget private constructor(
         containerPackageName: String,
         hookId: String
     ) {
-        AppLogger.w(
+        Log.w(
             tag,
             "ToolPkg hook skipped after timeout: stage=$stage, container=$containerPackageName, hook=$hookId, elapsedMs=${elapsedMillis()}"
         )
@@ -66,7 +66,7 @@ internal class ToolPkgHookExecutionBudget private constructor(
         if (failureMessage?.contains("timed out", ignoreCase = true) != true) {
             return false
         }
-        AppLogger.w(
+        Log.w(
             tag,
             "ToolPkg hook timed out: stage=$stage, container=$containerPackageName, hook=$hookId, elapsedMs=${elapsedMillis()}, reason=$failureMessage"
         )

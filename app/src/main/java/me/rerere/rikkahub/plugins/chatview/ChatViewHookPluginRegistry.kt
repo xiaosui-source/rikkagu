@@ -1,7 +1,7 @@
 package me.rerere.rikkahub.plugins.chatview
 
 import android.content.Context
-import com.ai.assistance.operit.util.AppLogger
+android.util.Log
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -60,7 +60,7 @@ object ChatViewHookPluginRegistry {
             try {
                 plugin.onEvent(event, params)
             } catch (error: Exception) {
-                AppLogger.e(
+                Log.e(
                     TAG,
                     "Chat view hook plugin failed: ${plugin.id}, event=${event.wireName}, viewId=${params.viewId}",
                     error

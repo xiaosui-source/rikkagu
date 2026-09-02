@@ -1,6 +1,6 @@
 package me.rerere.rikkahub.ui.pages.token
 
-import com.ai.assistance.operit.util.AppLogger
+android.util.Log
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -27,10 +27,10 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import com.ai.assistance.operit.ui.components.CustomScaffold
-import com.ai.assistance.operit.ui.main.LocalTopBarActions
-import com.ai.assistance.operit.ui.main.components.LocalAppBarContentColor
-import com.ai.assistance.operit.ui.main.components.LocalIsCurrentScreen
+me.rerere.components.CustomScaffold
+me.rerere.main.LocalTopBarActions
+me.rerere.main.components.LocalAppBarContentColor
+me.rerere.main.components.LocalIsCurrentScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -49,12 +49,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import com.ai.assistance.operit.R
-import com.ai.assistance.operit.ui.features.token.components.UrlConfigDialog
-import com.ai.assistance.operit.ui.features.token.model.NavDestination
-import com.ai.assistance.operit.ui.features.token.model.getIconForIndex
-import com.ai.assistance.operit.ui.features.token.preferences.UrlConfigManager
-import com.ai.assistance.operit.ui.features.token.webview.WebViewConfig
+import me.rerere.R
+me.rerere.features.token.components.UrlConfigDialog
+me.rerere.features.token.model.NavDestination
+me.rerere.features.token.model.getIconForIndex
+me.rerere.features.token.preferences.UrlConfigManager
+me.rerere.features.token.webview.WebViewConfig
 import kotlinx.coroutines.launch
 
 /** Token配置屏幕 */
@@ -66,7 +66,7 @@ fun TokenConfigWebViewScreen(onNavigateBack: () -> Unit) {
     val urlConfigManager = remember { UrlConfigManager(context) }
     
     // 获取URL配置
-    val urlConfig by urlConfigManager.urlConfigFlow.collectAsState(initial = com.ai.assistance.operit.ui.features.token.model.UrlConfig())
+    val urlConfig by urlConfigManager.urlConfigFlow.collectAsState(initial = me.rerere.ui.features.token.model.UrlConfig())
 
     // State
     var isLoading by remember { mutableStateOf(true) }
@@ -116,7 +116,7 @@ fun TokenConfigWebViewScreen(onNavigateBack: () -> Unit) {
                             context.startActivity(intent)
                             return true
                         } catch (e: Exception) {
-                            AppLogger.e("TokenConfigWebView", "无法打开外部应用: ${e.message}")
+                            Log.e("TokenConfigWebView", "无法打开外部应用: ${e.message}")
                             // 如果打开失败，返回false让WebView尝试处理
                             return false
                         }

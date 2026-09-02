@@ -6,9 +6,9 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.ai.assistance.operit.R
-import com.ai.assistance.operit.ui.features.token.model.TabConfig
-import com.ai.assistance.operit.ui.features.token.model.UrlConfig
+import me.rerere.R
+me.rerere.features.token.model.TabConfig
+me.rerere.features.token.model.UrlConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.decodeFromString

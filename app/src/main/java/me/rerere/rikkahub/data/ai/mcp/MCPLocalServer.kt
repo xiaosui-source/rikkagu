@@ -2,16 +2,16 @@ package me.rerere.rikkahub.data.ai.mcp
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.ai.assistance.operit.R
-import com.ai.assistance.operit.util.AppLogger
-import com.ai.assistance.operit.core.tools.AIToolHandler
-import com.ai.assistance.operit.core.tools.mcp.MCPManager
-import com.ai.assistance.operit.core.tools.DirectoryListingData
-import com.ai.assistance.operit.core.tools.FileExistsData
-import com.ai.assistance.operit.data.mcp.plugins.MCPStarter
-import com.ai.assistance.operit.data.model.AITool
-import com.ai.assistance.operit.data.model.ToolParameter
-import com.ai.assistance.operit.util.OperitPaths
+import me.rerere.R
+android.util.Log
+me.rerere.rikkahub.tools.AIToolHandler
+me.rerere.rikkahub.tools.mcp.MCPManager
+me.rerere.rikkahub.tools.DirectoryListingData
+me.rerere.rikkahub.tools.FileExistsData
+me.rerere.rikkahub.data.mcp.plugins.MCPStarter
+me.rerere.rikkahub.data.model.AITool
+me.rerere.rikkahub.data.model.ToolParameter
+me.rerere.OperitPaths
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import com.google.gson.reflect.TypeToken
@@ -226,7 +226,7 @@ class MCPLocalServer private constructor(private val context: Context) {
     suspend fun reloadConfigurations() {
         withContext(Dispatchers.IO) {
             loadAllConfigurations()
-            AppLogger.d(TAG, "配置已重新加载")
+            Log.d(TAG, "配置已重新加载")
         }
     }
 
@@ -252,10 +252,10 @@ class MCPLocalServer private constructor(private val context: Context) {
                             (updatedConfig.pluginMetadata.size - sanitizedConfig.config.pluginMetadata.size)
                                 .coerceAtLeast(0)
                         if (createdMetadataCount > 0) {
-                            AppLogger.d(TAG, "自动创建了 $createdMetadataCount 个缺失的插件元数据")
+                            Log.d(TAG, "自动创建了 $createdMetadataCount 个缺失的插件元数据")
                         }
                         if (sanitizedConfig.removedServerIds.isNotEmpty() || sanitizedConfig.removedMetadataIds.isNotEmpty()) {
-                            AppLogger.d(TAG, "已持久化清理后的MCP配置")
+                            Log.d(TAG, "已持久化清理后的MCP配置")
                         }
                     }
                 }
@@ -271,7 +271,7 @@ class MCPLocalServer private constructor(private val context: Context) {
                 if (hasLegacyActiveField) {
                     coroutineScope.launch {
                         saveServerStatus()
-                        AppLogger.d(TAG, "已迁移 server_status.json：移除 legacy active 字段")
+                        Log.d(TAG, "已迁移 server_status.json：移除 legacy active 字段")
                     }
                 }
             }
@@ -279,9 +279,9 @@ class MCPLocalServer private constructor(private val context: Context) {
             // 为新配置的服务器初始化状态
             initializeMissingServerStatus()
 
-            AppLogger.d(TAG, "配置加载完成 - MCP服务器: ${_mcpConfig.value.mcpServers.size}, 插件元数据: ${_mcpConfig.value.pluginMetadata.size}")
+            Log.d(TAG, "配置加载完成 - MCP服务器: ${_mcpConfig.value.mcpServers.size}, 插件元数据: ${_mcpConfig.value.pluginMetadata.size}")
         } catch (e: Exception) {
-            AppLogger.e(TAG, "加载配置时出错", e)
+            Log.e(TAG, "加载配置时出错", e)
         }
     }
     
@@ -316,7 +316,7 @@ class MCPLocalServer private constructor(private val context: Context) {
                 
                 newMetadata[serverId] = metadata
                 hasNewMetadata = true
-                AppLogger.d(TAG, "自动创建元数据: $serverId -> $displayName")
+                Log.d(TAG, "自动创建元数据: $serverId -> $displayName")
             }
         }
         
@@ -374,7 +374,7 @@ class MCPLocalServer private constructor(private val context: Context) {
     ): MCPConfig.ServerConfig? {
         val command = serverConfig.command?.trim()
         if (command.isNullOrEmpty()) {
-            AppLogger.w(TAG, "忽略无效MCP服务器配置: $serverId, source=$source, command为空")
+            Log.w(TAG, "忽略无效MCP服务器配置: $serverId, source=$source, command为空")
             return null
         }
 
@@ -446,7 +446,7 @@ class MCPLocalServer private constructor(private val context: Context) {
         }
 
         if (removedServerIds.isNotEmpty()) {
-            AppLogger.w(
+            Log.w(
                 TAG,
                 "已清理无效MCP服务器配置: ${removedServerIds.joinToString()}" +
                     if (removedMetadataIds.isNotEmpty()) {
@@ -484,7 +484,7 @@ class MCPLocalServer private constructor(private val context: Context) {
                     errorMessage = null
                 )
                 hasNewStatus = true
-                AppLogger.d(TAG, "初始化服务器状态: $serverId")
+                Log.d(TAG, "初始化服务器状态: $serverId")
             }
         }
         
@@ -503,9 +503,9 @@ class MCPLocalServer private constructor(private val context: Context) {
         try {
             val configJson = gson.toJson(_mcpConfig.value)
             mcpConfigFile.writeText(configJson)
-            AppLogger.d(TAG, "MCP配置已保存")
+            Log.d(TAG, "MCP配置已保存")
         } catch (e: Exception) {
-            AppLogger.e(TAG, "保存MCP配置时出错", e)
+            Log.e(TAG, "保存MCP配置时出错", e)
         }
     }
 
@@ -516,9 +516,9 @@ class MCPLocalServer private constructor(private val context: Context) {
         try {
             val statusJson = gson.toJson(_serverStatus.value)
             serverStatusFile.writeText(statusJson)
-            AppLogger.d(TAG, "服务器状态已保存")
+            Log.d(TAG, "服务器状态已保存")
         } catch (e: Exception) {
-            AppLogger.e(TAG, "保存服务器状态时出错", e)
+            Log.e(TAG, "保存服务器状态时出错", e)
         }
     }
 
@@ -571,7 +571,7 @@ class MCPLocalServer private constructor(private val context: Context) {
         if (shouldResetRuntime) {
             resetRuntimeState(serverId)
         }
-        AppLogger.d(TAG, "MCP服务器配置已更新: $serverId")
+        Log.d(TAG, "MCP服务器配置已更新: $serverId")
     }
 
     /**
@@ -589,7 +589,7 @@ class MCPLocalServer private constructor(private val context: Context) {
         removePluginMetadata(serverId)
         removeServerStatus(serverId)
         
-        AppLogger.d(TAG, "MCP服务器配置已删除: $serverId")
+        Log.d(TAG, "MCP服务器配置已删除: $serverId")
     }
 
     /**
@@ -598,11 +598,11 @@ class MCPLocalServer private constructor(private val context: Context) {
     suspend fun mergeConfigFromJson(jsonConfig: String): Result<Int> {
         return withContext(Dispatchers.IO) {
             try {
-                AppLogger.d(TAG, "开始合并配置，输入长度: ${jsonConfig.length}")
+                Log.d(TAG, "开始合并配置，输入长度: ${jsonConfig.length}")
                 val parsedConfig = try {
                     McpConfigImportParser.parse(jsonConfig)
                 } catch (e: Exception) {
-                    AppLogger.e(TAG, "标准 MCP 配置解析失败", e)
+                    Log.e(TAG, "标准 MCP 配置解析失败", e)
                     return@withContext Result.failure(
                         Exception(
                             context.getString(
@@ -681,7 +681,7 @@ class MCPLocalServer private constructor(private val context: Context) {
                 )
                 Result.success(parsedConfig.servers.size)
             } catch (e: Exception) {
-                AppLogger.e(TAG, "合并配置失败: ${e.message}", e)
+                Log.e(TAG, "合并配置失败: ${e.message}", e)
                 Result.failure(Exception(context.getString(R.string.mcp_local_merge_config_failed, e.message)))
             }
         }
@@ -731,7 +731,7 @@ class MCPLocalServer private constructor(private val context: Context) {
         if (metadata.type == "remote" && shouldResetRuntime) {
             resetRuntimeState(metadata.id)
         }
-        AppLogger.d(TAG, "插件元数据已更新: ${metadata.id} - ${metadata.name}")
+        Log.d(TAG, "插件元数据已更新: ${metadata.id} - ${metadata.name}")
     }
 
     /**
@@ -744,7 +744,7 @@ class MCPLocalServer private constructor(private val context: Context) {
             currentConfig.copy(pluginMetadata = newMetadata)
         }
         saveMCPConfig()
-        AppLogger.d(TAG, "插件元数据已删除: $pluginId")
+        Log.d(TAG, "插件元数据已删除: $pluginId")
     }
 
     /**
@@ -788,7 +788,7 @@ class MCPLocalServer private constructor(private val context: Context) {
         currentStatus[serverId] = updatedStatus
         _serverStatus.value = currentStatus
         saveServerStatus()
-        AppLogger.d(TAG, "服务器状态已更新: $serverId")
+        Log.d(TAG, "服务器状态已更新: $serverId")
     }
 
     /**
@@ -796,7 +796,7 @@ class MCPLocalServer private constructor(private val context: Context) {
      */
     suspend fun cacheServerTools(serverId: String, tools: List<CachedToolInfo>) {
         updateServerStatus(serverId = serverId, cachedTools = tools)
-        AppLogger.d(TAG, "已缓存服务器 $serverId 的 ${tools.size} 个工具")
+        Log.d(TAG, "已缓存服务器 $serverId 的 ${tools.size} 个工具")
     }
 
     /**
@@ -832,7 +832,7 @@ class MCPLocalServer private constructor(private val context: Context) {
         currentStatus.remove(serverId)
         _serverStatus.value = currentStatus
         saveServerStatus()
-        AppLogger.d(TAG, "服务器状态已删除: $serverId")
+        Log.d(TAG, "服务器状态已删除: $serverId")
     }
 
     /**
@@ -884,7 +884,7 @@ class MCPLocalServer private constructor(private val context: Context) {
         if (serverConfig != null) {
             val command = serverConfig.command?.trim()
             if (command.isNullOrEmpty()) {
-                AppLogger.w(TAG, "服务器配置无效，已移除本地 server 记录: $serverId")
+                Log.w(TAG, "服务器配置无效，已移除本地 server 记录: $serverId")
                 val shouldRemoveMetadata = getPluginMetadata(serverId)?.type != "remote"
                 _mcpConfig.update { currentConfig ->
                     val newServers = currentConfig.mcpServers.toMutableMap()
@@ -911,7 +911,7 @@ class MCPLocalServer private constructor(private val context: Context) {
                     disabled = !enabled,
                     autoApprove = serverConfig.autoApprove ?: emptyList()
                 )
-                AppLogger.d(TAG, "服务器启用状态已更新(本地): $serverId, enabled=$enabled")
+                Log.d(TAG, "服务器启用状态已更新(本地): $serverId, enabled=$enabled")
                 return
             }
         }
@@ -919,11 +919,11 @@ class MCPLocalServer private constructor(private val context: Context) {
         val metadata = getPluginMetadata(serverId)
         if (metadata?.type == "remote") {
             addOrUpdatePluginMetadata(metadata.copy(disabled = !enabled))
-            AppLogger.d(TAG, "服务器启用状态已更新(远程): $serverId, enabled=$enabled")
+            Log.d(TAG, "服务器启用状态已更新(远程): $serverId, enabled=$enabled")
             return
         }
 
-        AppLogger.w(TAG, "设置启用状态失败，未找到服务器配置或远程元数据: $serverId")
+        Log.w(TAG, "设置启用状态失败，未找到服务器配置或远程元数据: $serverId")
     }
 
     fun getPluginRuntimeDirectory(pluginId: String): String {
@@ -956,7 +956,7 @@ class MCPLocalServer private constructor(private val context: Context) {
             val metadata = getPluginMetadata(pluginId)
 
             if (metadata?.type == "remote") {
-                AppLogger.d(TAG, "插件 $pluginId 是远程服务，运行目录视为已就绪")
+                Log.d(TAG, "插件 $pluginId 是远程服务，运行目录视为已就绪")
                 return@withContext true
             }
 
@@ -975,12 +975,12 @@ class MCPLocalServer private constructor(private val context: Context) {
                             (existsResult.result as FileExistsData).exists
             
             if (!dirExists) {
-                AppLogger.d(TAG, "插件 $pluginId 运行目录不存在: $pluginDir")
+                Log.d(TAG, "插件 $pluginId 运行目录不存在: $pluginDir")
                 return@withContext false
             }
 
             if (!pluginRuntimeRequiresFiles(pluginId)) {
-                AppLogger.d(TAG, "插件 $pluginId 运行目录已就绪: $pluginDir (允许空目录)")
+                Log.d(TAG, "插件 $pluginId 运行目录已就绪: $pluginDir (允许空目录)")
                 return@withContext true
             }
 
@@ -1000,10 +1000,10 @@ class MCPLocalServer private constructor(private val context: Context) {
                 false
             }
 
-            AppLogger.d(TAG, "插件 $pluginId 运行目录检查: $hasFiles (路径: $pluginDir, 包含${if (hasFiles) "有" else "无"}文件)")
+            Log.d(TAG, "插件 $pluginId 运行目录检查: $hasFiles (路径: $pluginDir, 包含${if (hasFiles) "有" else "无"}文件)")
             return@withContext hasFiles
         } catch (e: Exception) {
-            AppLogger.e(TAG, "检查插件运行目录状态时出错: $pluginId", e)
+            Log.e(TAG, "检查插件运行目录状态时出错: $pluginId", e)
             return@withContext false
         }
     }
@@ -1057,7 +1057,7 @@ class MCPLocalServer private constructor(private val context: Context) {
             saveMCPConfig()
             true
         } catch (e: Exception) {
-            AppLogger.e(TAG, "保存插件配置失败: $pluginId", e)
+            Log.e(TAG, "保存插件配置失败: $pluginId", e)
             false
         }
     }
@@ -1101,10 +1101,10 @@ class MCPLocalServer private constructor(private val context: Context) {
                 saveServerStatus()
             }
             
-            AppLogger.d(TAG, "配置导入成功")
+            Log.d(TAG, "配置导入成功")
             true
         } catch (e: Exception) {
-            AppLogger.e(TAG, "导入配置失败", e)
+            Log.e(TAG, "导入配置失败", e)
             false
         }
     }
@@ -1131,7 +1131,7 @@ class MCPLocalServer private constructor(private val context: Context) {
             if (serversToRemove.isNotEmpty()) {
                 _mcpConfig.value = mcpConfig
                 saveMCPConfig()
-                AppLogger.d(TAG, "清理了 ${serversToRemove.size} 个无效的MCP服务器配置")
+                Log.d(TAG, "清理了 ${serversToRemove.size} 个无效的MCP服务器配置")
             }
             
             // 清理无效的服务器状态
@@ -1143,11 +1143,11 @@ class MCPLocalServer private constructor(private val context: Context) {
                 }
                 _serverStatus.value = currentStatus
                 saveServerStatus()
-                AppLogger.d(TAG, "清理了 ${statusToRemove.size} 个无效的服务器状态")
+                Log.d(TAG, "清理了 ${statusToRemove.size} 个无效的服务器状态")
             }
             
         } catch (e: Exception) {
-            AppLogger.e(TAG, "清理配置时出错", e)
+            Log.e(TAG, "清理配置时出错", e)
         }
     }
 }

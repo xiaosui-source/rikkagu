@@ -16,23 +16,23 @@ import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
 import androidx.core.app.NotificationCompat
-import com.ai.assistance.operit.BuildConfig
-import com.ai.assistance.operit.util.AppLogger
-import com.ai.assistance.operit.core.tools.AppListData
-import com.ai.assistance.operit.core.tools.AppOperationData
-import com.ai.assistance.operit.core.tools.AppUsageTimeEntry
-import com.ai.assistance.operit.core.tools.AppUsageTimeResultData
-import com.ai.assistance.operit.core.tools.BluetoothBondedDevicesData
-import com.ai.assistance.operit.core.tools.BluetoothDeviceData
-import com.ai.assistance.operit.core.tools.BluetoothStateData
-import com.ai.assistance.operit.core.tools.LocationData
-import com.ai.assistance.operit.core.tools.NotificationData
-import com.ai.assistance.operit.core.tools.StringResultData
-import com.ai.assistance.operit.core.tools.SystemSettingData
-import com.ai.assistance.operit.core.tools.defaultTool.websession.browser.WebSessionPermissionRequestCoordinator
-import com.ai.assistance.operit.core.tools.system.AndroidShellExecutor
-import com.ai.assistance.operit.data.model.AITool
-import com.ai.assistance.operit.data.model.ToolResult
+import me.rerere.BuildConfig
+android.util.Log
+me.rerere.rikkahub.tools.AppListData
+me.rerere.rikkahub.tools.AppOperationData
+me.rerere.rikkahub.tools.AppUsageTimeEntry
+me.rerere.rikkahub.tools.AppUsageTimeResultData
+me.rerere.rikkahub.tools.BluetoothBondedDevicesData
+me.rerere.rikkahub.tools.BluetoothDeviceData
+me.rerere.rikkahub.tools.BluetoothStateData
+me.rerere.rikkahub.tools.LocationData
+me.rerere.rikkahub.tools.NotificationData
+me.rerere.rikkahub.tools.StringResultData
+me.rerere.rikkahub.tools.SystemSettingData
+me.rerere.rikkahub.tools.defaultTool.websession.browser.WebSessionPermissionRequestCoordinator
+me.rerere.rikkahub.tools.system.AndroidShellExecutor
+me.rerere.rikkahub.data.model.AITool
+me.rerere.rikkahub.data.model.ToolResult
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -48,10 +48,10 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.core.content.FileProvider
 import java.io.File
-import com.ai.assistance.operit.services.notification.OperitNotificationStore
-import com.ai.assistance.operit.R
-import com.ai.assistance.operit.util.AndroidUserPathUtils
-import com.ai.assistance.operit.util.OperitPaths
+me.rerere.notification.OperitNotificationStore
+import me.rerere.R
+me.rerere.AndroidUserPathUtils
+me.rerere.OperitPaths
 
 /** 提供系统级操作的工具类 包括系统设置修改、应用安装和卸载等 这些操作需要用户明确授权 */
 open class StandardSystemOperationTools(private val context: Context) {
@@ -84,7 +84,7 @@ open class StandardSystemOperationTools(private val context: Context) {
         val stagedFileName = "install_${System.currentTimeMillis()}_${apkFile.name}"
         val stagedFile = File(cleanOnExitDir, stagedFileName)
         apkFile.copyTo(stagedFile, overwrite = true)
-        AppLogger.d(TAG, "Staged internal apk for installer: $apkPath -> ${stagedFile.absolutePath}")
+        Log.d(TAG, "Staged internal apk for installer: $apkPath -> ${stagedFile.absolutePath}")
         return stagedFile
     }
 
@@ -254,7 +254,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                     error = "No permission to modify system settings. Settings page opened for you, please grant WRITE_SETTINGS permission and retry."
                 )
             } catch (e: Exception) {
-                AppLogger.e(TAG, "打开设置页面失败", e)
+                Log.e(TAG, "打开设置页面失败", e)
                 return ToolResult(
                     toolName = tool.name,
                     success = false,
@@ -273,7 +273,7 @@ open class StandardSystemOperationTools(private val context: Context) {
             val resultData = SystemSettingData(namespace = namespace, setting = setting, value = value)
             ToolResult(toolName = tool.name, success = true, result = resultData, error = "")
         } catch (e: SecurityException) {
-            AppLogger.e(TAG, "修改系统设置时出错", e)
+            Log.e(TAG, "修改系统设置时出错", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -281,7 +281,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                 error = "Security exception when modifying system settings: ${e.message}. This may require higher permissions."
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "修改系统设置时出错", e)
+            Log.e(TAG, "修改系统设置时出错", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -335,7 +335,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                 )
             }
         } catch (e: SecurityException) {
-            AppLogger.e(TAG, "获取系统设置时出错", e)
+            Log.e(TAG, "获取系统设置时出错", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -343,7 +343,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                 error = "Security exception when getting system settings: ${e.message}. This may require higher permissions."
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "获取系统设置时出错", e)
+            Log.e(TAG, "获取系统设置时出错", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -405,7 +405,7 @@ open class StandardSystemOperationTools(private val context: Context) {
             )
             ToolResult(toolName = tool.name, success = true, result = resultData, error = "")
         } catch (e: Exception) {
-            AppLogger.e(TAG, "请求安装应用时出错", e)
+            Log.e(TAG, "请求安装应用时出错", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -453,7 +453,7 @@ open class StandardSystemOperationTools(private val context: Context) {
             )
             ToolResult(toolName = tool.name, success = true, result = resultData, error = "")
         } catch (e: Exception) {
-            AppLogger.e(TAG, "请求卸载应用时出错", e)
+            Log.e(TAG, "请求卸载应用时出错", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -481,7 +481,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                             try {
                                 appInfo.loadLabel(pm).toString()
                             } catch (e: Exception) {
-                                AppLogger.w(
+                                Log.w(
                                         TAG,
                                         "Failed to load application label for $packageName",
                                         e
@@ -500,7 +500,7 @@ open class StandardSystemOperationTools(private val context: Context) {
             
             ToolResult(toolName = tool.name, success = true, result = resultData)
         } catch (e: Exception) {
-            AppLogger.e(TAG, "获取已安装应用列表时出错", e)
+            Log.e(TAG, "获取已安装应用列表时出错", e)
             ToolResult(
                     toolName = tool.name,
                     success = false,
@@ -554,7 +554,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "启动应用时出错", e)
+            Log.e(TAG, "启动应用时出错", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -588,7 +588,7 @@ open class StandardSystemOperationTools(private val context: Context) {
             )
             ToolResult(toolName = tool.name, success = true, result = resultData, error = "")
         } catch (e: SecurityException) {
-            AppLogger.e(TAG, "停止应用时出现安全异常", e)
+            Log.e(TAG, "停止应用时出现安全异常", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -596,7 +596,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                 error = "Failed to stop app: ${e.message}. Requires KILL_BACKGROUND_PROCESSES permission."
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "停止应用时出错", e)
+            Log.e(TAG, "停止应用时出错", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -630,7 +630,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                 }
                 context.startActivity(intent)
             } catch (e: Exception) {
-                AppLogger.e(TAG, "打开通知使用权设置页面失败", e)
+                Log.e(TAG, "打开通知使用权设置页面失败", e)
             }
 
             return ToolResult(
@@ -652,7 +652,7 @@ open class StandardSystemOperationTools(private val context: Context) {
             )
             ToolResult(toolName = tool.name, success = true, result = resultData, error = "")
         } catch (e: Exception) {
-            AppLogger.e(TAG, "获取通知时出错", e)
+            Log.e(TAG, "获取通知时出错", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -705,7 +705,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                 }
                 context.startActivity(intent)
             } catch (e: Exception) {
-                AppLogger.e(TAG, "打开使用情况访问设置页面失败", e)
+                Log.e(TAG, "打开使用情况访问设置页面失败", e)
             }
 
             return ToolResult(
@@ -798,7 +798,7 @@ open class StandardSystemOperationTools(private val context: Context) {
 
             ToolResult(toolName = tool.name, success = true, result = resultData, error = "")
         } catch (e: SecurityException) {
-            AppLogger.e(TAG, "读取应用使用时长时出现权限异常", e)
+            Log.e(TAG, "读取应用使用时长时出现权限异常", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -806,7 +806,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                 error = "Security exception when reading app usage time: ${e.message}"
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "读取应用使用时长时出错", e)
+            Log.e(TAG, "读取应用使用时长时出错", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -946,7 +946,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                     error = ""
             )
         } catch (e: SecurityException) {
-            AppLogger.e(TAG, "读取蓝牙状态时出现权限异常", e)
+            Log.e(TAG, "读取蓝牙状态时出现权限异常", e)
             ToolResult(
                     toolName = tool.name,
                     success = false,
@@ -954,7 +954,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                     error = "Security exception when reading Bluetooth state: ${e.message}"
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "读取蓝牙状态时出错", e)
+            Log.e(TAG, "读取蓝牙状态时出错", e)
             ToolResult(
                     toolName = tool.name,
                     success = false,
@@ -1003,7 +1003,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                     error = ""
             )
         } catch (e: SecurityException) {
-            AppLogger.e(TAG, "请求开启蓝牙时出现权限异常", e)
+            Log.e(TAG, "请求开启蓝牙时出现权限异常", e)
             ToolResult(
                     toolName = tool.name,
                     success = false,
@@ -1011,7 +1011,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                     error = "Security exception when requesting Bluetooth enable: ${e.message}"
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "请求开启蓝牙时出错", e)
+            Log.e(TAG, "请求开启蓝牙时出错", e)
             ToolResult(
                     toolName = tool.name,
                     success = false,
@@ -1056,7 +1056,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                     error = ""
             )
         } catch (e: SecurityException) {
-            AppLogger.e(TAG, "读取已配对蓝牙设备时出现权限异常", e)
+            Log.e(TAG, "读取已配对蓝牙设备时出现权限异常", e)
             ToolResult(
                     toolName = tool.name,
                     success = false,
@@ -1064,7 +1064,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                     error = "Security exception when listing bonded Bluetooth devices: ${e.message}"
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "读取已配对蓝牙设备时出错", e)
+            Log.e(TAG, "读取已配对蓝牙设备时出错", e)
             ToolResult(
                     toolName = tool.name,
                     success = false,
@@ -1093,7 +1093,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                     error = ""
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "扫描蓝牙设备时出错", e)
+            Log.e(TAG, "扫描蓝牙设备时出错", e)
             ToolResult(
                     toolName = tool.name,
                     success = false,
@@ -1121,7 +1121,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                     error = ""
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "连接蓝牙设备时出错", e)
+            Log.e(TAG, "连接蓝牙设备时出错", e)
             ToolResult(toolName = tool.name, success = false, result = StringResultData(""), error = "Error connecting Bluetooth device: ${e.message}")
         }
     }
@@ -1141,7 +1141,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                     error = ""
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "创建蓝牙监听时出错", e)
+            Log.e(TAG, "创建蓝牙监听时出错", e)
             ToolResult(toolName = tool.name, success = false, result = StringResultData(""), error = "Error listening for Bluetooth connections: ${e.message}")
         }
     }
@@ -1164,7 +1164,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                     error = ""
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "接受蓝牙连接时出错", e)
+            Log.e(TAG, "接受蓝牙连接时出错", e)
             ToolResult(toolName = tool.name, success = false, result = StringResultData(""), error = "Error accepting Bluetooth connection: ${e.message}")
         }
     }
@@ -1192,7 +1192,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                     error = ""
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "发送蓝牙数据时出错", e)
+            Log.e(TAG, "发送蓝牙数据时出错", e)
             ToolResult(toolName = tool.name, success = false, result = StringResultData(""), error = "Error sending Bluetooth data: ${e.message}")
         }
     }
@@ -1216,7 +1216,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                     error = ""
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "读取蓝牙数据时出错", e)
+            Log.e(TAG, "读取蓝牙数据时出错", e)
             ToolResult(toolName = tool.name, success = false, result = StringResultData(""), error = "Error reading Bluetooth data: ${e.message}")
         }
     }
@@ -1240,7 +1240,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                     error = ""
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "发送并读取蓝牙数据时出错", e)
+            Log.e(TAG, "发送并读取蓝牙数据时出错", e)
             ToolResult(toolName = tool.name, success = false, result = StringResultData(""), error = "Error sending and reading Bluetooth data: ${e.message}")
         }
     }
@@ -1254,7 +1254,7 @@ open class StandardSystemOperationTools(private val context: Context) {
             BluetoothSessionManager.closeAny(sessionId)
             ToolResult(toolName = tool.name, success = true, result = StringResultData("Bluetooth session closed"), error = "")
         } catch (e: Exception) {
-            AppLogger.e(TAG, "关闭蓝牙会话时出错", e)
+            Log.e(TAG, "关闭蓝牙会话时出错", e)
             ToolResult(toolName = tool.name, success = false, result = StringResultData(""), error = "Error closing Bluetooth session: ${e.message}")
         }
     }
@@ -1277,7 +1277,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                     error = ""
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "连接 BLE 设备时出错", e)
+            Log.e(TAG, "连接 BLE 设备时出错", e)
             ToolResult(toolName = tool.name, success = false, result = StringResultData(""), error = "Error connecting BLE device: ${e.message}")
         }
     }
@@ -1294,7 +1294,7 @@ open class StandardSystemOperationTools(private val context: Context) {
         return try {
             ToolResult(toolName = tool.name, success = true, result = BluetoothSessionManager.discoverBleServices(sessionId, timeoutMs), error = "")
         } catch (e: Exception) {
-            AppLogger.e(TAG, "发现 BLE 服务时出错", e)
+            Log.e(TAG, "发现 BLE 服务时出错", e)
             ToolResult(toolName = tool.name, success = false, result = StringResultData(""), error = "Error discovering BLE services: ${e.message}")
         }
     }
@@ -1318,7 +1318,7 @@ open class StandardSystemOperationTools(private val context: Context) {
         return try {
             ToolResult(toolName = tool.name, success = true, result = BluetoothSessionManager.readBleCharacteristic(sessionId, serviceUuid(tool), characteristicUuid(tool), timeoutMs), error = "")
         } catch (e: Exception) {
-            AppLogger.e(TAG, "读取 BLE 特征时出错", e)
+            Log.e(TAG, "读取 BLE 特征时出错", e)
             ToolResult(toolName = tool.name, success = false, result = StringResultData(""), error = "Error reading BLE characteristic: ${e.message}")
         }
     }
@@ -1334,7 +1334,7 @@ open class StandardSystemOperationTools(private val context: Context) {
         return try {
             ToolResult(toolName = tool.name, success = true, result = BluetoothSessionManager.writeBleCharacteristic(sessionId, serviceUuid(tool), characteristicUuid(tool), bluetoothPayload(tool)), error = "")
         } catch (e: Exception) {
-            AppLogger.e(TAG, "写入 BLE 特征时出错", e)
+            Log.e(TAG, "写入 BLE 特征时出错", e)
             ToolResult(toolName = tool.name, success = false, result = StringResultData(""), error = "Error writing BLE characteristic: ${e.message}")
         }
     }
@@ -1368,7 +1368,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                     error = ""
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "写入并读取 BLE 特征时出错", e)
+            Log.e(TAG, "写入并读取 BLE 特征时出错", e)
             ToolResult(toolName = tool.name, success = false, result = StringResultData(""), error = "Error writing and reading BLE characteristic: ${e.message}")
         }
     }
@@ -1385,7 +1385,7 @@ open class StandardSystemOperationTools(private val context: Context) {
         return try {
             ToolResult(toolName = tool.name, success = true, result = BluetoothSessionManager.subscribeBleCharacteristic(sessionId, serviceUuid(tool), characteristicUuid(tool), enable), error = "")
         } catch (e: Exception) {
-            AppLogger.e(TAG, "订阅 BLE 特征时出错", e)
+            Log.e(TAG, "订阅 BLE 特征时出错", e)
             ToolResult(toolName = tool.name, success = false, result = StringResultData(""), error = "Error subscribing BLE characteristic: ${e.message}")
         }
     }
@@ -1402,7 +1402,7 @@ open class StandardSystemOperationTools(private val context: Context) {
         return try {
             ToolResult(toolName = tool.name, success = true, result = BluetoothSessionManager.readBleNotifications(sessionId, limit), error = "")
         } catch (e: Exception) {
-            AppLogger.e(TAG, "读取 BLE 通知时出错", e)
+            Log.e(TAG, "读取 BLE 通知时出错", e)
             ToolResult(toolName = tool.name, success = false, result = StringResultData(""), error = "Error reading BLE notifications: ${e.message}")
         }
     }
@@ -1465,7 +1465,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                                     }
 
                             if (provider == null) {
-                                continuation.resume(null) { AppLogger.e(TAG, "位置请求取消", it) }
+                                continuation.resume(null) { Log.e(TAG, "位置请求取消", it) }
                                 return@suspendCancellableCoroutine
                             }
 
@@ -1490,7 +1490,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                                             null
                                         }
                                     } catch (e: SecurityException) {
-                                        AppLogger.e(TAG, "获取最后已知位置失败", e)
+                                        Log.e(TAG, "获取最后已知位置失败", e)
                                         null
                                     }
 
@@ -1499,7 +1499,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                                             System.currentTimeMillis() - lastKnownLocation.time <
                                                     10 * 60 * 1000
                             ) {
-                                continuation.resume(lastKnownLocation) { AppLogger.e(TAG, "位置请求取消", it) }
+                                continuation.resume(lastKnownLocation) { Log.e(TAG, "位置请求取消", it) }
                                 return@suspendCancellableCoroutine
                             }
 
@@ -1509,7 +1509,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                                         override fun onLocationChanged(location: Location) {
                                             locationManager.removeUpdates(this)
                                             continuation.resume(location) {
-                                                AppLogger.e(TAG, "位置请求取消", it)
+                                                Log.e(TAG, "位置请求取消", it)
                                             }
                                         }
 
@@ -1518,11 +1518,11 @@ open class StandardSystemOperationTools(private val context: Context) {
                                             if (!continuation.isCompleted) {
                                                 if (lastKnownLocation != null) {
                                                     continuation.resume(lastKnownLocation) {
-                                                        AppLogger.e(TAG, "位置请求取消", it)
+                                                        Log.e(TAG, "位置请求取消", it)
                                                     }
                                                 } else {
                                                     continuation.resume(null) {
-                                                        AppLogger.e(TAG, "位置请求取消", it)
+                                                        Log.e(TAG, "位置请求取消", it)
                                                     }
                                                 }
                                             }
@@ -1562,7 +1562,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                                             locationManager.removeUpdates(locationListener)
                                             // 如果超时，尝试使用最后已知位置
                                             continuation.resume(lastKnownLocation) {
-                                                AppLogger.e(TAG, "位置请求取消", it)
+                                                Log.e(TAG, "位置请求取消", it)
                                             }
                                         }
                                     }
@@ -1576,12 +1576,12 @@ open class StandardSystemOperationTools(private val context: Context) {
                                                 kotlinx.coroutines.Dispatchers.Main
                                         ) { locationManager.removeUpdates(locationListener) }
                                     } catch (e: Exception) {
-                                        AppLogger.e(TAG, "移除位置更新失败", e)
+                                        Log.e(TAG, "移除位置更新失败", e)
                                     }
                                 }
                             } catch (e: SecurityException) {
-                                continuation.resume(lastKnownLocation) { AppLogger.e(TAG, "位置请求取消", it) }
-                                AppLogger.e(TAG, "请求位置更新失败", e)
+                                continuation.resume(lastKnownLocation) { Log.e(TAG, "位置请求取消", it) }
+                                Log.e(TAG, "请求位置更新失败", e)
                             }
                         }
                     }
@@ -1630,7 +1630,7 @@ open class StandardSystemOperationTools(private val context: Context) {
 
             return ToolResult(toolName = tool.name, success = true, result = resultData, error = "")
         } catch (e: Exception) {
-            AppLogger.e(TAG, "获取位置信息时出错", e)
+            Log.e(TAG, "获取位置信息时出错", e)
             return ToolResult(
                     toolName = tool.name,
                     success = false,
@@ -1665,7 +1665,7 @@ open class StandardSystemOperationTools(private val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "获取地址信息时出错", e)
+            Log.e(TAG, "获取地址信息时出错", e)
         }
 
         // 如果无法获取地址信息，返回空对象

@@ -1,13 +1,13 @@
 package me.rerere.rikkahub.plugins.toolpkg
 
-import com.ai.assistance.operit.core.tools.packTool.PackageManager
-import com.ai.assistance.operit.core.tools.packTool.TOOLPKG_EVENT_CHAT_VIEW
-import com.ai.assistance.operit.core.tools.packTool.ToolPkgContainerRuntime
-import com.ai.assistance.operit.plugins.chatview.ChatViewEvent
-import com.ai.assistance.operit.plugins.chatview.ChatViewHookParams
-import com.ai.assistance.operit.plugins.chatview.ChatViewHookPlugin
-import com.ai.assistance.operit.plugins.chatview.ChatViewHookPluginRegistry
-import com.ai.assistance.operit.util.AppLogger
+me.rerere.rikkahub.tools.packTool.PackageManager
+me.rerere.rikkahub.tools.packTool.TOOLPKG_EVENT_CHAT_VIEW
+me.rerere.rikkahub.tools.packTool.ToolPkgContainerRuntime
+me.rerere.chatview.ChatViewEvent
+me.rerere.chatview.ChatViewHookParams
+me.rerere.chatview.ChatViewHookPlugin
+me.rerere.chatview.ChatViewHookPluginRegistry
+android.util.Log
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -64,7 +64,7 @@ internal object ToolPkgChatViewHookBridge : ChatViewHookPlugin {
                         eventPayload = eventPayload
                     )
                 result.onFailure { error ->
-                    AppLogger.e(
+                    Log.e(
                         TAG,
                         "ToolPkg chat view hook failed: ${hook.containerPackageName}:${hook.hookId}",
                         error
@@ -133,7 +133,7 @@ internal object ToolPkgChatViewHookBridge : ChatViewHookPlugin {
                             eventPayload = eventPayload
                         )
                     result.onFailure { error ->
-                        AppLogger.e(
+                        Log.e(
                             TAG,
                             "ToolPkg chat view replay failed: ${hook.containerPackageName}:${hook.hookId}",
                             error

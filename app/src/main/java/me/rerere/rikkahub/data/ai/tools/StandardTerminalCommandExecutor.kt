@@ -1,14 +1,14 @@
 package me.rerere.rikkahub.data.ai.tools
 
 import android.content.Context
-import com.ai.assistance.operit.R
-import com.ai.assistance.operit.util.AppLogger
-import com.ai.assistance.operit.core.tools.*
-import com.ai.assistance.operit.data.model.AITool
-import com.ai.assistance.operit.data.model.ToolResult
-import com.ai.assistance.operit.core.tools.system.Terminal
-import com.ai.assistance.operit.terminal.provider.type.HiddenExecResult
-import com.ai.assistance.operit.terminal.view.domain.ansi.TerminalChar
+import me.rerere.R
+android.util.Log
+me.rerere.rikkahub.tools.*
+me.rerere.rikkahub.data.model.AITool
+me.rerere.rikkahub.data.model.ToolResult
+me.rerere.rikkahub.tools.system.Terminal
+me.rerere.provider.type.HiddenExecResult
+me.rerere.view.domain.ansi.TerminalChar
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -73,7 +73,7 @@ class StandardTerminalCommandExecutor(private val context: Context) {
                     )
                 )
             } catch (e: Exception) {
-                AppLogger.e(TAG, "创建或获取终端会话时出错", e)
+                Log.e(TAG, "创建或获取终端会话时出错", e)
                 ToolResult(
                     toolName = tool.name,
                     success = false,
@@ -145,7 +145,7 @@ class StandardTerminalCommandExecutor(private val context: Context) {
                             }
                         }
                     } catch (e: TimeoutCancellationException) {
-                        AppLogger.w(TAG, "Command execution timed out after ${timeout}ms")
+                        Log.w(TAG, "Command execution timed out after ${timeout}ms")
                         cancelTimedOutCommand(terminal, sessionId)
                         hasCompleted = true
                         exitCode = -1
@@ -153,7 +153,7 @@ class StandardTerminalCommandExecutor(private val context: Context) {
                     }
 
                     val fullOutput = completionOutput?.takeIf { it.isNotEmpty() } ?: events.joinToString("")
-                    AppLogger.d(TAG, "Command output collected: '$fullOutput', exitCode: $exitCode")
+                    Log.d(TAG, "Command output collected: '$fullOutput', exitCode: $exitCode")
                     val errorMessage =
                             when {
                                 didTimeout -> null
@@ -182,7 +182,7 @@ class StandardTerminalCommandExecutor(private val context: Context) {
                     )
                 }
             } catch (e: Exception) {
-                AppLogger.e(TAG, "执行终端命令时出错", e)
+                Log.e(TAG, "执行终端命令时出错", e)
                 ToolResult(
                         toolName = tool.name,
                         success = false,
@@ -295,7 +295,7 @@ class StandardTerminalCommandExecutor(private val context: Context) {
                     }
                 }
             } catch (e: TimeoutCancellationException) {
-                AppLogger.w(TAG, "Command execution timed out after ${timeout}ms")
+                Log.w(TAG, "Command execution timed out after ${timeout}ms")
                 cancelTimedOutCommand(terminal, sessionId)
                 hasCompleted = true
                 exitCode = -1
@@ -326,7 +326,7 @@ class StandardTerminalCommandExecutor(private val context: Context) {
                 )
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "流式执行终端命令时出错", e)
+            Log.e(TAG, "流式执行终端命令时出错", e)
             emit(
                 ToolResult(
                     toolName = tool.name,
@@ -400,7 +400,7 @@ class StandardTerminalCommandExecutor(private val context: Context) {
                     error = errorMessage
                 )
             } catch (e: Exception) {
-                AppLogger.e(TAG, "执行隐藏终端命令时出错", e)
+                Log.e(TAG, "执行隐藏终端命令时出错", e)
                 ToolResult(
                     toolName = tool.name,
                     success = false,
@@ -483,7 +483,7 @@ class StandardTerminalCommandExecutor(private val context: Context) {
                     error = e.message ?: context.getString(R.string.terminal_error_input)
                 )
             } catch (e: Exception) {
-                AppLogger.e(TAG, "向终端会话写入输入时出错", e)
+                Log.e(TAG, "向终端会话写入输入时出错", e)
                 ToolResult(
                     toolName = tool.name,
                     success = false,
@@ -524,7 +524,7 @@ class StandardTerminalCommandExecutor(private val context: Context) {
                     )
                 )
             } catch (e: Exception) {
-                AppLogger.e(TAG, "关闭终端会话时出错", e)
+                Log.e(TAG, "关闭终端会话时出错", e)
                 ToolResult(
                     toolName = tool.name,
                     success = false,
@@ -577,7 +577,7 @@ class StandardTerminalCommandExecutor(private val context: Context) {
                     )
                 )
             } catch (e: Exception) {
-                AppLogger.e(TAG, "获取终端会话屏幕内容时出错", e)
+                Log.e(TAG, "获取终端会话屏幕内容时出错", e)
                 ToolResult(
                     toolName = tool.name,
                     success = false,
@@ -612,7 +612,7 @@ class StandardTerminalCommandExecutor(private val context: Context) {
                 }
             }
         if (settled == null) {
-            AppLogger.w(TAG, "Timed-out command cancellation did not settle within ${COMMAND_CANCEL_SETTLE_TIMEOUT_MS}ms")
+            Log.w(TAG, "Timed-out command cancellation did not settle within ${COMMAND_CANCEL_SETTLE_TIMEOUT_MS}ms")
         }
     }
 

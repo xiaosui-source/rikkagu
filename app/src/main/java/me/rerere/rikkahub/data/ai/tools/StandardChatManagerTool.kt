@@ -6,38 +6,38 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Build
 import android.os.IBinder
-import com.ai.assistance.operit.R
-import com.ai.assistance.operit.api.chat.ChatRuntimeHolder
-import com.ai.assistance.operit.api.chat.ChatRuntimeSlot
-import com.ai.assistance.operit.util.AppLogger
-import com.ai.assistance.operit.util.ChatMarkupRegex
-import com.ai.assistance.operit.util.WaifuMessageProcessor
-import com.ai.assistance.operit.util.stream.SharedStream
-import com.ai.assistance.operit.core.tools.AgentStatusResultData
-import com.ai.assistance.operit.core.tools.ChatCreationResultData
-import com.ai.assistance.operit.core.tools.ChatFindResultData
-import com.ai.assistance.operit.core.tools.ChatListResultData
-import com.ai.assistance.operit.core.tools.ChatMessagesResultData
-import com.ai.assistance.operit.core.tools.CharacterCardListResultData
-import com.ai.assistance.operit.core.tools.ChatServiceStartResultData
-import com.ai.assistance.operit.core.tools.ChatSwitchResultData
-import com.ai.assistance.operit.core.tools.ChatTitleUpdateResultData
-import com.ai.assistance.operit.core.tools.ChatDeleteResultData
-import com.ai.assistance.operit.core.tools.MessageSendResultData
-import com.ai.assistance.operit.core.tools.MessageSendStreamEventData
-import com.ai.assistance.operit.core.tools.StringResultData
-import com.ai.assistance.operit.data.model.ChatHistory
-import com.ai.assistance.operit.data.model.AITool
-import com.ai.assistance.operit.data.model.ChatTurnOptions
-import com.ai.assistance.operit.data.model.InputProcessingState
-import com.ai.assistance.operit.data.model.PromptFunctionType
-import com.ai.assistance.operit.data.model.ToolResult
-import com.ai.assistance.operit.data.preferences.CharacterCardManager
-import com.ai.assistance.operit.data.preferences.WaifuPreferences
-import com.ai.assistance.operit.data.repository.ChatHistoryManager
-import com.ai.assistance.operit.services.ChatServiceCore
-import com.ai.assistance.operit.services.FloatingChatService
-import com.ai.assistance.operit.ui.floating.FloatingMode
+import me.rerere.R
+me.rerere.chat.ChatRuntimeHolder
+me.rerere.chat.ChatRuntimeSlot
+android.util.Log
+me.rerere.ChatMarkupRegex
+me.rerere.WaifuMessageProcessor
+me.rerere.stream.SharedStream
+me.rerere.rikkahub.tools.AgentStatusResultData
+me.rerere.rikkahub.tools.ChatCreationResultData
+me.rerere.rikkahub.tools.ChatFindResultData
+me.rerere.rikkahub.tools.ChatListResultData
+me.rerere.rikkahub.tools.ChatMessagesResultData
+me.rerere.rikkahub.tools.CharacterCardListResultData
+me.rerere.rikkahub.tools.ChatServiceStartResultData
+me.rerere.rikkahub.tools.ChatSwitchResultData
+me.rerere.rikkahub.tools.ChatTitleUpdateResultData
+me.rerere.rikkahub.tools.ChatDeleteResultData
+me.rerere.rikkahub.tools.MessageSendResultData
+me.rerere.rikkahub.tools.MessageSendStreamEventData
+me.rerere.rikkahub.tools.StringResultData
+me.rerere.rikkahub.data.model.ChatHistory
+me.rerere.rikkahub.data.model.AITool
+me.rerere.rikkahub.data.model.ChatTurnOptions
+me.rerere.rikkahub.data.model.InputProcessingState
+me.rerere.rikkahub.data.model.PromptFunctionType
+me.rerere.rikkahub.data.model.ToolResult
+me.rerere.rikkahub.data.preferences.CharacterCardManager
+me.rerere.rikkahub.data.preferences.WaifuPreferences
+me.rerere.rikkahub.data.repository.ChatHistoryManager
+me.rerere.ChatServiceCore
+me.rerere.FloatingChatService
+me.rerere.floating.FloatingMode
 import java.time.ZoneId
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
@@ -177,7 +177,7 @@ class StandardChatManagerTool(private val context: Context) {
         chatId: String,
         order: String,
         limit: Int,
-        messages: List<com.ai.assistance.operit.data.model.ChatMessage>,
+        messages: List<me.rerere.data.model.ChatMessage>,
         start: Int? = null,
         end: Int? = null,
     ): ChatMessagesResultData {
@@ -261,7 +261,7 @@ class StandardChatManagerTool(private val context: Context) {
                 result = buildChatMessagesResult(chatId, effectiveOrder, effectiveLimit, messages)
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to get chat messages", e)
+            Log.e(TAG, "Failed to get chat messages", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -368,7 +368,7 @@ class StandardChatManagerTool(private val context: Context) {
                 )
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to get chat messages range", e)
+            Log.e(TAG, "Failed to get chat messages range", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -491,7 +491,7 @@ class StandardChatManagerTool(private val context: Context) {
                 )
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to get agent status", e)
+            Log.e(TAG, "Failed to get agent status", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -583,7 +583,7 @@ class StandardChatManagerTool(private val context: Context) {
                 result = ChatFindResultData(matchedCount = matched.size, chat = chatInfo)
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to find chat", e)
+            Log.e(TAG, "Failed to find chat", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -637,7 +637,7 @@ class StandardChatManagerTool(private val context: Context) {
                 result = ChatTitleUpdateResultData(chatId = chatId, title = title)
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to update chat title", e)
+            Log.e(TAG, "Failed to update chat title", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -698,7 +698,7 @@ class StandardChatManagerTool(private val context: Context) {
                 result = ChatDeleteResultData(chatId = chatId)
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to delete chat", e)
+            Log.e(TAG, "Failed to delete chat", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -720,22 +720,22 @@ class StandardChatManagerTool(private val context: Context) {
     // Service 连接回调
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            AppLogger.d(TAG, "Service connected")
+            Log.d(TAG, "Service connected")
             val binder = service as? FloatingChatService.LocalBinder
             if (binder != null) {
                 floatingService = binder.getService()
                 chatCore = binder.getChatCore()
                 isBound = true
                 binder.setCloseCallback {
-                    AppLogger.d(TAG, "Received close callback from FloatingChatService")
+                    Log.d(TAG, "Received close callback from FloatingChatService")
                     unbindService()
                 }
                 if (!connectionDeferred.isCompleted) {
                     connectionDeferred.complete(true)
                 }
-                AppLogger.d(TAG, "ChatServiceCore obtained successfully")
+                Log.d(TAG, "ChatServiceCore obtained successfully")
             } else {
-                AppLogger.e(TAG, "Failed to cast binder")
+                Log.e(TAG, "Failed to cast binder")
                 if (!connectionDeferred.isCompleted) {
                     connectionDeferred.complete(false)
                 }
@@ -743,7 +743,7 @@ class StandardChatManagerTool(private val context: Context) {
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
-            AppLogger.d(TAG, "Service disconnected")
+            Log.d(TAG, "Service disconnected")
             chatCore = null
             floatingService = null
             isBound = false
@@ -773,7 +773,7 @@ class StandardChatManagerTool(private val context: Context) {
         }
 
         if (startIntent == null && FloatingChatService.getInstance() == null) {
-            AppLogger.w(TAG, "FloatingChatService not running; skip auto-start in ensureServiceConnected")
+            Log.w(TAG, "FloatingChatService not running; skip auto-start in ensureServiceConnected")
             if (!connectionDeferred.isCompleted) {
                 connectionDeferred.complete(false)
             }
@@ -782,7 +782,7 @@ class StandardChatManagerTool(private val context: Context) {
 
         val prefs = appContext.getSharedPreferences("floating_chat_prefs", Context.MODE_PRIVATE)
         if (prefs.getBoolean("service_disabled_due_to_crashes", false)) {
-            AppLogger.w(TAG, "FloatingChatService is disabled due to frequent crashes")
+            Log.w(TAG, "FloatingChatService is disabled due to frequent crashes")
             if (!connectionDeferred.isCompleted) {
                 connectionDeferred.complete(false)
             }
@@ -796,7 +796,7 @@ class StandardChatManagerTool(private val context: Context) {
                     connectionDeferred.await()
                 }
             } catch (e: Exception) {
-                AppLogger.e(TAG, "Service connection timeout", e)
+                Log.e(TAG, "Service connection timeout", e)
                 if (!connectionDeferred.isCompleted) {
                     connectionDeferred.complete(false)
                 }
@@ -831,7 +831,7 @@ class StandardChatManagerTool(private val context: Context) {
                 }
             
             if (!bound) {
-                AppLogger.e(TAG, "Failed to bind service")
+                Log.e(TAG, "Failed to bind service")
                 connectionDeferred.complete(false)
                 return false
             }
@@ -841,7 +841,7 @@ class StandardChatManagerTool(private val context: Context) {
                 connectionDeferred.await()
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to ensure service connected", e)
+            Log.e(TAG, "Failed to ensure service connected", e)
             connectionDeferred.completeExceptionally(e)
             false
         }
@@ -855,7 +855,7 @@ class StandardChatManagerTool(private val context: Context) {
             try {
                 appContext.unbindService(serviceConnection)
             } catch (e: Exception) {
-                AppLogger.e(TAG, "Error unbinding service", e)
+                Log.e(TAG, "Error unbinding service", e)
             }
         }
 
@@ -863,7 +863,7 @@ class StandardChatManagerTool(private val context: Context) {
         chatCore = null
         floatingService = null
         connectionDeferred = CompletableDeferred<Boolean>().apply { complete(false) }
-        AppLogger.d(TAG, "Service unbound")
+        Log.d(TAG, "Service unbound")
     }
 
     /**
@@ -964,7 +964,7 @@ class StandardChatManagerTool(private val context: Context) {
                 try {
                     floatingService?.setFloatingWindowVisible(true)
                 } catch (e: Exception) {
-                    AppLogger.e(TAG, "Failed to set floating window visible", e)
+                    Log.e(TAG, "Failed to set floating window visible", e)
                 }
                 ToolResult(
                     toolName = tool.name,
@@ -980,7 +980,7 @@ class StandardChatManagerTool(private val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to start chat service", e)
+            Log.e(TAG, "Failed to start chat service", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -1008,7 +1008,7 @@ class StandardChatManagerTool(private val context: Context) {
                 result = StringResultData(if (stopped) "Chat service stopped" else "Requested to stop chat service")
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to stop chat service", e)
+            Log.e(TAG, "Failed to stop chat service", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -1136,7 +1136,7 @@ class StandardChatManagerTool(private val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to create new chat", e)
+            Log.e(TAG, "Failed to create new chat", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -1240,7 +1240,7 @@ class StandardChatManagerTool(private val context: Context) {
                 )
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to list chats", e)
+            Log.e(TAG, "Failed to list chats", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -1324,7 +1324,7 @@ class StandardChatManagerTool(private val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to switch chat", e)
+            Log.e(TAG, "Failed to switch chat", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -1598,7 +1598,7 @@ class StandardChatManagerTool(private val context: Context) {
                 )
             } finally {}
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to send message", e)
+            Log.e(TAG, "Failed to send message", e)
             MessageSendStreamStartResult.Failed(
                 ToolResult(
                     toolName = tool.name,
@@ -1663,7 +1663,7 @@ class StandardChatManagerTool(private val context: Context) {
                 }
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to send message", e)
+            Log.e(TAG, "Failed to send message", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -1823,7 +1823,7 @@ class StandardChatManagerTool(private val context: Context) {
                 }
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to stream message", e)
+            Log.e(TAG, "Failed to stream message", e)
             send(
                 ToolResult(
                     toolName = tool.name,
@@ -1861,7 +1861,7 @@ class StandardChatManagerTool(private val context: Context) {
                 result = result
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Failed to list character cards", e)
+            Log.e(TAG, "Failed to list character cards", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,

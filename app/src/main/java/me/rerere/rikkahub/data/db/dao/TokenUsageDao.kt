@@ -4,8 +4,8 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.ai.assistance.operit.data.model.TokenStatsModelEntity
-import com.ai.assistance.operit.data.model.TokenUsageRecordEntity
+me.rerere.rikkahub.data.model.TokenStatsModelEntity
+me.rerere.rikkahub.data.model.TokenUsageRecordEntity
 
 data class TokenUsageModelAggregateRow(
     val provider: String,

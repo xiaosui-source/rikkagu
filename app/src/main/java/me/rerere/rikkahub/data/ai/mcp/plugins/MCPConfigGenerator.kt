@@ -1,6 +1,6 @@
 package me.rerere.rikkahub.data.ai.mcp.plugins
 
-import com.ai.assistance.operit.util.AppLogger
+android.util.Log
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -45,23 +45,23 @@ class MCPConfigGenerator {
                 if (jsonObject.has("mcpServers")) {
                     // 保存这个配置，但不立即返回
                     finalConfigJson = jsonObject
-                    AppLogger.d(TAG, "从配置示例提取到有效的配置JSON")
+                    Log.d(TAG, "从配置示例提取到有效的配置JSON")
 
                     // 尝试提取第一个服务器名称作为已存在的服务器名
                     val mcpServers = jsonObject.getAsJsonObject("mcpServers")
                     if (mcpServers.size() > 0) {
                         existingServerName = mcpServers.keySet().firstOrNull()
-                        AppLogger.d(TAG, "从配置示例提取到服务器名称: $existingServerName")
+                        Log.d(TAG, "从配置示例提取到服务器名称: $existingServerName")
                     }
                 }
             } catch (e: Exception) {
-                AppLogger.e(TAG, "解析配置示例失败，将使用生成的配置", e)
+                Log.e(TAG, "解析配置示例失败，将使用生成的配置", e)
             }
         }
 
         // 确定要使用的服务器名称
         val serverName = pluginId
-        AppLogger.d(TAG, "使用服务器名称: $serverName")
+        Log.d(TAG, "使用服务器名称: $serverName")
 
         // 如果没有从示例提取到配置，或者是TypeScript项目需要进行特殊处理
         if (finalConfigJson == null || projectStructure.type == ProjectType.TYPESCRIPT) {
@@ -99,7 +99,7 @@ class MCPConfigGenerator {
                             "python"
                         }
                         serverJson.addProperty("command", pythonCommand)
-                        AppLogger.d(TAG, "Python 项目使用命令: $pythonCommand")
+                        Log.d(TAG, "Python 项目使用命令: $pythonCommand")
                     }
 
                     if (!serverJson.has("args")) {
@@ -111,7 +111,7 @@ class MCPConfigGenerator {
                                         ?: projectStructure.mainPythonModule
                                                 ?: pluginId.replace("-", "_").lowercase()
                         argsArray.add(moduleName)
-                        AppLogger.d(TAG, "Python 项目使用模块名: $moduleName (来源: ${when {
+                        Log.d(TAG, "Python 项目使用模块名: $moduleName (来源: ${when {
                             projectStructure.pythonPackageName != null -> "pyproject.toml"
                             projectStructure.mainPythonModule != null -> "mainPythonModule"
                             else -> "pluginId"
@@ -131,7 +131,7 @@ class MCPConfigGenerator {
                         val outDir = projectStructure.tsConfigOutDir ?: "dist"
                         val rootDir = projectStructure.tsConfigRootDir ?: "src"
 
-                        AppLogger.d(TAG, "TypeScript编译配置 - outDir: $outDir, rootDir: $rootDir")
+                        Log.d(TAG, "TypeScript编译配置 - outDir: $outDir, rootDir: $rootDir")
 
                         // 根据项目结构决定可能的输出路径
                         val mainTsFile = projectStructure.mainTsFile
@@ -170,11 +170,11 @@ class MCPConfigGenerator {
                             }
                             
                             argsArray.add(compiledPath)
-                            AppLogger.d(TAG, "TypeScript编译路径推断: $mainTsFile (rootDir=$normalizedRootDir) -> $compiledPath")
+                            Log.d(TAG, "TypeScript编译路径推断: $mainTsFile (rootDir=$normalizedRootDir) -> $compiledPath")
                         } else {
                             // 如果没有找到主TS文件，使用常见的输出位置
                             argsArray.add("$outDir/index.js")
-                            AppLogger.d(TAG, "使用默认编译路径: $outDir/index.js")
+                            Log.d(TAG, "使用默认编译路径: $outDir/index.js")
                         }
 
                         // 更新服务器配置中的args
@@ -202,7 +202,7 @@ class MCPConfigGenerator {
                             "python"
                         }
                         serverJson.addProperty("command", pythonCommand)
-                        AppLogger.d(TAG, "UNKNOWN 项目类型使用命令: $pythonCommand")
+                        Log.d(TAG, "UNKNOWN 项目类型使用命令: $pythonCommand")
                     }
 
                     if (!serverJson.has("args")) {
@@ -229,7 +229,7 @@ class MCPConfigGenerator {
                     envJson.addProperty(key, value)
                 }
                 serverJson.add("env", envJson)
-                AppLogger.d(TAG, "已添加环境变量配置: ${environmentVariables.keys}")
+                Log.d(TAG, "已添加环境变量配置: ${environmentVariables.keys}")
             } else if (!serverJson.has("env")) {
                 // 如果没有提供环境变量但配置中也没有，添加一个空对象
                 serverJson.add("env", JsonObject())
@@ -268,10 +268,10 @@ class MCPConfigGenerator {
             val configFile = File(pluginDir, "config.json")
             configFile.writeText(config)
 
-            AppLogger.d(TAG, "已保存配置到: ${configFile.absolutePath}")
+            Log.d(TAG, "已保存配置到: ${configFile.absolutePath}")
             return true
         } catch (e: Exception) {
-            AppLogger.e(TAG, "保存配置失败: $pluginId", e)
+            Log.e(TAG, "保存配置失败: $pluginId", e)
             return false
         }
     }
@@ -290,7 +290,7 @@ class MCPConfigGenerator {
             val mcpServers = jsonObject.getAsJsonObject("mcpServers")
             return mcpServers?.keySet()?.firstOrNull()
         } catch (e: Exception) {
-            AppLogger.e(TAG, "解析配置JSON失败", e)
+            Log.e(TAG, "解析配置JSON失败", e)
             return null
         }
     }
@@ -324,7 +324,7 @@ class MCPConfigGenerator {
             }
             return emptyMap()
         } catch (e: Exception) {
-            AppLogger.e(TAG, "提取环境变量失败", e)
+            Log.e(TAG, "提取环境变量失败", e)
             return emptyMap()
         }
     }

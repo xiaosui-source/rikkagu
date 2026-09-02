@@ -1,29 +1,29 @@
 package me.rerere.rikkahub.data.ai.tools
 
 import android.content.Context
-import com.ai.assistance.operit.util.AppLogger
-import com.ai.assistance.operit.api.chat.EnhancedAIService
-import com.ai.assistance.operit.api.chat.llmprovider.AIService
-import com.ai.assistance.operit.core.chat.hooks.PromptTurn
-import com.ai.assistance.operit.core.chat.hooks.PromptTurnKind
-import com.ai.assistance.operit.core.tools.DirectoryListingData
-import com.ai.assistance.operit.core.tools.FileContentData
-import com.ai.assistance.operit.core.tools.FileApplyResultData
-import com.ai.assistance.operit.core.tools.BinaryFileContentData
-import com.ai.assistance.operit.core.tools.FileExistsData
-import com.ai.assistance.operit.core.tools.FileInfoData
-import com.ai.assistance.operit.core.tools.FileOperationData
-import com.ai.assistance.operit.core.tools.FilePartContentData
-import com.ai.assistance.operit.core.tools.FindFilesResultData
-import com.ai.assistance.operit.core.tools.ToolProgressBus
-import com.ai.assistance.operit.core.tools.GrepResultData
-import com.ai.assistance.operit.core.tools.StringResultData
-import com.ai.assistance.operit.core.tools.ToolExecutionLimits
-import com.ai.assistance.operit.data.model.AITool
-import com.ai.assistance.operit.data.model.FunctionType
-import com.ai.assistance.operit.data.model.ModelParameter
-import com.ai.assistance.operit.data.model.ToolParameter
-import com.ai.assistance.operit.data.model.ToolResult
+android.util.Log
+me.rerere.chat.EnhancedAIService
+me.rerere.chat.llmprovider.AIService
+me.rerere.rikkahub.chat.hooks.PromptTurn
+me.rerere.rikkahub.chat.hooks.PromptTurnKind
+me.rerere.rikkahub.tools.DirectoryListingData
+me.rerere.rikkahub.tools.FileContentData
+me.rerere.rikkahub.tools.FileApplyResultData
+me.rerere.rikkahub.tools.BinaryFileContentData
+me.rerere.rikkahub.tools.FileExistsData
+me.rerere.rikkahub.tools.FileInfoData
+me.rerere.rikkahub.tools.FileOperationData
+me.rerere.rikkahub.tools.FilePartContentData
+me.rerere.rikkahub.tools.FindFilesResultData
+me.rerere.rikkahub.tools.ToolProgressBus
+me.rerere.rikkahub.tools.GrepResultData
+me.rerere.rikkahub.tools.StringResultData
+me.rerere.rikkahub.tools.ToolExecutionLimits
+me.rerere.rikkahub.data.model.AITool
+me.rerere.rikkahub.data.model.FunctionType
+me.rerere.rikkahub.data.model.ModelParameter
+me.rerere.rikkahub.data.model.ToolParameter
+me.rerere.rikkahub.data.model.ToolResult
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
@@ -39,12 +39,12 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
-import com.ai.assistance.operit.util.FileUtils
-import com.ai.assistance.operit.util.PathMapper
-import com.ai.assistance.operit.util.ImagePoolManager
-import com.ai.assistance.operit.util.MediaPoolManager
-import com.ai.assistance.operit.util.HttpMultiPartDownloader
-import com.ai.assistance.operit.util.FFmpegUtil
+me.rerere.FileUtils
+me.rerere.PathMapper
+me.rerere.ImagePoolManager
+me.rerere.MediaPoolManager
+me.rerere.HttpMultiPartDownloader
+me.rerere.FFmpegUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -61,17 +61,17 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import androidx.core.content.FileProvider
 import android.webkit.MimeTypeMap
-import com.ai.assistance.operit.api.chat.enhance.FileBindingService
-import com.ai.assistance.operit.core.config.FunctionalPrompts
-import com.ai.assistance.operit.data.preferences.ApiPreferences
-import com.ai.assistance.operit.data.preferences.FunctionalConfigManager
-import com.ai.assistance.operit.data.preferences.ModelConfigManager
-import com.ai.assistance.operit.terminal.TerminalManager
-import com.ai.assistance.operit.terminal.provider.filesystem.FileSystemProvider
-import com.ai.assistance.operit.terminal.utils.SSHFileConnectionManager
-import com.ai.assistance.operit.core.tools.defaultTool.PathValidator
-import com.ai.assistance.operit.util.LocaleUtils
-import com.ai.assistance.operit.util.ripgrep.NativeRipgrep
+me.rerere.chat.enhance.FileBindingService
+me.rerere.rikkahub.config.FunctionalPrompts
+me.rerere.rikkahub.data.preferences.ApiPreferences
+me.rerere.rikkahub.data.preferences.FunctionalConfigManager
+me.rerere.rikkahub.data.preferences.ModelConfigManager
+me.rerere.TerminalManager
+me.rerere.provider.filesystem.FileSystemProvider
+me.rerere.utils.SSHFileConnectionManager
+me.rerere.rikkahub.tools.defaultTool.PathValidator
+me.rerere.LocaleUtils
+me.rerere.ripgrep.NativeRipgrep
 import org.json.JSONObject
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -118,7 +118,7 @@ open class StandardFileSystemTools(protected val context: Context) {
         // 如果SSH已登录，使用SSH文件系统
         if (sshProvider != null) {
             if (lastLinuxFileSystemProviderLabel != "ssh") {
-                AppLogger.d(TAG, "Using SSH file system provider")
+                Log.d(TAG, "Using SSH file system provider")
                 lastLinuxFileSystemProviderLabel = "ssh"
             }
             return sshProvider
@@ -126,7 +126,7 @@ open class StandardFileSystemTools(protected val context: Context) {
         
         // 否则使用本地Terminal的文件系统
         if (lastLinuxFileSystemProviderLabel != "local") {
-            AppLogger.d(TAG, "Using local terminal file system provider")
+            Log.d(TAG, "Using local terminal file system provider")
             lastLinuxFileSystemProviderLabel = "local"
         }
         return terminalManager.getFileSystemProvider()
@@ -585,7 +585,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 error = ""
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error performing native ripgrep code search", e)
+            Log.e(TAG, "Error performing native ripgrep code search", e)
             ToolProgressBus.update(toolName, 1f, "Search failed")
             ToolResult(
                 toolName = toolName,
@@ -625,7 +625,7 @@ open class StandardFileSystemTools(protected val context: Context) {
 
             for (round in 1..3) {
                 val roundBase = 0.1f + (round - 1) * (perRoundSearchSpan + perRoundRefineSpan)
-                AppLogger.d(TAG, "grep_context: Starting search round $round/3. queries=${queries.joinToString(" | ") { it.take(60) }}")
+                Log.d(TAG, "grep_context: Starting search round $round/3. queries=${queries.joinToString(" | ") { it.take(60) }}")
                 val (batchCandidates, _) =
                     runGrepCodeBatch(
                         searchPath = searchPath,
@@ -695,7 +695,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                     queries = plannedQueries
                 }
                 ToolProgressBus.update(toolName, roundBase + perRoundSearchSpan + perRoundRefineSpan, "Prepared next steps")
-                AppLogger.d(
+                Log.d(
                     TAG,
                     "grep_context: Plan after round $round/3 completed in ${planElapsed}ms. nextQueries=${plannedQueries.joinToString(" | ") { it.take(60) }} readIds=${readIds.joinToString(",") }"
                 )
@@ -763,7 +763,7 @@ open class StandardFileSystemTools(protected val context: Context) {
 
             ToolProgressBus.update(toolName, 1f, "Search completed, found ${selectedCandidates.size}")
             val overallElapsed = System.currentTimeMillis() - overallStartTime
-            AppLogger.d(
+            Log.d(
                 TAG,
                 "grep_context: Completed in ${overallElapsed}ms. selected=${selectedCandidates.size} candidates=${allCandidates.size}"
             )
@@ -782,7 +782,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 error = ""
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error performing context search", e)
+            Log.e(TAG, "Error performing context search", e)
             ToolResult(
                 toolName = toolName,
                 success = false,
@@ -915,7 +915,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 }
             }
 
-            AppLogger.d(TAG, "Listed ${entries.size} entries in directory $path")
+            Log.d(TAG, "Listed ${entries.size} entries in directory $path")
 
             return ToolResult(
                 toolName = tool.name,
@@ -924,7 +924,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 error = ""
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error listing directory", e)
+            Log.e(TAG, "Error listing directory", e)
             return ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -957,7 +957,7 @@ open class StandardFileSystemTools(protected val context: Context) {
     ): ToolResult? {
         return when (fileExt) {
             "doc", "docx" -> {
-                AppLogger.d(
+                Log.d(
                     TAG,
                     "Detected Word document, attempting to extract text"
                 )
@@ -966,11 +966,11 @@ open class StandardFileSystemTools(protected val context: Context) {
                 try {
                     val sourceFile = File(path)
                     val tempFile = File(tempFilePath)
-                    val success = com.ai.assistance.operit.util.DocumentConversionUtil
+                    val success = me.rerere.util.DocumentConversionUtil
                         .extractTextFromWord(sourceFile, tempFile, fileExt)
 
                     if (success && tempFile.exists()) {
-                        AppLogger.d(
+                        Log.d(
                             TAG,
                             "Successfully extracted text from Word document"
                         )
@@ -988,7 +988,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                             error = ""
                         )
                     } else {
-                        AppLogger.w(
+                        Log.w(
                             TAG,
                             "Word text extraction failed, returning error"
                         )
@@ -1000,7 +1000,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                         )
                     }
                 } catch (e: Exception) {
-                    AppLogger.e(TAG, "Error during Word document text extraction", e)
+                    Log.e(TAG, "Error during Word document text extraction", e)
                     ToolResult(
                         toolName = tool.name,
                         success = false,
@@ -1011,7 +1011,7 @@ open class StandardFileSystemTools(protected val context: Context) {
             }
 
             "pdf" -> {
-                AppLogger.d(
+                Log.d(
                     TAG,
                     "Detected PDF document, attempting to extract text"
                 )
@@ -1020,11 +1020,11 @@ open class StandardFileSystemTools(protected val context: Context) {
                 try {
                     val sourceFile = File(path)
                     val tempFile = File(tempFilePath)
-                    val success = com.ai.assistance.operit.util.DocumentConversionUtil
+                    val success = me.rerere.util.DocumentConversionUtil
                         .extractTextFromPdf(context, sourceFile, tempFile)
 
                     if (success && tempFile.exists()) {
-                        AppLogger.d(
+                        Log.d(
                             TAG,
                             "Successfully extracted text from PDF document"
                         )
@@ -1042,7 +1042,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                             error = ""
                         )
                     } else {
-                        AppLogger.w(
+                        Log.w(
                             TAG,
                             "PDF text extraction failed, returning error"
                         )
@@ -1054,7 +1054,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                         )
                     }
                 } catch (e: Exception) {
-                    AppLogger.e(TAG, "Error during PDF document text extraction", e)
+                    Log.e(TAG, "Error during PDF document text extraction", e)
                     ToolResult(
                         toolName = tool.name,
                         success = false,
@@ -1069,7 +1069,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 val intent = tool.parameters.find { it.name == "intent" }?.value
                 val directImage = tool.parameters.find { it.name == "direct_image" }?.value?.toBoolean() ?: false
 
-                AppLogger.d(
+                Log.d(
                     TAG,
                     "Detected image file, intent=${intent ?: "无"}, direct_image=$directImage"
                 )
@@ -1079,10 +1079,10 @@ open class StandardFileSystemTools(protected val context: Context) {
                     try {
                         val imageId = ImagePoolManager.addImage(path)
                         if (imageId == "error") {
-                            AppLogger.e(TAG, "Failed to register image for direct_image, falling back to intent/OCR: $path")
+                            Log.e(TAG, "Failed to register image for direct_image, falling back to intent/OCR: $path")
                         } else {
                             val link = "<link type=\"image\" id=\"$imageId\"></link>"
-                            AppLogger.d(TAG, "Generated image link for direct_image: $link")
+                            Log.d(TAG, "Generated image link for direct_image: $link")
                             return ToolResult(
                                 toolName = tool.name,
                                 success = true,
@@ -1095,7 +1095,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                             )
                         }
                     } catch (e: Exception) {
-                        AppLogger.e(TAG, "Error generating direct image link, falling back to intent/OCR", e)
+                        Log.e(TAG, "Error generating direct image link, falling back to intent/OCR", e)
                     }
                     // 如果生成图片链接失败，则继续走下面的 intent/OCR 逻辑
                 }
@@ -1104,7 +1104,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 if (!intent.isNullOrBlank()) {
                     try {
                         val enhancedService =
-                            com.ai.assistance.operit.api.chat.EnhancedAIService.getInstance(context)
+                            me.rerere.api.chat.EnhancedAIService.getInstance(context)
                         val analysisResult = kotlinx.coroutines.runBlocking {
                             enhancedService.analyzeImageWithIntent(path, intent)
                         }
@@ -1120,7 +1120,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                             error = ""
                         )
                     } catch (e: Exception) {
-                        AppLogger.e(TAG, "识图模型调用失败，回退到OCR", e)
+                        Log.e(TAG, "识图模型调用失败，回退到OCR", e)
                         // 回退到默认OCR处理
                     }
                 }
@@ -1133,14 +1133,14 @@ open class StandardFileSystemTools(protected val context: Context) {
                     if (bitmap != null) {
                         val ocrText =
                             kotlinx.coroutines.runBlocking {
-                                com.ai.assistance.operit.util
+                                me.rerere.util
                                     .OCRUtils.recognizeText(
                                         context,
                                         bitmap
                                     )
                             }
                         if (ocrText.isNotBlank()) {
-                            AppLogger.d(
+                            Log.d(
                                 TAG,
                                 "Successfully extracted text from image using OCR"
                             )
@@ -1158,7 +1158,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                                 error = ""
                             )
                         } else {
-                            AppLogger.w(
+                            Log.w(
                                 TAG,
                                 "OCR extraction returned empty text, returning no text detected message"
                             )
@@ -1179,7 +1179,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                             )
                         }
                     } else {
-                        AppLogger.w(
+                        Log.w(
                             TAG,
                             "Failed to decode image file, returning error message"
                         )
@@ -1200,7 +1200,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                         )
                     }
                 } catch (e: Exception) {
-                    AppLogger.e(TAG, "Error during OCR text extraction", e)
+                    Log.e(TAG, "Error during OCR text extraction", e)
                     ToolResult(
                         toolName = tool.name,
                         success = true,
@@ -1222,7 +1222,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 val intent = tool.parameters.find { it.name == "intent" }?.value
                 val directAudio = tool.parameters.find { it.name == "direct_audio" }?.value?.toBoolean() ?: false
 
-                AppLogger.d(TAG, "Detected audio file, intent=${intent ?: "无"}, direct_audio=$directAudio")
+                Log.d(TAG, "Detected audio file, intent=${intent ?: "无"}, direct_audio=$directAudio")
 
                 if (directAudio) {
                     try {
@@ -1231,10 +1231,10 @@ open class StandardFileSystemTools(protected val context: Context) {
                                 ?: "audio/*"
                         val audioId = MediaPoolManager.addMedia(path, derivedMimeType)
                         if (audioId == "error") {
-                            AppLogger.e(TAG, "Failed to register audio for direct_audio, falling back to intent/info: $path")
+                            Log.e(TAG, "Failed to register audio for direct_audio, falling back to intent/info: $path")
                         } else {
                             val link = "<link type=\"audio\" id=\"$audioId\"></link>"
-                            AppLogger.d(TAG, "Generated audio link for direct_audio: $link")
+                            Log.d(TAG, "Generated audio link for direct_audio: $link")
                             return ToolResult(
                                 toolName = tool.name,
                                 success = true,
@@ -1247,13 +1247,13 @@ open class StandardFileSystemTools(protected val context: Context) {
                             )
                         }
                     } catch (e: Exception) {
-                        AppLogger.e(TAG, "Error generating direct audio link, falling back to intent/info", e)
+                        Log.e(TAG, "Error generating direct audio link, falling back to intent/info", e)
                     }
                 }
 
                 if (!intent.isNullOrBlank()) {
                     try {
-                        val enhancedService = com.ai.assistance.operit.api.chat.EnhancedAIService.getInstance(context)
+                        val enhancedService = me.rerere.api.chat.EnhancedAIService.getInstance(context)
                         val analysisResult = kotlinx.coroutines.runBlocking {
                             enhancedService.analyzeAudioWithIntent(path, intent)
                         }
@@ -1269,7 +1269,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                             error = ""
                         )
                     } catch (e: Exception) {
-                        AppLogger.e(TAG, "音频识别模型调用失败，回退到媒体信息", e)
+                        Log.e(TAG, "音频识别模型调用失败，回退到媒体信息", e)
                     }
                 }
 
@@ -1308,7 +1308,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 val intent = tool.parameters.find { it.name == "intent" }?.value
                 val directVideo = tool.parameters.find { it.name == "direct_video" }?.value?.toBoolean() ?: false
 
-                AppLogger.d(TAG, "Detected video file, intent=${intent ?: "无"}, direct_video=$directVideo")
+                Log.d(TAG, "Detected video file, intent=${intent ?: "无"}, direct_video=$directVideo")
 
                 if (directVideo) {
                     try {
@@ -1317,10 +1317,10 @@ open class StandardFileSystemTools(protected val context: Context) {
                                 ?: "video/*"
                         val videoId = MediaPoolManager.addMedia(path, derivedMimeType)
                         if (videoId == "error") {
-                            AppLogger.e(TAG, "Failed to register video for direct_video, falling back to intent/info: $path")
+                            Log.e(TAG, "Failed to register video for direct_video, falling back to intent/info: $path")
                         } else {
                             val link = "<link type=\"video\" id=\"$videoId\"></link>"
-                            AppLogger.d(TAG, "Generated video link for direct_video: $link")
+                            Log.d(TAG, "Generated video link for direct_video: $link")
                             return ToolResult(
                                 toolName = tool.name,
                                 success = true,
@@ -1333,13 +1333,13 @@ open class StandardFileSystemTools(protected val context: Context) {
                             )
                         }
                     } catch (e: Exception) {
-                        AppLogger.e(TAG, "Error generating direct video link, falling back to intent/info", e)
+                        Log.e(TAG, "Error generating direct video link, falling back to intent/info", e)
                     }
                 }
 
                 if (!intent.isNullOrBlank()) {
                     try {
-                        val enhancedService = com.ai.assistance.operit.api.chat.EnhancedAIService.getInstance(context)
+                        val enhancedService = me.rerere.api.chat.EnhancedAIService.getInstance(context)
                         val analysisResult = kotlinx.coroutines.runBlocking {
                             enhancedService.analyzeVideoWithIntent(path, intent)
                         }
@@ -1355,7 +1355,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                             error = ""
                         )
                     } catch (e: Exception) {
-                        AppLogger.e(TAG, "视频识别模型调用失败，回退到媒体信息", e)
+                        Log.e(TAG, "视频识别模型调用失败，回退到媒体信息", e)
                     }
                 }
 
@@ -1491,7 +1491,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error reading file (full)", e)
+            Log.e(TAG, "Error reading file (full)", e)
             return ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -1551,7 +1551,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                     error = ""
                 )
             } catch (e: Exception) {
-                AppLogger.e(TAG, "Error reading binary file", e)
+                Log.e(TAG, "Error reading binary file", e)
                 ToolResult(
                     toolName = tool.name,
                     success = false,
@@ -1668,7 +1668,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 error = ""
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error reading file", e)
+            Log.e(TAG, "Error reading file", e)
             return ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -1790,7 +1790,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                     error = ""
                 )
             } catch (e: Exception) {
-                AppLogger.e(TAG, "Error reading file part", e)
+                Log.e(TAG, "Error reading file part", e)
                 return@withContext ToolResult(
                     toolName = tool.name,
                     success = false,
@@ -1841,7 +1841,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 val parentDir = file.parentFile
                 if (parentDir != null && !parentDir.exists()) {
                     if (!parentDir.mkdirs()) {
-                        AppLogger.w(
+                        Log.w(
                             TAG,
                             "Failed to create parent directory: ${parentDir.absolutePath}"
                         )
@@ -1910,7 +1910,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                     error = ""
                 )
             } catch (e: Exception) {
-                AppLogger.e(TAG, "Error writing to file", e)
+                Log.e(TAG, "Error writing to file", e)
 
                 val errorMessage =
                     when {
@@ -1977,7 +1977,7 @@ open class StandardFileSystemTools(protected val context: Context) {
             val parentDir = file.parentFile
             if (parentDir != null && !parentDir.exists()) {
                 if (!parentDir.mkdirs()) {
-                    AppLogger.w(
+                    Log.w(
                         TAG,
                         "Failed to create parent directory: ${parentDir.absolutePath}"
                     )
@@ -2039,7 +2039,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 error = ""
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error writing binary file", e)
+            Log.e(TAG, "Error writing binary file", e)
             return ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -2166,7 +2166,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error deleting file/directory", e)
+            Log.e(TAG, "Error deleting file/directory", e)
             return ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -2234,7 +2234,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 error = ""
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error checking file existence", e)
+            Log.e(TAG, "Error checking file existence", e)
             return ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -2390,7 +2390,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error moving file", e)
+            Log.e(TAG, "Error moving file", e)
             return ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -2428,7 +2428,7 @@ open class StandardFileSystemTools(protected val context: Context) {
 
             return true
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error copying directory", e)
+            Log.e(TAG, "Error copying directory", e)
             return false
         }
     }
@@ -2449,7 +2449,7 @@ open class StandardFileSystemTools(protected val context: Context) {
         val finalDestPath = destPath
 
         return try {
-            AppLogger.d(
+            Log.d(
                 TAG,
                 "Cross-environment copy: $sourceEnvironment:$sourcePath -> $destEnvironment:$finalDestPath"
             )
@@ -2592,7 +2592,7 @@ open class StandardFileSystemTools(protected val context: Context) {
             }
 
             // 5. 验证成功
-            AppLogger.d(TAG, "Successfully copied file cross-environment: $totalBytes bytes")
+            Log.d(TAG, "Successfully copied file cross-environment: $totalBytes bytes")
             return ToolResult(
                 toolName = toolName,
                 success = true,
@@ -2605,7 +2605,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 error = ""
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error copying file cross-environment", e)
+            Log.e(TAG, "Error copying file cross-environment", e)
             return ToolResult(
                 toolName = toolName,
                 success = false,
@@ -2634,7 +2634,7 @@ open class StandardFileSystemTools(protected val context: Context) {
         val finalDestPath = destPath
 
         return try {
-            AppLogger.d(
+            Log.d(
                 TAG,
                 "Cross-environment directory copy: $sourceEnvironment:$sourcePath -> $destEnvironment:$finalDestPath"
             )
@@ -2693,7 +2693,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                     if (result.success) {
                         copiedDirs++
                     } else {
-                        AppLogger.w(TAG, "Failed to copy directory: $srcFullPath")
+                        Log.w(TAG, "Failed to copy directory: $srcFullPath")
                     }
                 } else {
                     val result = copyFileCrossEnvironment(
@@ -2707,12 +2707,12 @@ open class StandardFileSystemTools(protected val context: Context) {
                     if (result.success) {
                         copiedFiles++
                     } else {
-                        AppLogger.w(TAG, "Failed to copy file: $srcFullPath")
+                        Log.w(TAG, "Failed to copy file: $srcFullPath")
                     }
                 }
             }
 
-            AppLogger.d(
+            Log.d(
                 TAG,
                 "Successfully copied directory: $copiedFiles files, $copiedDirs subdirectories"
             )
@@ -2728,7 +2728,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 error = ""
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error copying directory cross-environment", e)
+            Log.e(TAG, "Error copying directory cross-environment", e)
             return ToolResult(
                 toolName = toolName,
                 success = false,
@@ -2940,7 +2940,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 }
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error copying file/directory", e)
+            Log.e(TAG, "Error copying file/directory", e)
             return ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -3064,7 +3064,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error creating directory", e)
+            Log.e(TAG, "Error creating directory", e)
             return ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -3206,7 +3206,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 error = ""
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error searching for files", e)
+            Log.e(TAG, "Error searching for files", e)
             return ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -3483,7 +3483,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 error = ""
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error getting file information", e)
+            Log.e(TAG, "Error getting file information", e)
             return ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -3611,7 +3611,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error compressing files", e)
+            Log.e(TAG, "Error compressing files", e)
             return ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -3804,7 +3804,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 error = ""
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error extracting zip file", e)
+            Log.e(TAG, "Error extracting zip file", e)
             return ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -3970,7 +3970,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 }
 
                 ToolProgressBus.update(tool.name, 0.4f, "Creating file...")
-                AppLogger.d(TAG, "File does not exist. Creating new file '$path'...")
+                Log.d(TAG, "File does not exist. Creating new file '$path'...")
 
                 val writeResult =
                     writeFile(
@@ -4176,7 +4176,7 @@ open class StandardFileSystemTools(protected val context: Context) {
             val aiInstructions = bindingResult.second
 
             if (aiInstructions.startsWith("Error", ignoreCase = true)) {
-                AppLogger.e(TAG, "File binding failed: $aiInstructions")
+                Log.e(TAG, "File binding failed: $aiInstructions")
                 emit(
                     ToolResult(
                         toolName = tool.name,
@@ -4262,7 +4262,7 @@ open class StandardFileSystemTools(protected val context: Context) {
         }
     }
         .catch { e ->
-            AppLogger.e(TAG, "Error applying file binding", e)
+            Log.e(TAG, "Error applying file binding", e)
             val path = tool.parameters.find { it.name == "path" }?.value ?: "unknown"
             emit(
                 ToolResult(
@@ -4480,7 +4480,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 ToolProgressBus.clear()
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error downloading file", e)
+            Log.e(TAG, "Error downloading file", e)
             return ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -4569,7 +4569,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 error = ""
             )
         } catch (e: ActivityNotFoundException) {
-            AppLogger.e(TAG, "No activity found to handle opening file: $path", e)
+            Log.e(TAG, "No activity found to handle opening file: $path", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -4584,7 +4584,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 error = "No application found to open this file type."
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error opening file", e)
+            Log.e(TAG, "Error opening file", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -4619,7 +4619,7 @@ open class StandardFileSystemTools(protected val context: Context) {
 
         val envLabel = environment.orEmpty().trim().ifBlank { "android" }
 
-        AppLogger.d(TAG, "grep_code: Starting search - path=$path, pattern=\"$pattern\", file_pattern=$filePattern, max_results=$maxResults")
+        Log.d(TAG, "grep_code: Starting search - path=$path, pattern=\"$pattern\", file_pattern=$filePattern, max_results=$maxResults")
 
         // 如果是Linux环境，委托给LinuxFileSystemTools
         if (isLinuxEnvironment(environment)) {
@@ -4729,7 +4729,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 )
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error performing context search", e)
+            Log.e(TAG, "Error performing context search", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -4838,7 +4838,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 error = ""
             )
         } catch (e: ActivityNotFoundException) {
-            AppLogger.e(TAG, "No activity found to handle sharing file: $path", e)
+            Log.e(TAG, "No activity found to handle sharing file: $path", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,
@@ -4853,7 +4853,7 @@ open class StandardFileSystemTools(protected val context: Context) {
                 error = "No application found to share this file type."
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error sharing file", e)
+            Log.e(TAG, "Error sharing file", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,

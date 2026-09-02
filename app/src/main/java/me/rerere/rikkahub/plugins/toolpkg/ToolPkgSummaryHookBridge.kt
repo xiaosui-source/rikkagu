@@ -1,16 +1,16 @@
 package me.rerere.rikkahub.plugins.toolpkg
 
-import com.ai.assistance.operit.core.chat.hooks.PromptTurn
-import com.ai.assistance.operit.core.chat.hooks.PromptTurnKind
-import com.ai.assistance.operit.core.chat.hooks.SummaryGenerateHook
-import com.ai.assistance.operit.core.chat.hooks.SummaryHookContext
-import com.ai.assistance.operit.core.chat.hooks.SummaryHookMutation
-import com.ai.assistance.operit.core.chat.hooks.SummaryHookRegistry
-import com.ai.assistance.operit.core.tools.packTool.PackageManager
-import com.ai.assistance.operit.core.tools.packTool.ToolPkgContainerRuntime
-import com.ai.assistance.operit.core.tools.packTool.TOOLPKG_EVENT_SUMMARY_GENERATE
-import com.ai.assistance.operit.data.model.FunctionType
-import com.ai.assistance.operit.util.AppLogger
+me.rerere.rikkahub.chat.hooks.PromptTurn
+me.rerere.rikkahub.chat.hooks.PromptTurnKind
+me.rerere.rikkahub.chat.hooks.SummaryGenerateHook
+me.rerere.rikkahub.chat.hooks.SummaryHookContext
+me.rerere.rikkahub.chat.hooks.SummaryHookMutation
+me.rerere.rikkahub.chat.hooks.SummaryHookRegistry
+me.rerere.rikkahub.tools.packTool.PackageManager
+me.rerere.rikkahub.tools.packTool.ToolPkgContainerRuntime
+me.rerere.rikkahub.tools.packTool.TOOLPKG_EVENT_SUMMARY_GENERATE
+me.rerere.rikkahub.data.model.FunctionType
+android.util.Log
 import java.util.concurrent.atomic.AtomicBoolean
 import org.json.JSONArray
 import org.json.JSONObject
@@ -98,7 +98,7 @@ internal object ToolPkgSummaryHookBridge {
             }
             val decoded =
                 result.getOrElse { error ->
-                    AppLogger.e(
+                    Log.e(
                         TAG,
                         "ToolPkg summary hook failed: $resolvedContainer:$resolvedHookId",
                         error
@@ -107,7 +107,7 @@ internal object ToolPkgSummaryHookBridge {
                 }?.let { raw ->
                     runCatching { decodeToolPkgHookResult(raw) }
                         .getOrElse { error ->
-                            AppLogger.e(
+                            Log.e(
                                 TAG,
                                 "ToolPkg summary hook decode failed: $resolvedContainer:$resolvedHookId",
                                 error

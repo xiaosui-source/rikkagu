@@ -1,8 +1,8 @@
 package me.rerere.rikkahub.data.ai.tools
 
-import com.ai.assistance.operit.core.tools.CalculationResultData
-import com.ai.assistance.operit.core.tools.DateResultData
-import com.ai.assistance.operit.core.tools.calculator.Calculator as CalcImpl
+me.rerere.rikkahub.tools.CalculationResultData
+me.rerere.rikkahub.tools.DateResultData
+me.rerere.rikkahub.tools.calculator.Calculator as CalcImpl
 import java.util.Date
 
 /** 增强的计算器类，支持数学表达式计算、日期计算和JavaScript语法特性 提供安全的表达式计算，替代eval() */

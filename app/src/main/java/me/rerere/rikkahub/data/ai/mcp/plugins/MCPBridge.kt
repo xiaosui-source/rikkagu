@@ -1,14 +1,14 @@
 package me.rerere.rikkahub.data.ai.mcp.plugins
 
 import android.content.Context
-import com.ai.assistance.operit.R
-import com.ai.assistance.operit.util.AppLogger
-import com.ai.assistance.operit.util.OperitPaths
-import com.ai.assistance.operit.util.PortProcessKiller
-import com.ai.assistance.operit.core.tools.system.Terminal
-import com.ai.assistance.operit.core.tools.AIToolHandler
-import com.ai.assistance.operit.data.model.AITool
-import com.ai.assistance.operit.data.model.ToolParameter
+import me.rerere.R
+android.util.Log
+me.rerere.OperitPaths
+me.rerere.PortProcessKiller
+me.rerere.rikkahub.tools.system.Terminal
+me.rerere.rikkahub.tools.AIToolHandler
+me.rerere.rikkahub.data.model.AITool
+me.rerere.rikkahub.data.model.ToolParameter
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
@@ -124,10 +124,10 @@ class MCPBridge private constructor(private val context: Context) {
 
                 val detectedPort =
                     if (isPortAvailable(DEFAULT_HOST, BRIDGE_PORT)) {
-                        AppLogger.d(TAG, "检测到本地环境，使用端口 $BRIDGE_PORT")
+                        Log.d(TAG, "检测到本地环境，使用端口 $BRIDGE_PORT")
                         BRIDGE_PORT
                     } else {
-                        AppLogger.d(TAG, "本地连接失败，尝试SSH转发端口 $CLIENT_PORT")
+                        Log.d(TAG, "本地连接失败，尝试SSH转发端口 $CLIENT_PORT")
                         CLIENT_PORT
                     }
 
@@ -223,7 +223,7 @@ class MCPBridge private constructor(private val context: Context) {
                     spawnHelperOutputFile.writeText(spawnHelperJsContent)
                     spawnHelperInputStream.close()
 
-                    AppLogger.d(TAG, "桥接器文件已复制到公共目录: ${publicBridgeDir.absolutePath}")
+                    Log.d(TAG, "桥接器文件已复制到公共目录: ${publicBridgeDir.absolutePath}")
 
                     // 2. 确保终端目录存在并复制文件
                     // 获取终端管理器
@@ -233,7 +233,7 @@ class MCPBridge private constructor(private val context: Context) {
                     if (!terminal.isConnected()) {
                         val connected = terminal.initialize()
                         if (!connected) {
-                            AppLogger.e(TAG, "无法连接到终端服务")
+                            Log.e(TAG, "无法连接到终端服务")
                             return@withContext false
                         }
                     }
@@ -242,7 +242,7 @@ class MCPBridge private constructor(private val context: Context) {
                     val actualSessionId = sessionId ?: run {
                         val newSessionId = terminal.createSession("mcp-bridge-deploy")
                         if (newSessionId == null) {
-                            AppLogger.e(TAG, "无法创建终端会话或会话初始化超时")
+                            Log.e(TAG, "无法创建终端会话或会话初始化超时")
                             return@withContext false
                         }
                         newSessionId
@@ -277,18 +277,18 @@ class MCPBridge private constructor(private val context: Context) {
                         
                         val result = toolHandler.executeTool(copyTool)
                         if (!result.success) {
-                            AppLogger.e(TAG, "复制文件 $fileName 失败: ${result.error}")
+                            Log.e(TAG, "复制文件 $fileName 失败: ${result.error}")
                             return@withContext false
                         }
-                        AppLogger.d(TAG, "成功复制文件: $fileName")
+                        Log.d(TAG, "成功复制文件: $fileName")
                     }
                     
                     // 打包后的文件已包含所有依赖，无需安装 node_modules
 
-                    AppLogger.d(TAG, "桥接器成功部署到终端")
+                    Log.d(TAG, "桥接器成功部署到终端")
                     return@withContext true
                 } catch (e: Exception) {
-                    AppLogger.e(TAG, "部署桥接器异常", e)
+                    Log.e(TAG, "部署桥接器异常", e)
                     return@withContext false
                 }
             }
@@ -306,7 +306,7 @@ class MCPBridge private constructor(private val context: Context) {
                     // 使用传入的context或保存的appContext
                     val ctx = context ?: appContext
                     if (ctx == null) {
-                        AppLogger.e(TAG, "没有可用的上下文，无法执行命令")
+                        Log.e(TAG, "没有可用的上下文，无法执行命令")
                         return@withContext false
                     }
 
@@ -340,7 +340,7 @@ class MCPBridge private constructor(private val context: Context) {
                         if (!terminal.isConnected()) {
                             val connected = terminal.initialize()
                             if (!connected) {
-                                AppLogger.e(TAG, "无法连接到终端服务")
+                                Log.e(TAG, "无法连接到终端服务")
                                 deferred.complete(false)
                                 return@withContext false
                             }
@@ -350,7 +350,7 @@ class MCPBridge private constructor(private val context: Context) {
                         val actualSessionId = sessionId ?: run {
                             val newSessionId = terminal.createSession("mcp-bridge-daemon")
                             if (newSessionId == null) {
-                                AppLogger.e(TAG, "无法创建终端会话或会话初始化超时")
+                                Log.e(TAG, "无法创建终端会话或会话初始化超时")
                                 deferred.complete(false)
                                 return@withContext false
                             }
@@ -379,15 +379,15 @@ class MCPBridge private constructor(private val context: Context) {
                         }
 
                         if (shouldSendStartCommand) {
-                            AppLogger.d(TAG, "发送启动命令: $command")
-                            AppLogger.d(TAG, "进行桥接器启动...")
+                            Log.d(TAG, "发送启动命令: $command")
+                            Log.d(TAG, "进行桥接器启动...")
                             terminal.executeCommand(actualSessionId, command.toString())
                         } else {
-                            AppLogger.w(TAG, "桥接器启动命令发送过于频繁，跳过本次发送")
+                            Log.w(TAG, "桥接器启动命令发送过于频繁，跳过本次发送")
                         }
 
                         // 等待一段时间让桥接器启动
-                        AppLogger.d(TAG, "等待桥接器启动...")
+                        Log.d(TAG, "等待桥接器启动...")
                         delay(2000)
 
                         // 验证桥接器是否成功启动 - 尝试三次
@@ -395,23 +395,23 @@ class MCPBridge private constructor(private val context: Context) {
                         for (i in 1..3) {
                             val checkResult = getInstance(ctx).listMcpServices()
                             if (checkResult != null && checkResult.optBoolean("success", false)) {
-                                AppLogger.d(TAG, "桥接器成功启动，list响应: $checkResult")
+                                Log.d(TAG, "桥接器成功启动，list响应: $checkResult")
                                 isRunning = true
                                 break
                             }
-                            AppLogger.d(TAG, "第${i}次尝试连接桥接器失败，等待1秒后重试")
+                            Log.d(TAG, "第${i}次尝试连接桥接器失败，等待1秒后重试")
                             delay(1000)
                         }
 
                         // 如果三次尝试后仍然无法ping通，检查日志
                         if (!isRunning) {
-                            AppLogger.e(TAG, "桥接器可能未成功启动。请检查终端会话 'mcp-bridge-daemon' 的输出。")
+                            Log.e(TAG, "桥接器可能未成功启动。请检查终端会话 'mcp-bridge-daemon' 的输出。")
                         }
 
                         deferred.complete(isRunning)
                         return@withContext isRunning
                     } catch (e: Exception) {
-                        AppLogger.e(TAG, "启动桥接器异常", e)
+                        Log.e(TAG, "启动桥接器异常", e)
                         deferred.complete(false)
                         return@withContext false
                     } finally {
@@ -427,21 +427,21 @@ class MCPBridge private constructor(private val context: Context) {
         suspend fun reset(context: Context? = null): JSONObject? =
                 withContext(Dispatchers.IO) {
                     try {
-                        AppLogger.d(TAG, "重置桥接器 - 关闭所有服务并清空注册表...")
+                        Log.d(TAG, "重置桥接器 - 关闭所有服务并清空注册表...")
                         val ctx = context ?: appContext
                         if (ctx == null) {
-                            AppLogger.e(TAG, "Cannot reset bridge: context is null")
+                            Log.e(TAG, "Cannot reset bridge: context is null")
                             return@withContext null
                         }
                         val response = sendCommand(ctx, MCPBridgeClient.buildResetCommand())
                         if (response?.optBoolean("success", false) == true) {
                             AppLogger.i(TAG, "桥接器重置成功")
                         } else {
-                            AppLogger.w(TAG, "桥接器重置失败")
+                            Log.w(TAG, "桥接器重置失败")
                         }
                         return@withContext response
                     } catch (e: Exception) {
-                        AppLogger.e(TAG, "重置桥接器异常", e)
+                        Log.e(TAG, "重置桥接器异常", e)
                         return@withContext null
                     }
                 }
@@ -461,14 +461,14 @@ class MCPBridge private constructor(private val context: Context) {
 
                 val response = reader.readLine()
                 if (response.isNullOrBlank()) {
-                    AppLogger.e(TAG, emptyResponseMessage)
+                    Log.e(TAG, emptyResponseMessage)
                     null
                 } else {
-                    AppLogger.d(TAG, "命令[$cmdId: $cmdType${if (!serviceName.isNullOrBlank()) " service=$serviceName" else ""}]响应: $response")
+                    Log.d(TAG, "命令[$cmdId: $cmdType${if (!serviceName.isNullOrBlank()) " service=$serviceName" else ""}]响应: $response")
                     JSONObject(response)
                 }
             } catch (e: Exception) {
-                AppLogger.e(TAG, "命令[$cmdId: $cmdType]通信或解析失败: ${e.message}")
+                Log.e(TAG, "命令[$cmdId: $cmdType]通信或解析失败: ${e.message}")
                 null
             }
         }
@@ -480,7 +480,7 @@ class MCPBridge private constructor(private val context: Context) {
         ): JSONObject? {
             val ctx = appContext
             if (ctx == null) {
-                AppLogger.e(TAG, "Cannot send command: appContext is null")
+                Log.e(TAG, "Cannot send command: appContext is null")
                 return null
             }
             return sendCommand(ctx, command, host, port)
@@ -513,7 +513,7 @@ class MCPBridge private constructor(private val context: Context) {
                                     "${context.getString(R.string.mcp_send_command)}[$cmdId]: $cmdType ${if (params != null) "参数: $params" else ""}"
                                 }
 
-                        AppLogger.d(TAG, logMessage)
+                        Log.d(TAG, logMessage)
 
                         if (cmdType == "spawn") {
                             var dedicatedSocket: Socket? = null
@@ -537,7 +537,7 @@ class MCPBridge private constructor(private val context: Context) {
                                     emptyResponseMessage = "命令[$cmdId: $cmdType]没有收到响应（独立连接）"
                                 )
                             } catch (e: Exception) {
-                                AppLogger.e(TAG, "发送独立连接命令失败[$cmdType]: ${e.message}")
+                                Log.e(TAG, "发送独立连接命令失败[$cmdType]: ${e.message}")
                                 null
                             } finally {
                                 try {
@@ -599,7 +599,7 @@ class MCPBridge private constructor(private val context: Context) {
                     } catch (e: Exception) {
                         // 简化错误日志 - 只记录关键信息
                         val cmdType = command.optString("command", "unknown")
-                        AppLogger.e(TAG, "发送命令失败[$cmdType]: ${e.message}")
+                        Log.e(TAG, "发送命令失败[$cmdType]: ${e.message}")
                         return@withContext null
                     }
                 }
@@ -664,7 +664,7 @@ class MCPBridge private constructor(private val context: Context) {
 
     // 获取工具列表
     suspend fun listTools(serviceName: String? = null): JSONObject? {
-        AppLogger.d(TAG, "获取工具列表${if (serviceName != null) " 服务: $serviceName" else " (默认服务)"}")
+        Log.d(TAG, "获取工具列表${if (serviceName != null) " 服务: $serviceName" else " (默认服务)"}")
         return sendCommand(MCPBridgeClient.buildListToolsCommand(serviceName))
     }
 
@@ -689,10 +689,10 @@ class MCPBridge private constructor(private val context: Context) {
     suspend fun getServiceStatus(serviceName: String): JSONObject? =
         withContext(Dispatchers.IO) {
             try {
-                AppLogger.d(TAG, "查询服务 $serviceName 的状态")
+                Log.d(TAG, "查询服务 $serviceName 的状态")
                 return@withContext listMcpServices(serviceName)
             } catch (e: Exception) {
-                AppLogger.e(TAG, "查询服务状态时出错: ${e.message}")
+                Log.e(TAG, "查询服务状态时出错: ${e.message}")
                 return@withContext null
             }
         }
@@ -709,18 +709,18 @@ class MCPBridge private constructor(private val context: Context) {
     suspend fun resetBridge(): JSONObject? =
         withContext(Dispatchers.IO) {
             try {
-                AppLogger.d(TAG, "开始重置桥接器，关闭所有服务并清空注册表...")
+                Log.d(TAG, "开始重置桥接器，关闭所有服务并清空注册表...")
                 val response = sendCommand(MCPBridgeClient.buildResetCommand())
 
                 if (response?.optBoolean("success", false) == true) {
                     AppLogger.i(TAG, "桥接器重置成功")
                     return@withContext response
                 } else {
-                    AppLogger.w(TAG, "桥接器重置失败")
+                    Log.w(TAG, "桥接器重置失败")
                     return@withContext null
                 }
             } catch (e: Exception) {
-                AppLogger.e(TAG, "重置桥接器时出错: ${e.message}")
+                Log.e(TAG, "重置桥接器时出错: ${e.message}")
                 return@withContext null
             }
         }

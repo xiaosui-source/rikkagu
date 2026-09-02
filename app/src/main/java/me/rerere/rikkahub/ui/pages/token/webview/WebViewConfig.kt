@@ -3,7 +3,7 @@ package me.rerere.rikkahub.ui.pages.token.webview
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
-import com.ai.assistance.operit.util.AppLogger
+android.util.Log
 import android.view.MotionEvent
 import android.view.ViewGroup
 import android.webkit.ConsoleMessage
@@ -54,11 +54,11 @@ object WebViewConfig {
                     try {
                         safeBrowsingEnabled = true
                     } catch (e: AbstractMethodError) {
-                        AppLogger.w("WebViewConfig", "Safe browsing not supported on this WebView implementation: ${e.message}")
+                        Log.w("WebViewConfig", "Safe browsing not supported on this WebView implementation: ${e.message}")
                     } catch (e: NoSuchMethodError) {
-                        AppLogger.w("WebViewConfig", "Safe browsing method missing on this WebView implementation: ${e.message}")
+                        Log.w("WebViewConfig", "Safe browsing method missing on this WebView implementation: ${e.message}")
                     } catch (e: Throwable) {
-                        AppLogger.w("WebViewConfig", "Failed to enable safe browsing: ${e.message}")
+                        Log.w("WebViewConfig", "Failed to enable safe browsing: ${e.message}")
                     }
                 }
             }
@@ -133,7 +133,7 @@ object WebViewConfig {
                                                 view?.context?.startActivity(intent)
                                                 return true
                                             } catch (e: Exception) {
-                                                AppLogger.e("WebViewConfig", "无法在新窗口打开外部应用: ${e.message}")
+                                                Log.e("WebViewConfig", "无法在新窗口打开外部应用: ${e.message}")
                                             }
                                             return true
                                         }
@@ -155,7 +155,7 @@ object WebViewConfig {
                         }
 
                         override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
-                            AppLogger.d(
+                            Log.d(
                                     "WebViewConsole",
                                     "${consoleMessage.message()} -- From line ${consoleMessage.lineNumber()} of ${consoleMessage.sourceId()}"
                             )
@@ -189,7 +189,7 @@ object WebViewConfig {
                                 message: String?,
                                 result: android.webkit.JsResult?
                         ): Boolean {
-                            AppLogger.d("WebViewJS", "Alert: $message")
+                            Log.d("WebViewJS", "Alert: $message")
                             result?.confirm()
                             return true
                         }
@@ -200,7 +200,7 @@ object WebViewConfig {
                                 message: String?,
                                 result: android.webkit.JsResult?
                         ): Boolean {
-                            AppLogger.d("WebViewJS", "Confirm: $message")
+                            Log.d("WebViewJS", "Confirm: $message")
                             result?.confirm()
                             return true
                         }
@@ -212,7 +212,7 @@ object WebViewConfig {
                                 defaultValue: String?,
                                 result: android.webkit.JsPromptResult?
                         ): Boolean {
-                            AppLogger.d("WebViewJS", "Prompt: $message, Default: $defaultValue")
+                            Log.d("WebViewJS", "Prompt: $message, Default: $defaultValue")
                             result?.confirm(defaultValue)
                             return true
                         }

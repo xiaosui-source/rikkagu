@@ -1,6 +1,6 @@
 package me.rerere.rikkahub.data.ai.mcp.plugins
 
-import com.ai.assistance.operit.util.AppLogger
+android.util.Log
 import java.io.File
 import org.json.JSONObject
 
@@ -94,7 +94,7 @@ class MCPProjectAnalyzer {
                     }
                 }
             } catch (e: Exception) {
-                AppLogger.e(TAG, "解析package.json失败", e)
+                Log.e(TAG, "解析package.json失败", e)
             }
         }
 
@@ -189,14 +189,14 @@ class MCPProjectAnalyzer {
             val outDir = rawOutDir?.removePrefix("./")?.removeSuffix("/")?.ifEmpty { null }
             val rootDir = rawRootDir?.removePrefix("./")?.removeSuffix("/")?.ifEmpty { null }
 
-            AppLogger.d(
+            Log.d(
                     TAG,
                     "解析tsconfig.json - outDir: $outDir (原始: $rawOutDir), rootDir: $rootDir (原始: $rawRootDir)"
             )
 
             return Triple(outDir, rootDir, tsConfigContent)
         } catch (e: Exception) {
-            AppLogger.e(TAG, "解析tsconfig.json失败", e)
+            Log.e(TAG, "解析tsconfig.json失败", e)
             return Triple(null, null, null)
         }
     }
@@ -210,7 +210,7 @@ class MCPProjectAnalyzer {
 
         try {
             val content = pyprojectFile.readText()
-            AppLogger.d(TAG, "开始解析 pyproject.toml")
+            Log.d(TAG, "开始解析 pyproject.toml")
 
             // 方法1: 从 [project.scripts] 提取完整的模块路径
             // 例如: word_mcp_server = "word_document_server.main:run_server"
@@ -223,7 +223,7 @@ class MCPProjectAnalyzer {
                 scriptPattern.find(scriptsSectionContent)?.let { match ->
                     val modulePath = match.groupValues[1].trim()
                     if (modulePath.isNotBlank() && !modulePath.contains("/")) {
-                        AppLogger.d(TAG, "从 [project.scripts] 提取到模块路径: $modulePath")
+                        Log.d(TAG, "从 [project.scripts] 提取到模块路径: $modulePath")
                         return modulePath
                     }
                 }
@@ -237,7 +237,7 @@ class MCPProjectAnalyzer {
                 // 提取最后一个路径部分作为包名
                 val packageName = packagePath.split('/').last()
                 if (packageName.isNotBlank()) {
-                    AppLogger.d(TAG, "从 packages 提取到包名: $packageName")
+                    Log.d(TAG, "从 packages 提取到包名: $packageName")
                     return packageName
                 }
             }
@@ -249,15 +249,15 @@ class MCPProjectAnalyzer {
                 // 将连字符转换为下划线（Python 模块命名约定）
                 val packageName = projectName.replace("-", "_")
                 if (packageName.isNotBlank()) {
-                    AppLogger.d(TAG, "从 [project] name 提取到包名: $packageName")
+                    Log.d(TAG, "从 [project] name 提取到包名: $packageName")
                     return packageName
                 }
             }
 
-            AppLogger.w(TAG, "无法从 pyproject.toml 提取包名")
+            Log.w(TAG, "无法从 pyproject.toml 提取包名")
             return null
         } catch (e: Exception) {
-            AppLogger.e(TAG, "解析 pyproject.toml 失败", e)
+            Log.e(TAG, "解析 pyproject.toml 失败", e)
             return null
         }
     }
@@ -321,7 +321,7 @@ class MCPProjectAnalyzer {
                     return packageJson.getString("main")
                 }
             } catch (e: Exception) {
-                AppLogger.e(TAG, "解析package.json失败", e)
+                Log.e(TAG, "解析package.json失败", e)
             }
         }
 
@@ -379,7 +379,7 @@ class MCPProjectAnalyzer {
                     return packageJson.getString("source")
                 }
             } catch (e: Exception) {
-                AppLogger.e(TAG, "解析package.json失败", e)
+                Log.e(TAG, "解析package.json失败", e)
             }
         }
 
@@ -456,7 +456,7 @@ class MCPProjectAnalyzer {
         // 对于JS/Node/TS项目，只有包含@字符才可信
         if (projectType == ProjectType.TYPESCRIPT || projectType == ProjectType.NODEJS) {
             if (!configExample.contains("@")) {
-                AppLogger.w(TAG, "JS/Node/TS项目配置中未找到@字符，该配置不可信，已过滤")
+                Log.w(TAG, "JS/Node/TS项目配置中未找到@字符，该配置不可信，已过滤")
                 return null
             }
         }
@@ -464,7 +464,7 @@ class MCPProjectAnalyzer {
         // 对于Python项目，如果包含path/to或pathto/则一票否决
         if (projectType == ProjectType.PYTHON) {
             if (lowerCaseConfig.contains("path/to") || lowerCaseConfig.contains("pathto/")) {
-                AppLogger.w(TAG, "Python项目配置中包含占位符路径(path/to或pathto/)，该配置不可信，已过滤")
+                Log.w(TAG, "Python项目配置中包含占位符路径(path/to或pathto/)，该配置不可信，已过滤")
                 return null
             }
         }

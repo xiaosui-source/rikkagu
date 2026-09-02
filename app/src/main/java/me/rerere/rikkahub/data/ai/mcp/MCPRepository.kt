@@ -4,18 +4,18 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import android.os.Environment
-import com.ai.assistance.operit.R
-import com.ai.assistance.operit.api.chat.EnhancedAIService
-import com.ai.assistance.operit.util.AppLogger
-import com.ai.assistance.operit.core.tools.AIToolHandler
-import com.ai.assistance.operit.core.tools.mcp.MCPManager
-import com.ai.assistance.operit.core.tools.mcp.MCPPackage
-import com.ai.assistance.operit.core.tools.mcp.McpRuntimeDescriptor
-import com.ai.assistance.operit.core.tools.mcp.MCPServerConfig
-import com.ai.assistance.operit.core.tools.mcp.MCPToolExecutor
-import com.ai.assistance.operit.data.mcp.plugins.MCPConfigGenerator
-import com.ai.assistance.operit.data.model.AITool
-import com.ai.assistance.operit.data.model.ToolParameter
+import me.rerere.R
+me.rerere.chat.EnhancedAIService
+android.util.Log
+me.rerere.rikkahub.tools.AIToolHandler
+me.rerere.rikkahub.tools.mcp.MCPManager
+me.rerere.rikkahub.tools.mcp.MCPPackage
+me.rerere.rikkahub.tools.mcp.McpRuntimeDescriptor
+me.rerere.rikkahub.tools.mcp.MCPServerConfig
+me.rerere.rikkahub.tools.mcp.MCPToolExecutor
+me.rerere.rikkahub.data.mcp.plugins.MCPConfigGenerator
+me.rerere.rikkahub.data.model.AITool
+me.rerere.rikkahub.data.model.ToolParameter
 
 import com.google.gson.Gson
 import com.google.gson.JsonParser
@@ -90,7 +90,7 @@ class MCPRepository(private val context: Context) {
                 ?: File(context.filesDir, PLUGINS_DIR_NAME).also {
                     if (!it.exists()) it.mkdirs()
                 }
-            AppLogger.w(TAG, "使用应用私有目录: ${fallbackDir.path}")
+            Log.w(TAG, "使用应用私有目录: ${fallbackDir.path}")
             fallbackDir
         }
     }
@@ -147,7 +147,7 @@ class MCPRepository(private val context: Context) {
 
             val missingMetadataPluginIds = physicallyInstalledIds - pluginMetadata.keys
             if (missingMetadataPluginIds.isNotEmpty()) {
-                AppLogger.d(
+                Log.d(
                     TAG,
                     "发现 ${missingMetadataPluginIds.size} 个仅存在于 mcp_plugins 的插件: ${missingMetadataPluginIds.joinToString()}"
                 )
@@ -172,7 +172,7 @@ class MCPRepository(private val context: Context) {
             _installedPluginIds.value = installedIds
 
         } catch (e: Exception) {
-            AppLogger.e(TAG, "从MCPLocalServer加载插件失败", e)
+            Log.e(TAG, "从MCPLocalServer加载插件失败", e)
         }
     }
 
@@ -189,9 +189,9 @@ class MCPRepository(private val context: Context) {
                     }
                 }
             }
-            AppLogger.d(TAG, "文件系统扫描到已安装插件: ${installedIds.size}")
+            Log.d(TAG, "文件系统扫描到已安装插件: ${installedIds.size}")
         } catch (e: Exception) {
-            AppLogger.e(TAG, "扫描文件系统插件失败", e)
+            Log.e(TAG, "扫描文件系统插件失败", e)
         }
         return installedIds
     }
@@ -301,7 +301,7 @@ class MCPRepository(private val context: Context) {
         return withContext(Dispatchers.IO) {
             val metadata = _mcpServers.value.find { it.id == pluginId }
             if (metadata == null) {
-                AppLogger.e(TAG, "找不到服务器信息: $pluginId")
+                Log.e(TAG, "找不到服务器信息: $pluginId")
                 return@withContext InstallResult.Error(context.getString(R.string.mcp_repository_server_not_found))
             }
 
@@ -326,7 +326,7 @@ class MCPRepository(private val context: Context) {
         progressCallback: (InstallProgress) -> Unit = {}
     ): InstallResult {
         return withContext(Dispatchers.IO) {
-            AppLogger.d(TAG, "安装服务器插件: ${server.name} (ID: ${server.id})")
+            Log.d(TAG, "安装服务器插件: ${server.name} (ID: ${server.id})")
 
             val result = installPluginInternal(server, progressCallback)
             
@@ -357,7 +357,7 @@ class MCPRepository(private val context: Context) {
             _errorMessage.value = null
 
             try {
-                AppLogger.d(TAG, "从本地ZIP安装插件, ID: $serverId, Name: $name")
+                Log.d(TAG, "从本地ZIP安装插件, ID: $serverId, Name: $name")
 
                 val server = MCPLocalServer.PluginMetadata(
                                 id = serverId,
@@ -383,7 +383,7 @@ class MCPRepository(private val context: Context) {
 
                 result
             } catch (e: Exception) {
-                AppLogger.e(TAG, "从本地ZIP安装插件失败", e)
+                Log.e(TAG, "从本地ZIP安装插件失败", e)
                 InstallResult.Error(context.getString(R.string.mcp_repository_install_error, e.message ?: ""))
             } finally {
                 _isLoading.value = false
@@ -409,14 +409,14 @@ class MCPRepository(private val context: Context) {
                     mcpLocalServer.removeMCPServer(pluginId)
                     // 重新加载插件状态
                     loadPluginsFromMCPLocalServer()
-                    AppLogger.d(TAG, "插件卸载成功: $pluginId")
+                    Log.d(TAG, "插件卸载成功: $pluginId")
                 } else {
-                    AppLogger.e(TAG, "插件卸载失败: $pluginId")
+                    Log.e(TAG, "插件卸载失败: $pluginId")
                 }
 
                 result
             } catch (e: Exception) {
-                AppLogger.e(TAG, "卸载插件时发生错误: $pluginId", e)
+                Log.e(TAG, "卸载插件时发生错误: $pluginId", e)
                 false
             }
         }
@@ -434,23 +434,23 @@ class MCPRepository(private val context: Context) {
         progressCallback(InstallProgress.Preparing)
 
         try {
-            AppLogger.d(TAG, "安装插件 - 名称: ${server.name}, URL: ${server.repoUrl}")
+            Log.d(TAG, "安装插件 - 名称: ${server.name}, URL: ${server.repoUrl}")
 
             val pluginDir = File(pluginsBaseDir, server.id)
             if (pluginDir.exists()) {
-                AppLogger.d(TAG, "删除已存在的插件目录: ${pluginDir.path}")
+                Log.d(TAG, "删除已存在的插件目录: ${pluginDir.path}")
                 pluginDir.deleteRecursively()
             }
             pluginDir.mkdirs()
 
             val repoOwnerAndName = extractOwnerAndRepo(server.repoUrl)
             if (repoOwnerAndName == null) {
-                AppLogger.e(TAG, "无法从 URL 提取仓库信息: ${server.repoUrl}")
+                Log.e(TAG, "无法从 URL 提取仓库信息: ${server.repoUrl}")
                 return InstallResult.Error(context.getString(R.string.mcp_repository_invalid_github_url))
             }
 
             val (owner, repoName) = repoOwnerAndName
-            AppLogger.d(TAG, "准备下载仓库: $owner/$repoName")
+            Log.d(TAG, "准备下载仓库: $owner/$repoName")
 
             progressCallback(InstallProgress.Downloading(0))
             val zipFile = downloadRepositoryZip(owner, repoName, server.id, progressCallback)
@@ -474,13 +474,13 @@ class MCPRepository(private val context: Context) {
             }
 
             val mainDir = extractedDirs.first()
-            AppLogger.d(TAG, "插件解压成功，主目录: ${mainDir.path}")
+            Log.d(TAG, "插件解压成功，主目录: ${mainDir.path}")
 
             progressCallback(InstallProgress.Finished)
             return InstallResult.Success(mainDir.path)
 
         } catch (e: Exception) {
-            AppLogger.e(TAG, "安装插件失败", e)
+            Log.e(TAG, "安装插件失败", e)
             return InstallResult.Error(context.getString(R.string.mcp_repository_plugin_install_error, e.message ?: ""))
         }
     }
@@ -496,11 +496,11 @@ class MCPRepository(private val context: Context) {
         progressCallback(InstallProgress.Preparing)
 
         try {
-            AppLogger.d(TAG, "从本地ZIP安装插件 - 名称: ${server.name}, URI: $zipUri")
+            Log.d(TAG, "从本地ZIP安装插件 - 名称: ${server.name}, URI: $zipUri")
 
             val pluginDir = File(pluginsBaseDir, server.id)
             if (pluginDir.exists()) {
-                AppLogger.d(TAG, "删除已存在的插件目录: ${pluginDir.path}")
+                Log.d(TAG, "删除已存在的插件目录: ${pluginDir.path}")
                 pluginDir.deleteRecursively()
             }
             pluginDir.mkdirs()
@@ -534,13 +534,13 @@ class MCPRepository(private val context: Context) {
             val extractedDirs = pluginDir.listFiles()?.filter { it.isDirectory } ?: emptyList()
             val mainDir = if (extractedDirs.isEmpty()) pluginDir else extractedDirs.first()
             
-            AppLogger.d(TAG, "本地插件解压成功，主目录: ${mainDir.path}")
+            Log.d(TAG, "本地插件解压成功，主目录: ${mainDir.path}")
 
             progressCallback(InstallProgress.Finished)
             return InstallResult.Success(mainDir.path)
 
         } catch (e: Exception) {
-            AppLogger.e(TAG, "安装本地ZIP插件失败", e)
+            Log.e(TAG, "安装本地ZIP插件失败", e)
             return InstallResult.Error(context.getString(R.string.mcp_repository_install_local_zip_error, e.message ?: ""))
         }
     }
@@ -559,20 +559,20 @@ class MCPRepository(private val context: Context) {
         val defaultBranch = getGithubDefaultBranch(owner, repoName)
 
         if (defaultBranch == null) {
-            AppLogger.e(TAG, "无法确定 $owner/$repoName 的默认分支，下载失败")
+            Log.e(TAG, "无法确定 $owner/$repoName 的默认分支，下载失败")
             return@withContext null
         }
         
         val zipUrl = "https://github.com/$owner/$repoName/archive/refs/heads/$defaultBranch.zip"
-        AppLogger.d(TAG, "从确定的默认分支 '$defaultBranch' 下载: $zipUrl")
+        Log.d(TAG, "从确定的默认分支 '$defaultBranch' 下载: $zipUrl")
             
             val file = downloadFromUrl(zipUrl, serverId, progressCallback)
             if (file != null && file.exists() && file.length() > 0) {
-            AppLogger.d(TAG, "从默认分支 '$defaultBranch' 下载成功")
+            Log.d(TAG, "从默认分支 '$defaultBranch' 下载成功")
                 return@withContext file
             }
         
-        AppLogger.e(TAG, "从默认分支 '$defaultBranch' 下载失败")
+        Log.e(TAG, "从默认分支 '$defaultBranch' 下载失败")
         null
     }
 
@@ -581,7 +581,7 @@ class MCPRepository(private val context: Context) {
      */
     private suspend fun getGithubDefaultBranch(owner: String, repoName: String): String? = withContext(Dispatchers.IO) {
         val apiUrl = "https://api.github.com/repos/$owner/$repoName"
-        AppLogger.d(TAG, "从 GitHub API 获取仓库信息: $apiUrl")
+        Log.d(TAG, "从 GitHub API 获取仓库信息: $apiUrl")
         try {
             val url = URL(apiUrl)
             val connection = url.openConnection() as HttpURLConnection
@@ -599,16 +599,16 @@ class MCPRepository(private val context: Context) {
                 val defaultBranch = jsonObject.get("default_branch")?.asString
 
                 if (!defaultBranch.isNullOrBlank()) {
-                    AppLogger.d(TAG, "找到 $owner/$repoName 的默认分支: $defaultBranch")
+                    Log.d(TAG, "找到 $owner/$repoName 的默认分支: $defaultBranch")
                     return@withContext defaultBranch
                 } else {
-                    AppLogger.e(TAG, "在 $owner/$repoName 的 API 响应中找不到 'default_branch'")
+                    Log.e(TAG, "在 $owner/$repoName 的 API 响应中找不到 'default_branch'")
                 }
             } else {
-                AppLogger.e(TAG, "GitHub API 请求失败，响应码: ${connection.responseCode}，URL: $apiUrl")
+                Log.e(TAG, "GitHub API 请求失败，响应码: ${connection.responseCode}，URL: $apiUrl")
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "获取 $owner/$repoName 的默认分支时出错", e)
+            Log.e(TAG, "获取 $owner/$repoName 的默认分支时出错", e)
         }
         null
     }
@@ -637,12 +637,12 @@ class MCPRepository(private val context: Context) {
             connection.connect()
             
             if (connection.responseCode != HttpURLConnection.HTTP_OK) {
-                AppLogger.e(TAG, "下载失败，HTTP响应码: ${connection.responseCode}")
+                Log.e(TAG, "下载失败，HTTP响应码: ${connection.responseCode}")
                 return@withContext null
             }
             
             val contentLength = connection.contentLength.toLong()
-            AppLogger.d(TAG, "开始下载，文件大小: $contentLength 字节")
+            Log.d(TAG, "开始下载，文件大小: $contentLength 字节")
             
             val inputStream = BufferedInputStream(connection.inputStream)
             val outputStream = FileOutputStream(tempFile)
@@ -670,11 +670,11 @@ class MCPRepository(private val context: Context) {
             outputStream.close()
             inputStream.close()
             
-            AppLogger.d(TAG, "下载完成，保存到: ${tempFile.path}")
+            Log.d(TAG, "下载完成，保存到: ${tempFile.path}")
             return@withContext tempFile
             
         } catch (e: Exception) {
-            AppLogger.e(TAG, "下载ZIP文件失败: ${e.message}", e)
+            Log.e(TAG, "下载ZIP文件失败: ${e.message}", e)
             if (tempFile.exists()) tempFile.delete()
             return@withContext null
         }
@@ -690,7 +690,7 @@ class MCPRepository(private val context: Context) {
     ): Boolean = withContext(Dispatchers.IO) {
         try {
             targetDir.mkdirs()
-            AppLogger.d(TAG, "开始从${zipFile.path}提取文件到${targetDir.path}")
+            Log.d(TAG, "开始从${zipFile.path}提取文件到${targetDir.path}")
             
             ZipFile(zipFile).use { zip ->
                 val inputStream = zipFile.inputStream()
@@ -746,11 +746,11 @@ class MCPRepository(private val context: Context) {
                 inputStream.close()
             }
             
-            AppLogger.d(TAG, "解压完成，文件解压到: ${targetDir.path}")
+            Log.d(TAG, "解压完成，文件解压到: ${targetDir.path}")
             return@withContext true
             
         } catch (e: Exception) {
-            AppLogger.e(TAG, "解压ZIP文件失败", e)
+            Log.e(TAG, "解压ZIP文件失败", e)
             return@withContext false
         }
     }
@@ -774,7 +774,7 @@ class MCPRepository(private val context: Context) {
             zipInputStream.close()
             inputStream.close()
         } catch (e: Exception) {
-            AppLogger.e(TAG, "计算ZIP条目数量失败", e)
+            Log.e(TAG, "计算ZIP条目数量失败", e)
         }
         return count
     }
@@ -857,7 +857,7 @@ class MCPRepository(private val context: Context) {
     suspend fun addRemoteServer(server: MCPLocalServer.PluginMetadata) {
         withContext(Dispatchers.IO) {
             if (server.type != "remote" || server.endpoint == null) {
-                AppLogger.e(TAG, "addRemoteServer调用了无效的远程服务器: ${server.id}")
+                Log.e(TAG, "addRemoteServer调用了无效的远程服务器: ${server.id}")
                 return@withContext
             }
 
@@ -881,7 +881,7 @@ class MCPRepository(private val context: Context) {
         withContext(Dispatchers.IO) {
             val metadata = mcpLocalServer.getPluginMetadata(server.id)
             if (metadata == null) {
-                AppLogger.e(TAG, "无法找到要更新的插件元数据: ${server.id}")
+                Log.e(TAG, "无法找到要更新的插件元数据: ${server.id}")
                 return@withContext
             }
 
@@ -911,10 +911,10 @@ class MCPRepository(private val context: Context) {
                 mcpLocalServer.removeMCPServer(serverId)
                 // 重新加载插件状态
                 loadPluginsFromMCPLocalServer()
-                AppLogger.d(TAG, "远程服务器 $serverId 删除成功")
+                Log.d(TAG, "远程服务器 $serverId 删除成功")
                 true
             } catch (e: Exception) {
-                AppLogger.e(TAG, "删除远程服务器 $serverId 时出错", e)
+                Log.e(TAG, "删除远程服务器 $serverId 时出错", e)
                 false
             }
         }
@@ -925,7 +925,7 @@ class MCPRepository(private val context: Context) {
     /** Synchronizes local stdio plugin status from the bridge. */
     suspend fun syncBridgeStatus() {
         withContext(Dispatchers.IO) {
-            AppLogger.d(TAG, "开始同步本地 bridge 服务状态...")
+            Log.d(TAG, "开始同步本地 bridge 服务状态...")
             try {
                 val localPluginServiceNames = _installedPluginIds.value
                     .mapNotNull { pluginId ->
@@ -939,10 +939,10 @@ class MCPRepository(private val context: Context) {
                     }
                     .toMap()
                 if (localPluginServiceNames.isEmpty()) {
-                    AppLogger.d(TAG, "No local stdio plugins to synchronize from bridge")
+                    Log.d(TAG, "No local stdio plugins to synchronize from bridge")
                     return@withContext
                 }
-                val bridge = com.ai.assistance.operit.data.mcp.plugins.MCPBridge.getInstance(context)
+                val bridge = me.rerere.data.mcp.plugins.MCPBridge.getInstance(context)
                 val listResponse = bridge.listMcpServices()
 
                 if (listResponse?.optBoolean("success", false) == true) {
@@ -986,12 +986,12 @@ class MCPRepository(private val context: Context) {
                             )
                         }
                     }
-                    AppLogger.d(TAG, "本地 bridge 状态同步完成。活跃插件: ${activePluginIds.joinToString()}")
+                    Log.d(TAG, "本地 bridge 状态同步完成。活跃插件: ${activePluginIds.joinToString()}")
                 } else {
-                    AppLogger.w(TAG, "从桥接器获取服务列表失败")
+                    Log.w(TAG, "从桥接器获取服务列表失败")
                 }
             } catch (e: Exception) {
-                AppLogger.e(TAG, "同步桥接器状态时出错", e)
+                Log.e(TAG, "同步桥接器状态时出错", e)
             }
         }
     }
@@ -1004,9 +1004,9 @@ class MCPRepository(private val context: Context) {
             try {
                 // 重新从MCPLocalServer加载插件信息
                 loadPluginsFromMCPLocalServer()
-                AppLogger.d(TAG, "同步插件安装状态完成，${_installedPluginIds.value.size} 个已安装插件")
+                Log.d(TAG, "同步插件安装状态完成，${_installedPluginIds.value.size} 个已安装插件")
             } catch (e: Exception) {
-                AppLogger.e(TAG, "同步安装状态失败", e)
+                Log.e(TAG, "同步安装状态失败", e)
             }
         }
     }
@@ -1062,7 +1062,7 @@ class MCPRepository(private val context: Context) {
 
                 Result.success(generatedDescription)
             } catch (e: Exception) {
-                AppLogger.e(TAG, "重新生成插件描述失败: $pluginId", e)
+                Log.e(TAG, "重新生成插件描述失败: $pluginId", e)
                 Result.failure(e)
             }
         }
@@ -1154,7 +1154,7 @@ class MCPRepository(private val context: Context) {
             mcpLocalServer.reloadConfigurations()
             // 重新加载插件列表
             loadPluginsFromMCPLocalServer()
-            AppLogger.d(TAG, "插件列表已刷新")
+            Log.d(TAG, "插件列表已刷新")
         }
     }
 
@@ -1166,11 +1166,11 @@ class MCPRepository(private val context: Context) {
      */
     fun registerToolsForLoadedPlugins(successfulPluginIds: List<String>) {
         if (successfulPluginIds.isEmpty()) {
-            AppLogger.d(TAG, "没有成功加载的插件，无需注册工具")
+            Log.d(TAG, "没有成功加载的插件，无需注册工具")
             return
         }
 
-        AppLogger.d(TAG, "开始为 ${successfulPluginIds.size} 个插件注册工具: ${successfulPluginIds.joinToString()}")
+        Log.d(TAG, "开始为 ${successfulPluginIds.size} 个插件注册工具: ${successfulPluginIds.joinToString()}")
 
         val mcpManager = MCPManager.getInstance(context)
         val toolHandler = AIToolHandler.getInstance(context)
@@ -1178,11 +1178,11 @@ class MCPRepository(private val context: Context) {
 
         successfulPluginIds.forEach { pluginId ->
             try {
-                AppLogger.d(TAG, "正在为插件 $pluginId 注册工具...")
+                Log.d(TAG, "正在为插件 $pluginId 注册工具...")
 
                 val pluginMetadata = mcpLocalServer.getPluginMetadata(pluginId)
                 if (pluginMetadata == null) {
-                    AppLogger.w(TAG, "在MCPLocalServer中找不到插件 $pluginId 的元数据")
+                    Log.w(TAG, "在MCPLocalServer中找不到插件 $pluginId 的元数据")
                     return@forEach
                 }
 
@@ -1198,13 +1198,13 @@ class MCPRepository(private val context: Context) {
                     extraData = emptyMap()
                 )
                 mcpManager.registerServer(pluginId, serverConfig, runtimeDescriptor)
-                AppLogger.d(TAG, "已在MCPManager中注册服务器: $pluginId (类型: ${pluginMetadata.type})")
+                Log.d(TAG, "已在MCPManager中注册服务器: $pluginId (类型: ${pluginMetadata.type})")
 
                 // 获取工具信息
                 val toolsToRegister = getToolsForPlugin(pluginId)
 
                 if (toolsToRegister.isEmpty()) {
-                    AppLogger.w(TAG, "插件 $pluginId 没有可注册的工具")
+                    Log.w(TAG, "插件 $pluginId 没有可注册的工具")
                     return@forEach
                 }
 
@@ -1213,7 +1213,7 @@ class MCPRepository(private val context: Context) {
                     val prefixedToolName = "$pluginId:${toolInfo.name}"
 
                     if (toolHandler.getToolExecutor(prefixedToolName) != null) {
-                        AppLogger.d(TAG, "工具 $prefixedToolName 已注册，跳过")
+                        Log.d(TAG, "工具 $prefixedToolName 已注册，跳过")
                         return@forEach
                     }
 
@@ -1232,13 +1232,13 @@ class MCPRepository(private val context: Context) {
                     }
                     AppLogger.i(TAG, "成功注册工具: $prefixedToolName")
                 }
-                AppLogger.d(TAG, "插件 $pluginId 的工具注册完成，共 ${toolsToRegister.size} 个")
+                Log.d(TAG, "插件 $pluginId 的工具注册完成，共 ${toolsToRegister.size} 个")
 
             } catch (e: Exception) {
-                AppLogger.e(TAG, "为插件 $pluginId 注册工具时发生异常", e)
+                Log.e(TAG, "为插件 $pluginId 注册工具时发生异常", e)
             }
         }
-        AppLogger.d(TAG, "所有插件的工具注册流程完成")
+        Log.d(TAG, "所有插件的工具注册流程完成")
     }
 
     /**
@@ -1260,12 +1260,12 @@ class MCPRepository(private val context: Context) {
 
                 mcpManager.unregisterServer(pluginId)
 
-                AppLogger.d(
+                Log.d(
                     TAG,
                     "Runtime MCP entries removed for $pluginId, tools=${toolNamesToRemove.size}"
                 )
             } catch (e: Exception) {
-                AppLogger.e(TAG, "Failed to unregister runtime MCP entries for $pluginId", e)
+                Log.e(TAG, "Failed to unregister runtime MCP entries for $pluginId", e)
             }
         }
     }
@@ -1274,25 +1274,25 @@ class MCPRepository(private val context: Context) {
         // 1. 检查缓存
         val cachedTools = mcpLocalServer.getCachedTools(pluginId)
         if (cachedTools != null && cachedTools.isNotEmpty()) {
-            AppLogger.d(TAG, "从缓存为插件 $pluginId 获取了 ${cachedTools.size} 个工具")
+            Log.d(TAG, "从缓存为插件 $pluginId 获取了 ${cachedTools.size} 个工具")
             return cachedTools.map {
                 UnifiedToolInfo(it.name, it.description, it.inputSchema)
             }
         }
 
         // 2. 如果没有缓存，动态获取
-        AppLogger.d(TAG, "插件 $pluginId 无工具缓存，使用动态连接方式获取")
+        Log.d(TAG, "插件 $pluginId 无工具缓存，使用动态连接方式获取")
         val mcpManager = MCPManager.getInstance(context)
         val serverConfig = mcpManager.getRegisteredServers()[pluginId]
         if (serverConfig == null) {
-            AppLogger.e(TAG, "无法在MCPManager中找到服务器 $pluginId 的配置")
+            Log.e(TAG, "无法在MCPManager中找到服务器 $pluginId 的配置")
             return emptyList()
         }
 
         val mcpLoadResult = MCPPackage.loadFromServer(context, serverConfig)
         val mcpPackage = mcpLoadResult.mcpPackage
         if (mcpPackage == null) {
-            AppLogger.w(
+            Log.w(
                 TAG,
                 "无法从服务器 $pluginId 获取MCP包: ${mcpLoadResult.errorMessage ?: "unknown reason"}"
             )

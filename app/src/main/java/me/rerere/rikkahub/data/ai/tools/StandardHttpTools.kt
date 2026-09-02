@@ -1,12 +1,12 @@
 package me.rerere.rikkahub.data.ai.tools
 
 import android.content.Context
-import com.ai.assistance.operit.util.AppLogger
-import com.ai.assistance.operit.core.tools.HttpStreamEventData
-import com.ai.assistance.operit.core.tools.HttpResponseData
-import com.ai.assistance.operit.core.tools.StringResultData
-import com.ai.assistance.operit.data.model.AITool
-import com.ai.assistance.operit.data.model.ToolResult
+android.util.Log
+me.rerere.rikkahub.tools.HttpStreamEventData
+me.rerere.rikkahub.tools.HttpResponseData
+me.rerere.rikkahub.tools.StringResultData
+me.rerere.rikkahub.data.model.AITool
+me.rerere.rikkahub.data.model.ToolResult
 import java.io.File
 import java.io.StringReader
 import java.net.InetSocketAddress
@@ -147,10 +147,10 @@ class StandardHttpTools(private val context: Context) {
     /** 读取响应体内容，处理编码问题 */
     private fun readResponseBody(responseBody: ResponseBody, contentType: String): String {
         return try {
-            AppLogger.d(TAG, "使用OkHttp内置string()方法读取响应内容")
+            Log.d(TAG, "使用OkHttp内置string()方法读取响应内容")
             responseBody.string()
         } catch (e: Exception) {
-            AppLogger.e(TAG, "读取响应体时发生错误", e)
+            Log.e(TAG, "读取响应体时发生错误", e)
             ""
         }
     }
@@ -161,7 +161,7 @@ class StandardHttpTools(private val context: Context) {
             val bytes = responseBody.bytes()
             android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP)
         } catch (e: Exception) {
-            AppLogger.e(TAG, "读取响应体为Base64时发生错误", e)
+            Log.e(TAG, "读取响应体为Base64时发生错误", e)
             ""
         }
     }
@@ -324,7 +324,7 @@ class StandardHttpTools(private val context: Context) {
                         val charset = response.body?.contentType()?.charset(Charsets.UTF_8) ?: Charsets.UTF_8
                         String(bodyBytes, charset)
                     } catch (e: Exception) {
-                        AppLogger.w(TAG, "Failed to decode response body as text for content-type $contentType", e)
+                        Log.w(TAG, "Failed to decode response body as text for content-type $contentType", e)
                         "[Binary Content, decoding failed]"
                     }
             val httpResponseData =
@@ -444,7 +444,7 @@ class StandardHttpTools(private val context: Context) {
             }
             result
         } catch (e: Exception) {
-            AppLogger.e(TAG, "解析请求头时出错", e)
+            Log.e(TAG, "解析请求头时出错", e)
             emptyMap()
         }
     }
@@ -503,7 +503,7 @@ class StandardHttpTools(private val context: Context) {
 
             cookieList
         } catch (e: Exception) {
-            AppLogger.e(TAG, "解析Cookie时出错", e)
+            Log.e(TAG, "解析Cookie时出错", e)
             null
         }
     }
@@ -606,7 +606,7 @@ class StandardHttpTools(private val context: Context) {
                 }
             }
         } catch (e: Exception) {
-            AppLogger.e(TAG, "管理Cookie时出错", e)
+            Log.e(TAG, "管理Cookie时出错", e)
             ToolResult(
                     toolName = tool.name,
                     success = false,
@@ -798,7 +798,7 @@ class StandardHttpTools(private val context: Context) {
                 val charset = response.body?.contentType()?.charset(Charsets.UTF_8) ?: Charsets.UTF_8
                 responseBodyString = String(bodyBytes, charset)
             } catch (e: Exception) {
-                AppLogger.w(TAG, "Failed to decode response body as text for content-type $contentType", e)
+                Log.w(TAG, "Failed to decode response body as text for content-type $contentType", e)
                 responseBodyString = "[Binary Content, decoding failed]"
             }
             
@@ -818,7 +818,7 @@ class StandardHttpTools(private val context: Context) {
 
             ToolResult(toolName = tool.name, success = true, result = httpResponseData, error = "")
         } catch (e: Exception) {
-            AppLogger.e(TAG, "执行多部分表单请求时出错", e)
+            Log.e(TAG, "执行多部分表单请求时出错", e)
             ToolResult(
                     toolName = tool.name,
                     success = false,

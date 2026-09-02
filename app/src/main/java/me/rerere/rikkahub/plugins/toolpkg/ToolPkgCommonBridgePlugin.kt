@@ -2,35 +2,35 @@ package me.rerere.rikkahub.plugins.toolpkg
 
 import android.content.Context
 import androidx.compose.ui.graphics.Color
-import com.ai.assistance.operit.R
-import com.ai.assistance.operit.core.chat.logMessageTiming
-import com.ai.assistance.operit.core.chat.messageTimingNow
-import com.ai.assistance.operit.core.chat.plugins.MessageProcessingController
-import com.ai.assistance.operit.core.chat.plugins.MessageProcessingExecution
-import com.ai.assistance.operit.core.chat.plugins.MessageProcessingHookParams
-import com.ai.assistance.operit.core.chat.plugins.MessageProcessingPlugin
-import com.ai.assistance.operit.core.chat.plugins.MessageProcessingPluginRegistry
-import com.ai.assistance.operit.core.chat.hooks.PromptTurn
-import com.ai.assistance.operit.core.tools.AIToolHandler
-import com.ai.assistance.operit.core.tools.packTool.PackageManager
-import com.ai.assistance.operit.core.tools.packTool.ToolPkgContainerRuntime
-import com.ai.assistance.operit.core.tools.packTool.TOOLPKG_EVENT_INPUT_MENU_TOGGLE
-import com.ai.assistance.operit.core.tools.packTool.TOOLPKG_EVENT_MESSAGE_PROCESSING
-import com.ai.assistance.operit.core.tools.packTool.TOOLPKG_EVENT_XML_RENDER
-import com.ai.assistance.operit.plugins.OperitPlugin
-import com.ai.assistance.operit.ui.common.markdown.XmlRenderPlugin
-import com.ai.assistance.operit.ui.common.markdown.XmlRenderPluginRegistry
-import com.ai.assistance.operit.ui.common.markdown.XmlRenderResult
-import com.ai.assistance.operit.ui.features.chat.components.style.input.common.InputMenuToggleDefinition
-import com.ai.assistance.operit.ui.features.chat.components.style.input.common.InputMenuToggleHookParams
-import com.ai.assistance.operit.ui.features.chat.components.style.input.common.InputMenuTogglePlugin
-import com.ai.assistance.operit.ui.features.chat.components.style.input.common.InputMenuTogglePluginRegistry
-import com.ai.assistance.operit.util.AppLogger
-import com.ai.assistance.operit.util.stream.Stream
-import com.ai.assistance.operit.core.tools.packTool.ToolPkgXmlRenderHookComposeDslResult
-import com.ai.assistance.operit.core.tools.packTool.ToolPkgXmlRenderHookObjectResult
-import com.ai.assistance.operit.core.tools.javascript.extractJsExecutionErrorMessage
-import com.ai.assistance.operit.util.stream.stream
+import me.rerere.R
+me.rerere.rikkahub.chat.logMessageTiming
+me.rerere.rikkahub.chat.messageTimingNow
+me.rerere.rikkahub.chat.plugins.MessageProcessingController
+me.rerere.rikkahub.chat.plugins.MessageProcessingExecution
+me.rerere.rikkahub.chat.plugins.MessageProcessingHookParams
+me.rerere.rikkahub.chat.plugins.MessageProcessingPlugin
+me.rerere.rikkahub.chat.plugins.MessageProcessingPluginRegistry
+me.rerere.rikkahub.chat.hooks.PromptTurn
+me.rerere.rikkahub.tools.AIToolHandler
+me.rerere.rikkahub.tools.packTool.PackageManager
+me.rerere.rikkahub.tools.packTool.ToolPkgContainerRuntime
+me.rerere.rikkahub.tools.packTool.TOOLPKG_EVENT_INPUT_MENU_TOGGLE
+me.rerere.rikkahub.tools.packTool.TOOLPKG_EVENT_MESSAGE_PROCESSING
+me.rerere.rikkahub.tools.packTool.TOOLPKG_EVENT_XML_RENDER
+me.rerere.OperitPlugin
+me.rerere.common.markdown.XmlRenderPlugin
+me.rerere.common.markdown.XmlRenderPluginRegistry
+me.rerere.common.markdown.XmlRenderResult
+me.rerere.features.chat.components.style.input.common.InputMenuToggleDefinition
+me.rerere.features.chat.components.style.input.common.InputMenuToggleHookParams
+me.rerere.features.chat.components.style.input.common.InputMenuTogglePlugin
+me.rerere.features.chat.components.style.input.common.InputMenuTogglePluginRegistry
+android.util.Log
+me.rerere.stream.Stream
+me.rerere.rikkahub.tools.packTool.ToolPkgXmlRenderHookComposeDslResult
+me.rerere.rikkahub.tools.packTool.ToolPkgXmlRenderHookObjectResult
+me.rerere.rikkahub.tools.javascript.extractJsExecutionErrorMessage
+me.rerere.stream.stream
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CoroutineScope
@@ -240,7 +240,7 @@ private object ToolPkgMessageProcessingBridgePlugin : MessageProcessingPlugin {
 
         val value =
             result.getOrElse { error ->
-                AppLogger.e(
+                Log.e(
                     TAG,
                     "ToolPkg message processing hook failed: ${hook.containerPackageName}:${hook.pluginId}",
                     error
@@ -260,7 +260,7 @@ private object ToolPkgMessageProcessingBridgePlugin : MessageProcessingPlugin {
         val decoded =
             runCatching { decodeHookResult(value) }
                 .getOrElse { error ->
-                    AppLogger.e(
+                    Log.e(
                         TAG,
                         "ToolPkg message processing hook decode failed: ${hook.containerPackageName}:${hook.pluginId}",
                         error
@@ -443,7 +443,7 @@ private class RegisteredMessageProcessingController(
 ) : MessageProcessingController {
     override fun cancel() {
         val handled = ToolPkgMessageProcessingCancellationRegistry.cancel(executionId)
-        AppLogger.d(
+        Log.d(
             TAG,
             "Cancel toolpkg message processing execution: ${hook.containerPackageName}:${hook.pluginId}, executionId=$executionId, handled=$handled"
         )
@@ -500,7 +500,7 @@ private object ToolPkgXmlRenderBridgePlugin : XmlRenderPlugin {
                 }
             val value =
                 result.getOrElse { error ->
-                    AppLogger.e(
+                    Log.e(
                         TOOLPKG_LOG_TAG,
                         "xml-render hook failed tag=$tagName hook=${hook.containerPackageName}:${hook.pluginId}:${hook.functionName}",
                         error
@@ -513,7 +513,7 @@ private object ToolPkgXmlRenderBridgePlugin : XmlRenderPlugin {
             val decoded =
                 runCatching { decodeHookResult(value) }
                     .getOrElse { error ->
-                        AppLogger.e(
+                        Log.e(
                             TOOLPKG_LOG_TAG,
                             "xml-render hook decode failed tag=$tagName hook=${hook.containerPackageName}:${hook.pluginId}:${hook.functionName} raw=${summarizeHookValue(value)}",
                             error
@@ -766,7 +766,7 @@ private object ToolPkgInputMenuToggleBridgePlugin : InputMenuTogglePlugin {
                 val resolved =
                     runCatching { loadSpecs(params = params) }
                         .getOrElse { error ->
-                            AppLogger.e(TAG, "ToolPkg input menu refresh failed", error)
+                            Log.e(TAG, "ToolPkg input menu refresh failed", error)
                             emptyList()
                         }
                 specsCache = resolved
@@ -801,7 +801,7 @@ private object ToolPkgInputMenuToggleBridgePlugin : InputMenuTogglePlugin {
                 )
             val value =
                 result.getOrElse { error ->
-                    AppLogger.e(
+                    Log.e(
                         TAG,
                         "ToolPkg input menu hook failed: ${hook.containerPackageName}:${hook.pluginId}",
                         error
@@ -811,7 +811,7 @@ private object ToolPkgInputMenuToggleBridgePlugin : InputMenuTogglePlugin {
             val decoded =
                 runCatching { decodeHookResult(value) }
                     .getOrElse { error ->
-                        AppLogger.e(
+                        Log.e(
                             TAG,
                             "ToolPkg input menu hook decode failed: ${hook.containerPackageName}:${hook.pluginId}",
                             error

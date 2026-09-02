@@ -4,8 +4,8 @@ import androidx.room.Dao
 import androidx.room.Embedded
 import androidx.room.Query
 import androidx.room.Transaction
-import com.ai.assistance.operit.data.model.MessageEntity
-import com.ai.assistance.operit.data.model.MessageVariantEntity
+me.rerere.rikkahub.data.model.MessageEntity
+me.rerere.rikkahub.data.model.MessageVariantEntity
 
 // SQLite LENGTH/SUBSTR count characters, and this bound keeps every returned text row well below CursorWindow size.
 private const val CONTENT_CHUNK_CHARACTER_COUNT = 65_536

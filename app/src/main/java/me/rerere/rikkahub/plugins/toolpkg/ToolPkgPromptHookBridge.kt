@@ -1,27 +1,27 @@
 package me.rerere.rikkahub.plugins.toolpkg
 
-import com.ai.assistance.operit.core.chat.hooks.PromptFinalizeHook
-import com.ai.assistance.operit.core.chat.hooks.PromptEstimateFinalizeHook
-import com.ai.assistance.operit.core.chat.hooks.PromptEstimateHistoryHook
-import com.ai.assistance.operit.core.chat.hooks.PromptHistoryHook
-import com.ai.assistance.operit.core.chat.hooks.PromptHookContext
-import com.ai.assistance.operit.core.chat.hooks.PromptHookMutation
-import com.ai.assistance.operit.core.chat.hooks.PromptHookRegistry
-import com.ai.assistance.operit.core.chat.hooks.PromptInputHook
-import com.ai.assistance.operit.core.chat.hooks.PromptTurn
-import com.ai.assistance.operit.core.chat.hooks.PromptTurnKind
-import com.ai.assistance.operit.core.chat.hooks.SystemPromptComposeHook
-import com.ai.assistance.operit.core.chat.hooks.ToolPromptComposeHook
-import com.ai.assistance.operit.core.tools.packTool.PackageManager
-import com.ai.assistance.operit.core.tools.packTool.ToolPkgContainerRuntime
-import com.ai.assistance.operit.core.tools.packTool.TOOLPKG_EVENT_PROMPT_FINALIZE
-import com.ai.assistance.operit.core.tools.packTool.TOOLPKG_EVENT_PROMPT_ESTIMATE_FINALIZE
-import com.ai.assistance.operit.core.tools.packTool.TOOLPKG_EVENT_PROMPT_ESTIMATE_HISTORY
-import com.ai.assistance.operit.core.tools.packTool.TOOLPKG_EVENT_PROMPT_HISTORY
-import com.ai.assistance.operit.core.tools.packTool.TOOLPKG_EVENT_PROMPT_INPUT
-import com.ai.assistance.operit.core.tools.packTool.TOOLPKG_EVENT_SYSTEM_PROMPT_COMPOSE
-import com.ai.assistance.operit.core.tools.packTool.TOOLPKG_EVENT_TOOL_PROMPT_COMPOSE
-import com.ai.assistance.operit.util.AppLogger
+me.rerere.rikkahub.chat.hooks.PromptFinalizeHook
+me.rerere.rikkahub.chat.hooks.PromptEstimateFinalizeHook
+me.rerere.rikkahub.chat.hooks.PromptEstimateHistoryHook
+me.rerere.rikkahub.chat.hooks.PromptHistoryHook
+me.rerere.rikkahub.chat.hooks.PromptHookContext
+me.rerere.rikkahub.chat.hooks.PromptHookMutation
+me.rerere.rikkahub.chat.hooks.PromptHookRegistry
+me.rerere.rikkahub.chat.hooks.PromptInputHook
+me.rerere.rikkahub.chat.hooks.PromptTurn
+me.rerere.rikkahub.chat.hooks.PromptTurnKind
+me.rerere.rikkahub.chat.hooks.SystemPromptComposeHook
+me.rerere.rikkahub.chat.hooks.ToolPromptComposeHook
+me.rerere.rikkahub.tools.packTool.PackageManager
+me.rerere.rikkahub.tools.packTool.ToolPkgContainerRuntime
+me.rerere.rikkahub.tools.packTool.TOOLPKG_EVENT_PROMPT_FINALIZE
+me.rerere.rikkahub.tools.packTool.TOOLPKG_EVENT_PROMPT_ESTIMATE_FINALIZE
+me.rerere.rikkahub.tools.packTool.TOOLPKG_EVENT_PROMPT_ESTIMATE_HISTORY
+me.rerere.rikkahub.tools.packTool.TOOLPKG_EVENT_PROMPT_HISTORY
+me.rerere.rikkahub.tools.packTool.TOOLPKG_EVENT_PROMPT_INPUT
+me.rerere.rikkahub.tools.packTool.TOOLPKG_EVENT_SYSTEM_PROMPT_COMPOSE
+me.rerere.rikkahub.tools.packTool.TOOLPKG_EVENT_TOOL_PROMPT_COMPOSE
+android.util.Log
 import java.util.concurrent.atomic.AtomicBoolean
 import org.json.JSONArray
 import org.json.JSONObject
@@ -210,7 +210,7 @@ internal object ToolPkgPromptHookBridge {
             }
             val decoded =
                 result.getOrElse { error ->
-                    AppLogger.e(
+                    Log.e(
                         TAG,
                         "ToolPkg prompt hook failed: $resolvedContainer:$resolvedHookId",
                         error
@@ -219,7 +219,7 @@ internal object ToolPkgPromptHookBridge {
                 }?.let { raw ->
                     runCatching { decodeToolPkgHookResult(raw) }
                         .getOrElse { error ->
-                            AppLogger.e(
+                            Log.e(
                                 TAG,
                                 "ToolPkg prompt hook decode failed: $resolvedContainer:$resolvedHookId",
                                 error

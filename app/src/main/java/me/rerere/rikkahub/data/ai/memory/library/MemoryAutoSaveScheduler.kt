@@ -1,15 +1,15 @@
 package me.rerere.rikkahub.data.ai.memory.library
 
 import android.content.Context
-import com.ai.assistance.operit.api.chat.EnhancedAIService
-import com.ai.assistance.operit.core.tools.AIToolHandler
-import com.ai.assistance.operit.data.db.AppDatabase
-import com.ai.assistance.operit.data.model.FunctionType
-import com.ai.assistance.operit.data.model.MemoryAutoSaveCandidate
-import com.ai.assistance.operit.data.preferences.MemorySearchSettingsPreferences
-import com.ai.assistance.operit.data.preferences.preferencesManager
-import com.ai.assistance.operit.data.repository.MemoryAutoSaveCandidateRepository
-import com.ai.assistance.operit.util.AppLogger
+me.rerere.chat.EnhancedAIService
+me.rerere.rikkahub.tools.AIToolHandler
+me.rerere.rikkahub.data.db.AppDatabase
+me.rerere.rikkahub.data.model.FunctionType
+me.rerere.rikkahub.data.model.MemoryAutoSaveCandidate
+me.rerere.rikkahub.data.preferences.MemorySearchSettingsPreferences
+me.rerere.rikkahub.data.preferences.preferencesManager
+me.rerere.rikkahub.data.repository.MemoryAutoSaveCandidateRepository
+android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -50,7 +50,7 @@ class MemoryAutoSaveScheduler(
         instance = this
         loopJob =
             scope.launch(Dispatchers.IO) {
-                AppLogger.d(TAG, "长期记忆自动保存轮询器已启动")
+                Log.d(TAG, "长期记忆自动保存轮询器已启动")
                 while (isActive) {
                     delay(LOOP_TICK_MS)
                     runOnce()
@@ -69,7 +69,7 @@ class MemoryAutoSaveScheduler(
 
     suspend fun runOnce() {
         if (!isRunning.compareAndSet(false, true)) {
-            AppLogger.d(TAG, "上一轮长期记忆自动保存仍在运行，跳过本轮")
+            Log.d(TAG, "上一轮长期记忆自动保存仍在运行，跳过本轮")
             return
         }
         try {
@@ -100,7 +100,7 @@ class MemoryAutoSaveScheduler(
             val allCandidates = repository.getPendingAndFailedCandidates()
             if (allCandidates.size < MIN_TOTAL_CANDIDATES_TO_EXTRACT) {
                 val nextRunAt = System.currentTimeMillis() + intervalMs
-                AppLogger.d(
+                Log.d(
                     TAG,
                     "候选总条数不足，继续累计并重置下次执行时间: profileId=$profileId, totalCandidates=${allCandidates.size}, nextRunAt=$nextRunAt"
                 )
@@ -117,7 +117,7 @@ class MemoryAutoSaveScheduler(
                 continue
             }
 
-            AppLogger.d(
+            Log.d(
                 TAG,
                 "开始处理长期记忆候选: profileId=$profileId, chats=${groupedCandidates.size}"
             )
@@ -193,9 +193,9 @@ class MemoryAutoSaveScheduler(
         chatId: String,
         candidates: List<MemoryAutoSaveCandidate>,
         repository: MemoryAutoSaveCandidateRepository,
-        chatContentDao: com.ai.assistance.operit.data.dao.ChatContentDao,
+        chatContentDao: me.rerere.data.dao.ChatContentDao,
         toolHandler: AIToolHandler,
-        memoryService: com.ai.assistance.operit.api.chat.llmprovider.AIService
+        memoryService: me.rerere.api.chat.llmprovider.AIService
     ) {
         if (candidates.isEmpty()) return
 
@@ -234,7 +234,7 @@ class MemoryAutoSaveScheduler(
                 }
 
             if (messages.isEmpty()) {
-                AppLogger.w(TAG, "未找到候选对应消息，直接清理候选: profileId=$profileId, chatId=$chatId")
+                Log.w(TAG, "未找到候选对应消息，直接清理候选: profileId=$profileId, chatId=$chatId")
                 repository.deleteCandidates(candidateIds)
                 return
             }
@@ -253,7 +253,7 @@ class MemoryAutoSaveScheduler(
                     }
 
             if (conversationHistory.isEmpty() || conversationHistory.none { it.first == "user" }) {
-                AppLogger.w(TAG, "候选消息缺少有效用户上下文，直接清理候选: profileId=$profileId, chatId=$chatId")
+                Log.w(TAG, "候选消息缺少有效用户上下文，直接清理候选: profileId=$profileId, chatId=$chatId")
                 repository.deleteCandidates(candidateIds)
                 return
             }
@@ -271,7 +271,7 @@ class MemoryAutoSaveScheduler(
                 }
 
             if (memoryContent.isBlank()) {
-                AppLogger.w(TAG, "候选消息缺少可写入的记忆内容，直接清理候选: profileId=$profileId, chatId=$chatId")
+                Log.w(TAG, "候选消息缺少可写入的记忆内容，直接清理候选: profileId=$profileId, chatId=$chatId")
                 repository.deleteCandidates(candidateIds)
                 return
             }
@@ -285,12 +285,12 @@ class MemoryAutoSaveScheduler(
                 profileIdOverride = profileId
             )
             repository.deleteCandidates(candidateIds)
-            AppLogger.d(
+            Log.d(
                 TAG,
                 "长期记忆候选处理成功: profileId=$profileId, chatId=$chatId, candidates=${candidateIds.size}"
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "长期记忆候选处理失败: profileId=$profileId, chatId=$chatId", e)
+            Log.e(TAG, "长期记忆候选处理失败: profileId=$profileId, chatId=$chatId", e)
             repository.markFailed(candidateIds, e.message ?: e.javaClass.simpleName)
         }
     }

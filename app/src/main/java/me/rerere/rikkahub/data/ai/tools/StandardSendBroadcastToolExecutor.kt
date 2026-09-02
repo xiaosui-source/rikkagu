@@ -4,12 +4,12 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import com.ai.assistance.operit.core.tools.IntentResultData
-import com.ai.assistance.operit.core.tools.StringResultData
-import com.ai.assistance.operit.data.model.AITool
-import com.ai.assistance.operit.data.model.ToolResult
-import com.ai.assistance.operit.data.model.ToolValidationResult
-import com.ai.assistance.operit.util.AppLogger
+me.rerere.rikkahub.tools.IntentResultData
+me.rerere.rikkahub.tools.StringResultData
+me.rerere.rikkahub.data.model.AITool
+me.rerere.rikkahub.data.model.ToolResult
+me.rerere.rikkahub.data.model.ToolValidationResult
+android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -100,7 +100,7 @@ class StandardSendBroadcastToolExecutor(private val context: Context) {
                             }
                         }
                     } catch (e: Exception) {
-                        AppLogger.e(TAG, "Error parsing extras", e)
+                        Log.e(TAG, "Error parsing extras", e)
                     }
                 }
             }
@@ -129,7 +129,7 @@ class StandardSendBroadcastToolExecutor(private val context: Context) {
                     )
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, "Error sending broadcast", e)
+            Log.e(TAG, "Error sending broadcast", e)
             ToolResult(
                 toolName = tool.name,
                 success = false,

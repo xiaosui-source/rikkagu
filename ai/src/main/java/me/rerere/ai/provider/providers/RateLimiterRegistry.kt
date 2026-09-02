@@ -1,4 +1,4 @@
-package com.ai.assistance.operit.api.chat.llmprovider
+package me.rerere.api.chat.llmprovider
 
 import java.util.concurrent.ConcurrentHashMap
 

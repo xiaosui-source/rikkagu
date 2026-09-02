@@ -3,21 +3,21 @@ package me.rerere.ai.provider.providers
 import android.content.Context
 import android.os.Environment
 import android.util.Base64
-import com.ai.assistance.operit.R
+import me.rerere.R
 import android.util.Log
-import com.ai.assistance.operit.core.chat.hooks.PromptTurn
-import com.ai.assistance.operit.core.chat.hooks.PromptTurnKind
-import com.ai.assistance.operit.util.FFmpegUtil
-import com.ai.assistance.operit.util.ImagePoolManager
-import com.ai.assistance.operit.util.MediaPoolManager
+me.rerere.rikkahub.chat.hooks.PromptTurn
+me.rerere.rikkahub.chat.hooks.PromptTurnKind
+me.rerere.FFmpegUtil
+me.rerere.ImagePoolManager
+me.rerere.MediaPoolManager
 import com.ai.assistance.mnn.MNNLlmSession
-import com.ai.assistance.operit.data.model.ApiProviderType
-import com.ai.assistance.operit.data.model.ModelOption
-import com.ai.assistance.operit.data.model.ModelParameter
-import com.ai.assistance.operit.data.model.ParameterValueType
-import com.ai.assistance.operit.data.model.ToolPrompt
-import com.ai.assistance.operit.util.stream.Stream
-import com.ai.assistance.operit.util.stream.stream
+me.rerere.rikkahub.data.model.ApiProviderType
+me.rerere.rikkahub.data.model.ModelOption
+me.rerere.rikkahub.data.model.ModelParameter
+me.rerere.rikkahub.data.model.ParameterValueType
+me.rerere.rikkahub.data.model.ToolPrompt
+me.rerere.stream.Stream
+me.rerere.stream.stream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -513,7 +513,7 @@ class MNNProvider(
                 }
             val content =
                 if (!preserveThinkInHistory && turn.kind == PromptTurnKind.ASSISTANT) {
-                    com.ai.assistance.operit.util.ChatUtils.removeThinkingContent(turn.content)
+                    me.rerere.util.ChatUtils.removeThinkingContent(turn.content)
                 } else {
                     turn.content
                 }
@@ -603,7 +603,7 @@ class MNNProvider(
         availableTools: List<ToolPrompt>?,
         preserveThinkInHistory: Boolean,
         onTokensUpdated: suspend (input: Long, cachedInput: Long, output: Long) -> Unit,
-        onUsageReported: (suspend (com.ai.assistance.operit.data.stats.ProviderUsageSnapshot, attempt: Int) -> Unit)?,
+        onUsageReported: (suspend (me.rerere.data.stats.ProviderUsageSnapshot, attempt: Int) -> Unit)?,
         onNonFatalError: suspend (error: String) -> Unit,
         enableRetry: Boolean,
         recordTokenUsage: Boolean,
@@ -679,7 +679,7 @@ class MNNProvider(
             val finalOutputBuffer = StringBuilder()
             val emitDirectly = !useInternalToolCall
             val usageReporter = LocalUsageReporter(
-                com.ai.assistance.operit.data.stats.ProviderUsageNormalizer.SOURCE_MNN,
+                me.rerere.data.stats.ProviderUsageNormalizer.SOURCE_MNN,
                 onUsageReported,
             )
             val success = session.generateStream(safeHistory, requestedMaxNewTokens) { token ->

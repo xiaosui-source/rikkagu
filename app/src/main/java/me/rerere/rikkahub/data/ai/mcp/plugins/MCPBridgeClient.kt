@@ -1,8 +1,8 @@
 package me.rerere.rikkahub.data.ai.mcp.plugins
 
 import android.content.Context
-import com.ai.assistance.operit.util.AppLogger
-import com.ai.assistance.operit.R
+android.util.Log
+import me.rerere.R
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.Dispatchers
@@ -214,13 +214,13 @@ class MCPBridgeClient(private val context: Context, private val serviceName: Str
                 try {
                     // 1. First, try a quick ping. If it's already running and responsive, we're good.
                     if (ping()) {
-                        AppLogger.d(TAG, "Service $serviceName is already connected and responsive.")
+                        Log.d(TAG, "Service $serviceName is already connected and responsive.")
                         isConnected.set(true)
                         setLastConnectionFailureDetail(null)
                         return@withContext true
                     }
 
-                    AppLogger.d(
+                    Log.d(
                             TAG,
                             "Service $serviceName is not immediately responsive. Checking status and attempting to spawn if needed."
                     )
@@ -229,7 +229,7 @@ class MCPBridgeClient(private val context: Context, private val serviceName: Str
                     val serviceInfo = getServiceInfo()
 
                     if (serviceInfo == null) {
-                        AppLogger.w(TAG, "Service $serviceName is not registered with the bridge.")
+                        Log.w(TAG, "Service $serviceName is not registered with the bridge.")
                         isConnected.set(false)
                         setLastConnectionFailureDetail(
                             "Service is not registered with the bridge. The bridge may have restarted, reset, or the runtime service name may not match the plugin ID."
@@ -259,12 +259,12 @@ class MCPBridgeClient(private val context: Context, private val serviceName: Str
                     val errorMsg =
                         spawnResp?.optJSONObject("error")?.optString("message")
                             ?: "service not ready"
-                    AppLogger.e(TAG, "Failed to connect to service $serviceName: $errorMsg")
+                    Log.e(TAG, "Failed to connect to service $serviceName: $errorMsg")
                     isConnected.set(false)
                     setLastConnectionFailureDetail(buildSpawnFailureDetail(spawnResp, errorMsg))
                     return@withContext false
                 } catch (e: Exception) {
-                    AppLogger.e(TAG, "Error connecting to MCP service $serviceName: ${e.message}", e)
+                    Log.e(TAG, "Error connecting to MCP service $serviceName: ${e.message}", e)
                     isConnected.set(false)
                     setLastConnectionFailureDetail(
                         "Exception while connecting: ${e.message ?: e.javaClass.simpleName}"
@@ -298,7 +298,7 @@ class MCPBridgeClient(private val context: Context, private val serviceName: Str
                         }
 
                         // If it's registered but not active, we're not truly connected
-                        AppLogger.d(TAG, "Service $serviceName status - active: $active, ready: $ready")
+                        Log.d(TAG, "Service $serviceName status - active: $active, ready: $ready")
                         return@withContext false
                     }
                     return@withContext false
@@ -340,7 +340,7 @@ class MCPBridgeClient(private val context: Context, private val serviceName: Str
                     }
                     return@withContext response
                 } catch (e: Exception) {
-                    AppLogger.e(TAG, "Exception during spawn for service $serviceName: ${e.message}", e)
+                    Log.e(TAG, "Exception during spawn for service $serviceName: ${e.message}", e)
                     return@withContext null
                 }
             }
@@ -349,7 +349,7 @@ class MCPBridgeClient(private val context: Context, private val serviceName: Str
     suspend fun unspawn(): Boolean =
             withContext(Dispatchers.IO) {
                 try {
-                    AppLogger.d(TAG, "Attempting to unspawn service: $serviceName")
+                    Log.d(TAG, "Attempting to unspawn service: $serviceName")
                     val unspawnResult = MCPBridge.sendCommand(context, buildUnspawnCommand(serviceName))
                     if (unspawnResult?.optBoolean("success", false) == true) {
                         AppLogger.i(TAG, "Service $serviceName unspawned successfully.")
@@ -359,11 +359,11 @@ class MCPBridgeClient(private val context: Context, private val serviceName: Str
                         val error =
                                 unspawnResult?.optJSONObject("error")?.optString("message")
                                         ?: "Unknown error"
-                        AppLogger.e(TAG, "Failed to unspawn service $serviceName: $error")
+                        Log.e(TAG, "Failed to unspawn service $serviceName: $error")
                         return@withContext false
                     }
                 } catch (e: Exception) {
-                    AppLogger.e(TAG, "Exception during unspawn for service $serviceName: ${e.message}", e)
+                    Log.e(TAG, "Exception during unspawn for service $serviceName: ${e.message}", e)
                     return@withContext false
                 }
             }
@@ -379,10 +379,10 @@ class MCPBridgeClient(private val context: Context, private val serviceName: Str
                 try {
                     // Connect if not connected
                     if (!isConnected.get()) {
-                        AppLogger.d(TAG, "尝试重新连接 $serviceName 服务")
+                        Log.d(TAG, "尝试重新连接 $serviceName 服务")
                         val connectSuccess = connect()
                         if (!connectSuccess) {
-                            AppLogger.e(TAG, "无法连接到 $serviceName 服务")
+                            Log.e(TAG, "无法连接到 $serviceName 服务")
                             // 返回一个包含错误信息的响应
                             return@withContext JSONObject().apply {
                                 put("success", false)
@@ -434,14 +434,14 @@ class MCPBridgeClient(private val context: Context, private val serviceName: Str
                                         errorMsg.contains("connection closed") ||
                                         errorMsg.contains("timeout")
                         ) {
-                            AppLogger.w(TAG, "检测到连接错误: $errorMsg, 标记为已断开")
+                            Log.w(TAG, "检测到连接错误: $errorMsg, 标记为已断开")
                             isConnected.set(false)
 
                             // Try to reconnect once
-                            AppLogger.d(TAG, "尝试立即重新连接")
+                            Log.d(TAG, "尝试立即重新连接")
                             if (connect()) {
                                 // If reconnect succeeds, try the call again (one retry)
-                                AppLogger.d(TAG, "重新连接成功，重试工具调用")
+                                Log.d(TAG, "重新连接成功，重试工具调用")
                                 val retryCommand = JSONObject(command.toString())
                                 val retryResponse = MCPBridge.sendCommand(context, retryCommand)
 
@@ -451,11 +451,11 @@ class MCPBridgeClient(private val context: Context, private val serviceName: Str
                             }
                         }
 
-                        AppLogger.e(TAG, "工具调用错误: $errorMsg")
+                        Log.e(TAG, "工具调用错误: $errorMsg")
                         return@withContext response
                     }
                 } catch (e: Exception) {
-                    AppLogger.e(TAG, "Error calling tool $method: ${e.message}", e)
+                    Log.e(TAG, "Error calling tool $method: ${e.message}", e)
                     // Mark as disconnected on exception
                     isConnected.set(false)
                     // 返回包含异常信息的响应
@@ -520,10 +520,10 @@ class MCPBridgeClient(private val context: Context, private val serviceName: Str
                 try {
                     // Connect if not connected
                     if (!isConnected.get()) {
-                        AppLogger.d(TAG, "尝试重新连接 $serviceName 服务以获取工具列表")
+                        Log.d(TAG, "尝试重新连接 $serviceName 服务以获取工具列表")
                         val connectSuccess = connect()
                         if (!connectSuccess) {
-                            AppLogger.e(TAG, "无法连接到 $serviceName 服务")
+                            Log.e(TAG, "无法连接到 $serviceName 服务")
                             return@withContext emptyList()
                         }
                     }
@@ -544,9 +544,9 @@ class MCPBridgeClient(private val context: Context, private val serviceName: Str
                         }
 
                         if (tools.isNotEmpty()) {
-                            AppLogger.d(TAG, "成功获取 ${tools.size} 个工具")
+                            Log.d(TAG, "成功获取 ${tools.size} 个工具")
                         } else {
-                            AppLogger.w(TAG, "服务 $serviceName 未返回任何工具")
+                            Log.w(TAG, "服务 $serviceName 未返回任何工具")
                         }
 
                         return@withContext tools
@@ -561,15 +561,15 @@ class MCPBridgeClient(private val context: Context, private val serviceName: Str
                                         errorMsg.contains("timeout") ||
                                         response == null
                         ) {
-                            AppLogger.w(TAG, "获取工具列表时检测到连接错误，标记为已断开")
+                            Log.w(TAG, "获取工具列表时检测到连接错误，标记为已断开")
                             isConnected.set(false)
                         }
 
-                        AppLogger.e(TAG, "获取工具列表失败: $errorMsg")
+                        Log.e(TAG, "获取工具列表失败: $errorMsg")
                         return@withContext emptyList()
                     }
                 } catch (e: Exception) {
-                    AppLogger.e(TAG, "Error getting tools: ${e.message}")
+                    Log.e(TAG, "Error getting tools: ${e.message}")
                     // Mark as disconnected on exception
                     isConnected.set(false)
                     return@withContext emptyList()
@@ -621,7 +621,7 @@ class MCPBridgeClient(private val context: Context, private val serviceName: Str
                     }
                     return@withContext null
                 } catch (e: Exception) {
-                    AppLogger.e(TAG, "Error getting service info: ${e.message}")
+                    Log.e(TAG, "Error getting service info: ${e.message}")
                     return@withContext null
                 }
             }
@@ -645,7 +645,7 @@ class MCPBridgeClient(private val context: Context, private val serviceName: Str
                         }
                     }
                 } catch (e: Exception) {
-                    AppLogger.e(TAG, "Error getting tool descriptions: ${e.message}")
+                    Log.e(TAG, "Error getting tool descriptions: ${e.message}")
                     return@withContext emptyList()
                 }
             }

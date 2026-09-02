@@ -5,8 +5,8 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import com.ai.assistance.operit.data.model.ChatMessageLocatorPreview
-import com.ai.assistance.operit.data.model.MessageEntity
+me.rerere.rikkahub.data.model.ChatMessageLocatorPreview
+me.rerere.rikkahub.data.model.MessageEntity
 
 /** 消息DAO接口，定义对消息表的数据访问方法 */
 @Dao

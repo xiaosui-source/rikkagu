@@ -5,9 +5,9 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import com.ai.assistance.operit.data.model.ChatEntity
-import com.ai.assistance.operit.data.model.CharacterCardChatStats
-import com.ai.assistance.operit.data.model.CharacterGroupChatStats
+me.rerere.rikkahub.data.model.ChatEntity
+me.rerere.rikkahub.data.model.CharacterCardChatStats
+me.rerere.rikkahub.data.model.CharacterGroupChatStats
 import kotlinx.coroutines.flow.Flow
 
 /** 聊天DAO接口，定义对聊天表的数据访问方法 */

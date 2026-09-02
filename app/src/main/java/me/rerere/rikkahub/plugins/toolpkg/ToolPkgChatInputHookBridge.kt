@@ -1,16 +1,16 @@
 package me.rerere.rikkahub.plugins.toolpkg
 
-import com.ai.assistance.operit.core.tools.packTool.PackageManager
-import com.ai.assistance.operit.core.tools.packTool.TOOLPKG_EVENT_CHAT_INPUT
-import com.ai.assistance.operit.core.tools.packTool.ToolPkgContainerRuntime
-import com.ai.assistance.operit.R
-import com.ai.assistance.operit.ui.features.chat.components.style.input.common.ChatInputEvents
-import com.ai.assistance.operit.ui.features.chat.components.style.input.common.ChatInputHook
-import com.ai.assistance.operit.ui.features.chat.components.style.input.common.ChatInputHookContext
-import com.ai.assistance.operit.ui.features.chat.components.style.input.common.ChatInputHookRegistry
-import com.ai.assistance.operit.ui.features.chat.components.style.input.common.ChatInputHookResult
-import com.ai.assistance.operit.ui.features.chat.components.style.input.common.ChatInputSubmitActions
-import com.ai.assistance.operit.util.AppLogger
+me.rerere.rikkahub.tools.packTool.PackageManager
+me.rerere.rikkahub.tools.packTool.TOOLPKG_EVENT_CHAT_INPUT
+me.rerere.rikkahub.tools.packTool.ToolPkgContainerRuntime
+import me.rerere.R
+me.rerere.features.chat.components.style.input.common.ChatInputEvents
+me.rerere.features.chat.components.style.input.common.ChatInputHook
+me.rerere.features.chat.components.style.input.common.ChatInputHookContext
+me.rerere.features.chat.components.style.input.common.ChatInputHookRegistry
+me.rerere.features.chat.components.style.input.common.ChatInputHookResult
+me.rerere.features.chat.components.style.input.common.ChatInputSubmitActions
+android.util.Log
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -108,7 +108,7 @@ internal object ToolPkgChatInputHookBridge {
                 }
                 val decoded =
                     result.getOrElse { error ->
-                        AppLogger.e(
+                        Log.e(
                             TAG,
                             "ToolPkg chat input hook failed: ${hook.containerPackageName}:${hook.hookId}",
                             error
@@ -117,7 +117,7 @@ internal object ToolPkgChatInputHookBridge {
                     }?.let { raw ->
                         runCatching { decodeToolPkgHookResult(raw) }
                             .getOrElse { error ->
-                                AppLogger.e(
+                                Log.e(
                                     TAG,
                                     "ToolPkg chat input hook decode failed: ${hook.containerPackageName}:${hook.hookId}",
                                     error

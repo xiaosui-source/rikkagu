@@ -1,15 +1,15 @@
 package me.rerere.rikkahub.plugins.toolpkg
 
-import com.ai.assistance.operit.core.application.OperitApplication
-import com.ai.assistance.operit.core.tools.AIToolHook
-import com.ai.assistance.operit.core.tools.AIToolHookDecision
-import com.ai.assistance.operit.core.tools.AIToolHandler
-import com.ai.assistance.operit.core.tools.packTool.PackageManager
-import com.ai.assistance.operit.core.tools.packTool.ToolPkgContainerRuntime
-import com.ai.assistance.operit.core.tools.packTool.TOOLPKG_EVENT_TOOL_LIFECYCLE
-import com.ai.assistance.operit.data.model.AITool
-import com.ai.assistance.operit.data.model.ToolResult
-import com.ai.assistance.operit.util.AppLogger
+me.rerere.rikkahub.application.OperitApplication
+me.rerere.rikkahub.tools.AIToolHook
+me.rerere.rikkahub.tools.AIToolHookDecision
+me.rerere.rikkahub.tools.AIToolHandler
+me.rerere.rikkahub.tools.packTool.PackageManager
+me.rerere.rikkahub.tools.packTool.ToolPkgContainerRuntime
+me.rerere.rikkahub.tools.packTool.TOOLPKG_EVENT_TOOL_LIFECYCLE
+me.rerere.rikkahub.data.model.AITool
+me.rerere.rikkahub.data.model.ToolResult
+android.util.Log
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -78,7 +78,7 @@ internal object ToolPkgToolLifecycleBridge : AIToolHook {
                     inlineFunctionSource = hook.functionSource,
                     eventPayload = eventPayload
                 ).getOrElse { error ->
-                    AppLogger.e(
+                    Log.e(
                         TAG,
                         "ToolPkg tool lifecycle intercept hook failed: ${hook.containerPackageName}:${hook.hookId}",
                         error
@@ -91,7 +91,7 @@ internal object ToolPkgToolLifecycleBridge : AIToolHook {
                 try {
                     decodeToolPkgHookResult(raw)
                 } catch (error: Exception) {
-                    AppLogger.e(
+                    Log.e(
                         TAG,
                         "ToolPkg tool lifecycle intercept hook returned invalid result: ${hook.containerPackageName}:${hook.hookId}",
                         error
@@ -161,7 +161,7 @@ internal object ToolPkgToolLifecycleBridge : AIToolHook {
             )
         )
         if (result.isFailure) {
-            AppLogger.w(TAG, "Tool lifecycle event dropped: $eventName")
+            Log.w(TAG, "Tool lifecycle event dropped: $eventName")
         }
     }
 
@@ -179,7 +179,7 @@ internal object ToolPkgToolLifecycleBridge : AIToolHook {
                     eventPayload = dispatch.eventPayload
                 )
             result.onFailure { error ->
-                AppLogger.e(
+                Log.e(
                     TAG,
                     "ToolPkg tool lifecycle hook failed: ${hook.containerPackageName}:${hook.hookId}",
                     error

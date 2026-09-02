@@ -1,9 +1,9 @@
 package me.rerere.rikkahub.data.ai.mcp.plugins
 
 import android.content.Context
-import com.ai.assistance.operit.core.tools.mcp.McpRuntimeCallResult
-import com.ai.assistance.operit.core.tools.mcp.McpRuntimeSession
-import com.ai.assistance.operit.core.tools.mcp.McpRuntimeTool
+me.rerere.rikkahub.tools.mcp.McpRuntimeCallResult
+me.rerere.rikkahub.tools.mcp.McpRuntimeSession
+me.rerere.rikkahub.tools.mcp.McpRuntimeTool
 import org.json.JSONArray
 import org.json.JSONObject
 

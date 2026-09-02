@@ -1,6 +1,6 @@
 package me.rerere.rikkahub.ui.pages.token.webview
 
-import com.ai.assistance.operit.ui.features.token.network.DeepseekApiConstants
+me.rerere.features.token.network.DeepseekApiConstants
 
 /** 用于WebView中执行的JavaScript脚本 */
 object JsScripts {
