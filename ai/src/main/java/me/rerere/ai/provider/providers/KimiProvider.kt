@@ -1,7 +1,3 @@
-/*
- * Kimi Provider - 适配RikkaHub
- * 基于Operit AI的KimiProvider重写，保持相同功能接口
- */
 package me.rerere.ai.provider.providers
 
 import android.util.Log
@@ -19,8 +15,8 @@ class KimiProvider : Provider<ProviderSetting.OpenAI> {
 
     override suspend fun listModels(providerSetting: ProviderSetting.OpenAI): List<Model> {
         return listOf(
-            Model(id = "kimi-latest", name = "Kimi Latest", isPublic = true),
-            Model(id = "kimi-2024-06", name = "Kimi 2024-06", isPublic = true)
+            Model(modelId = "kimi-latest", displayName = "Kimi Latest"),
+            Model(modelId = "kimi-2024-06", displayName = "Kimi 2024-06")
         )
     }
 
@@ -56,7 +52,7 @@ class KimiProvider : Provider<ProviderSetting.OpenAI> {
         params: EmbeddingGenerationParams
     ): EmbeddingGenerationResult {
         return EmbeddingGenerationResult(
-            model = params.model.id.toString(),
+            model = params.model.modelId,
             embeddings = emptyList()
         )
     }

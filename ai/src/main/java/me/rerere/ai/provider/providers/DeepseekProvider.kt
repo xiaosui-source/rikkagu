@@ -1,7 +1,3 @@
-/*
- * Deepseek Provider - 适配RikkaHub
- * 基于Operit AI的DeepseekProvider重写，保持相同功能接口
- */
 package me.rerere.ai.provider.providers
 
 import android.util.Log
@@ -10,9 +6,6 @@ import kotlinx.coroutines.flow.flow
 import me.rerere.ai.provider.*
 import me.rerere.ai.ui.MessageChunk
 import me.rerere.ai.ui.UIMessage
-import me.rerere.ai.util.estimateTokenCount
-import me.rerere.ai.util.calculateMessageTokens
-import me.rerere.ai.util.trimByTokenLimit
 
 class DeepseekProvider : Provider<ProviderSetting.OpenAI> {
     companion object {
@@ -20,13 +13,10 @@ class DeepseekProvider : Provider<ProviderSetting.OpenAI> {
         private const val DEFAULT_API_URL = "https://api.deepseek.com/v1"
     }
 
-    private val apiKey: String? get() = null
-    private val baseUrl: String get() = DEFAULT_API_URL
-
     override suspend fun listModels(providerSetting: ProviderSetting.OpenAI): List<Model> {
         return listOf(
-            Model(id = "deepseek-chat", name = "DeepSeek Chat", isPublic = true),
-            Model(id = "deepseek-coder", name = "DeepSeek Coder", isPublic = true)
+            Model(modelId = "deepseek-chat", displayName = "DeepSeek Chat"),
+            Model(modelId = "deepseek-coder", displayName = "DeepSeek Coder")
         )
     }
 
@@ -48,7 +38,6 @@ class DeepseekProvider : Provider<ProviderSetting.OpenAI> {
         messages: List<UIMessage>,
         params: TextGenerationParams
     ): Flow<MessageChunk> {
-        Log.d(TAG, "streamText called")
         return flow {
             emit(MessageChunk(
                 id = java.util.UUID.randomUUID().toString(),
@@ -63,7 +52,7 @@ class DeepseekProvider : Provider<ProviderSetting.OpenAI> {
         params: EmbeddingGenerationParams
     ): EmbeddingGenerationResult {
         return EmbeddingGenerationResult(
-            model = params.model.id.toString(),
+            model = params.model.modelId,
             embeddings = emptyList()
         )
     }

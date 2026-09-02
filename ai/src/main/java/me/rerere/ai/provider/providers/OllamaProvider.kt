@@ -1,7 +1,3 @@
-/*
- * Ollama Provider - 适配RikkaHub
- * 基于Operit AI的OllamaProvider重写，保持相同功能接口
- */
 package me.rerere.ai.provider.providers
 
 import android.util.Log
@@ -52,7 +48,7 @@ class OllamaProvider : Provider<ProviderSetting.LocalLLM> {
         params: EmbeddingGenerationParams
     ): EmbeddingGenerationResult {
         return EmbeddingGenerationResult(
-            model = params.model.id.toString(),
+            model = params.model.modelId,
             embeddings = emptyList()
         )
     }
