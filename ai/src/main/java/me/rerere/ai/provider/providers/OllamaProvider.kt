@@ -1,5 +1,13 @@
-import android.util.Log
 
+
+/*
+ * 灵犀 Lingxi
+ * 衍生自 Lingxi (https://github.com/xiaosui-source/rikkagu)，原作者 xiaosui-source
+ * 参考 Operit OllamaProvider
+ * 本项目基于 GNU AGPL v3 开源，详见根目录 LICENSE 文件
+ */
+
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import me.rerere.ai.provider.Provider
@@ -7,7 +15,6 @@ import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.ui.MessageChunk
 import me.rerere.ai.ui.UIMessage
-
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -16,14 +23,8 @@ import me.rerere.ai.provider.EmbeddingGenerationResult
 import me.rerere.ai.provider.ImageGenerationParams
 import me.rerere.ai.provider.ImageGenerationResult
 import me.rerere.ai.provider.ImageEditParams
-/*
- * 灵犀 Lingxi
- * 衍生自 Lingxi (https://github.com/xiaosui-source/rikkagu)，原作者 xiaosui-source
- * 参考 Operit OllamaProvider
- * 本项目基于 GNU AGPL v3 开源，详见根目录 LICENSE 文件
- */
-
 package me.rerere.ai.provider.providers
+
 
 /**
  * Ollama Provider
