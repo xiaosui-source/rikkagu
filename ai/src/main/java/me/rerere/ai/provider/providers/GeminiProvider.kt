@@ -1,33 +1,33 @@
 package me.rerere.ai.provider.providers
 
 import android.util.Log
-import com.ai.assistance.operit.core.chat.hooks.PromptTurn
-import com.ai.assistance.operit.core.chat.hooks.PromptTurnKind
-import com.ai.assistance.operit.core.chat.hooks.toPromptTurns
-import com.ai.assistance.operit.data.model.ApiProviderType
-import com.ai.assistance.operit.data.model.ModelOption
-import com.ai.assistance.operit.data.model.ModelParameter
-import com.ai.assistance.operit.data.model.ToolPrompt
-import com.ai.assistance.operit.data.model.ParameterCategory
-import com.ai.assistance.operit.data.stats.ProviderUsageNormalizer
+import me.rerere.core.chat.hooks.PromptTurn
+import me.rerere.core.chat.hooks.PromptTurnKind
+import me.rerere.core.chat.hooks.toPromptTurns
+import me.rerere.data.model.ApiProviderType
+import me.rerere.data.model.ModelOption
+import me.rerere.data.model.ModelParameter
+import me.rerere.data.model.ToolPrompt
+import me.rerere.data.model.ParameterCategory
+import me.rerere.data.stats.ProviderUsageNormalizer
 import me.rerere.ai.util.ChatUtils
-import com.ai.assistance.operit.util.ChatMarkupRegex
-import com.ai.assistance.operit.util.HttpLogSanitizer
-import com.ai.assistance.operit.util.StreamingJsonXmlConverter
+import me.rerere.util.ChatMarkupRegex
+import me.rerere.util.HttpLogSanitizer
+import me.rerere.util.StreamingJsonXmlConverter
 import me.rerere.ai.util.TokenCacheManager
-import com.ai.assistance.operit.util.exceptions.UserCancellationException
-import com.ai.assistance.operit.util.stream.MutableSharedStream
-import com.ai.assistance.operit.util.stream.Stream
-import com.ai.assistance.operit.util.stream.StreamCollector
-import com.ai.assistance.operit.util.stream.TextStreamEvent
-import com.ai.assistance.operit.util.stream.TextStreamEventType
-import com.ai.assistance.operit.util.stream.withEventChannel
-import com.ai.assistance.operit.util.stream.stream
+import me.rerere.util.exceptions.UserCancellationException
+import me.rerere.util.stream.MutableSharedStream
+import me.rerere.util.stream.Stream
+import me.rerere.util.stream.StreamCollector
+import me.rerere.util.stream.TextStreamEvent
+import me.rerere.util.stream.TextStreamEventType
+import me.rerere.util.stream.withEventChannel
+import me.rerere.util.stream.stream
 import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import android.util.Base64
-import com.ai.assistance.operit.R
+import me.rerere.ai.R
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -43,7 +43,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
-import me.rerere.ai.provider.providers.MediaLinkParser
+import me.rerere.ai.provider.chat.llmprovider.MediaLinkParser
 
 /** Keeps Gemini thinking mapping testable without invoking Android's JVM JSON stubs. */
 internal data class GeminiThinkingConfig(

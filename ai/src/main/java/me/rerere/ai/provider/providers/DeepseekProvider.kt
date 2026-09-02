@@ -1,14 +1,14 @@
 package me.rerere.ai.provider.providers
 
 import android.content.Context
-import com.ai.assistance.operit.core.chat.hooks.PromptTurn
-import com.ai.assistance.operit.core.chat.hooks.PromptTurnKind
+import me.rerere.core.chat.hooks
+import me.rerere.core.chat.hooks
 import android.util.Log
-import com.ai.assistance.operit.data.model.ApiProviderType
-import com.ai.assistance.operit.data.model.ModelParameter
-import com.ai.assistance.operit.data.model.ToolPrompt
-import com.ai.assistance.operit.util.ChatUtils
-import com.ai.assistance.operit.util.stream.Stream
+import me.rerere.rikkahub.data.model.model.ApiProviderType
+import me.rerere.rikkahub.data.model.model.ModelParameter
+import me.rerere.rikkahub.data.model.model.ToolPrompt
+import me.rerere.ai.util.ChatUtils
+import me.rerere.ai.util.stream.Stream
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody
 import org.json.JSONArray

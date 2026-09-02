@@ -1,6 +1,6 @@
 package me.rerere.ai.provider.providers
 
-import com.ai.assistance.operit.data.model.ApiProviderType
+import me.rerere.rikkahub.data.model.model.ApiProviderType
 import okhttp3.OkHttpClient
 
 /**
