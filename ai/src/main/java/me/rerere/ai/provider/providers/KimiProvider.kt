@@ -23,8 +23,8 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.JSONArray
-import org.json.JSONObject
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.buildJsonObject
 import java.io.IOException
 
 /**
@@ -101,12 +101,12 @@ class KimiProvider : Provider<ProviderSetting.OpenAI> {
      * 构建消息数组
      */
     private fun buildMessagesArray(messages: List<UIMessage>): JSONArray {
-        val array = JSONArray()
+        val array = JsonArray(emptyList())
         for (msg in messages) {
             val jsonObject = JSONObject()
             jsonObject.put("role", msg.role.name.lowercase())
             
-            val partsJson = JSONArray()
+            val partsJson = JsonArray(emptyList())
             for (part in msg.parts) {
                 if (part is me.rerere.ai.ui.UIMessagePart.Text) {
                     val partJson = JSONObject()
@@ -125,7 +125,7 @@ class KimiProvider : Provider<ProviderSetting.OpenAI> {
      * 构建工具数组
      */
     private fun buildToolsArray(tools: List<Tool>): JSONArray {
-        val array = JSONArray()
+        val array = JsonArray(emptyList())
         for (tool in tools) {
             val toolJson = JSONObject()
             toolJson.put("type", "function")
@@ -162,14 +162,12 @@ class KimiProvider : Provider<ProviderSetting.OpenAI> {
     }
 
     // 实现接口要求的抽象方法
-    override suspend fun generateImage(
         providerSetting: ProviderSetting,
         params: me.rerere.ai.provider.ImageGenerationParams
     ): me.rerere.ai.ui.ImageGenerationResult {
         return me.rerere.ai.ui.ImageGenerationResult(emptyList())
     }
     
-    override suspend fun generateEmbedding(
         providerSetting: ProviderSetting,
         params: me.rerere.ai.provider.EmbeddingGenerationParams
     ): me.rerere.ai.provider.EmbeddingGenerationResult {
@@ -179,11 +177,35 @@ class KimiProvider : Provider<ProviderSetting.OpenAI> {
         )
     }
     
-    override suspend fun editImage(
         providerSetting: ProviderSetting,
         params: me.rerere.ai.provider.ImageEditParams
     ): me.rerere.ai.ui.ImageGenerationResult {
         return me.rerere.ai.ui.ImageGenerationResult(emptyList())
     }
 
+
+    // 实现接口要求的抽象方法
+    override suspend fun generateImage(
+        providerSetting: ProviderSetting,
+        params: ImageGenerationParams
+    ): ImageGenerationResult {
+        return ImageGenerationResult(emptyList())
+    }
+    
+    override suspend fun generateEmbedding(
+        providerSetting: ProviderSetting,
+        params: EmbeddingGenerationParams
+    ): EmbeddingGenerationResult {
+        return EmbeddingGenerationResult(
+            model = params.model.id.toString(),
+            embeddings = emptyList()
+        )
+    }
+    
+    override suspend fun editImage(
+        providerSetting: ProviderSetting,
+        params: ImageEditParams
+    ): ImageGenerationResult {
+        return ImageGenerationResult(emptyList())
+    }
 }

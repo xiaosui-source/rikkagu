@@ -1,12 +1,3 @@
-/*
- * 灵犀 Lingxi
- * 衍生自 Lingxi (https://github.com/xiaosui-source/rikkagu)，原作者 xiaosui-source
- * 参考 Operit DeepseekProvider
- * 本项目基于 GNU AGPL v3 开源，详见根目录 LICENSE 文件
- */
-
-package me.rerere.ai.provider.providers
-
 import android.util.Log
 
 import kotlinx.coroutines.flow.Flow
@@ -16,6 +7,23 @@ import me.rerere.ai.provider.ProviderSetting
 import me.rerere.ai.provider.TextGenerationParams
 import me.rerere.ai.ui.MessageChunk
 import me.rerere.ai.ui.UIMessage
+
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import me.rerere.ai.provider.EmbeddingGenerationParams
+import me.rerere.ai.provider.EmbeddingGenerationResult
+import me.rerere.ai.provider.ImageGenerationParams
+import me.rerere.ai.provider.ImageGenerationResult
+import me.rerere.ai.provider.ImageEditParams
+/*
+ * 灵犀 Lingxi
+ * 衍生自 Lingxi (https://github.com/xiaosui-source/rikkagu)，原作者 xiaosui-source
+ * 参考 Operit DeepseekProvider
+ * 本项目基于 GNU AGPL v3 开源，详见根目录 LICENSE 文件
+ */
+
+package me.rerere.ai.provider.providers
 
 /**
  * Deepseek Provider
@@ -63,14 +71,12 @@ class DeepseekProvider : Provider<ProviderSetting.OpenAI> {
     }
 
     // 实现接口要求的抽象方法
-    override suspend fun generateImage(
         providerSetting: ProviderSetting,
         params: me.rerere.ai.provider.ImageGenerationParams
     ): me.rerere.ai.ui.ImageGenerationResult {
         return me.rerere.ai.ui.ImageGenerationResult(emptyList())
     }
     
-    override suspend fun generateEmbedding(
         providerSetting: ProviderSetting,
         params: me.rerere.ai.provider.EmbeddingGenerationParams
     ): me.rerere.ai.provider.EmbeddingGenerationResult {
@@ -80,11 +86,35 @@ class DeepseekProvider : Provider<ProviderSetting.OpenAI> {
         )
     }
     
-    override suspend fun editImage(
         providerSetting: ProviderSetting,
         params: me.rerere.ai.provider.ImageEditParams
     ): me.rerere.ai.ui.ImageGenerationResult {
         return me.rerere.ai.ui.ImageGenerationResult(emptyList())
     }
 
+
+    // 实现接口要求的抽象方法
+    override suspend fun generateImage(
+        providerSetting: ProviderSetting,
+        params: ImageGenerationParams
+    ): ImageGenerationResult {
+        return ImageGenerationResult(emptyList())
+    }
+    
+    override suspend fun generateEmbedding(
+        providerSetting: ProviderSetting,
+        params: EmbeddingGenerationParams
+    ): EmbeddingGenerationResult {
+        return EmbeddingGenerationResult(
+            model = params.model.id.toString(),
+            embeddings = emptyList()
+        )
+    }
+    
+    override suspend fun editImage(
+        providerSetting: ProviderSetting,
+        params: ImageEditParams
+    ): ImageGenerationResult {
+        return ImageGenerationResult(emptyList())
+    }
 }
